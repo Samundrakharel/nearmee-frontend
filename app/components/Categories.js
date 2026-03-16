@@ -1,0 +1,127 @@
+'use client';
+
+import Link from 'next/link';
+
+const categories = [
+  {
+    name: 'Restaurants',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/>
+        <path d="M7 2v20"/>
+        <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Plumbers',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Auto Services',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h8l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2M5 17v2m14-2v2"/>
+        <circle cx="7.5" cy="14" r="1.5"/>
+        <circle cx="16.5" cy="14" r="1.5"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Hotels',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21V7a2 2 0 012-2h6v16"/>
+        <path d="M11 7h8a2 2 0 012 2v12"/>
+        <path d="M3 21h18"/>
+        <path d="M7 9h2m-2 4h2m4-4h2m-2 4h2m-2 4h2"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Doctors',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Lawyers',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17M12 3l11 6-11 6L1 9l11-6z"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Salons',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3"/>
+        <line x1="4" y1="21" x2="20" y2="21"/>
+        <line x1="12" y1="16" x2="12" y2="21"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Gyms',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6.5 6.5l11 11"/>
+        <path d="M21 3l-5.5 5.5"/>
+        <path d="M3 21l5.5-5.5"/>
+        <path d="M18.5 5.5L21 3"/>
+        <path d="M5.5 18.5L3 21"/>
+        <path d="M14 4l6 6"/>
+        <path d="M4 14l6 6"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Real Estate',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21h18"/>
+        <path d="M5 21V7l8-4v18"/>
+        <path d="M19 21V11l-6-4"/>
+        <path d="M9 9h1m-1 4h1m4-4h1m-1 4h1"/>
+      </svg>
+    ),
+  },
+  {
+    name: 'Financial Services',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+      </svg>
+    ),
+  },
+];
+
+export default function Categories() {
+  return (
+    <section className="categories-section" id="categories">
+      <h2 className="section-title">Browse by Category</h2>
+      <div className="categories-grid">
+        {categories.map((cat) => {
+          const slug = cat.name.toLowerCase().replace(/\s+/g, '-');
+          return (
+            <Link key={cat.name} href={`/category/${slug}`} style={{ textDecoration: 'none' }}>
+              <div className="category-card" id={`cat-${slug}`}>
+                <div className="category-icon">{cat.icon}</div>
+                <span>{cat.name}</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
