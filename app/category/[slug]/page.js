@@ -22,6 +22,7 @@ const categoryData = {
     businesses: [
       {
         id: 1,
+        slug: 'golden-dragon',
         name: 'Golden Dragon Asian Cuisine',
         type: 'Asian Restaurant',
         rating: 4.7,
@@ -32,6 +33,7 @@ const categoryData = {
       },
       {
         id: 2,
+        slug: 'mama-mia',
         name: 'Mama Mia Italian Kitchen',
         type: 'Italian Restaurant',
         rating: 4.6,
@@ -42,6 +44,7 @@ const categoryData = {
       },
       {
         id: 3,
+        slug: 'sakura-sushi',
         name: 'Sakura Sushi Bar',
         type: 'Japanese Restaurant',
         rating: 4.8,
@@ -52,6 +55,7 @@ const categoryData = {
       },
       {
         id: 4,
+        slug: 'el-fuego',
         name: 'El Fuego Mexican Grill',
         type: 'Mexican Restaurant',
         rating: 4.4,
@@ -73,6 +77,7 @@ const categoryData = {
     businesses: [
       {
         id: 5,
+        slug: 'quickfix-plumbing',
         name: 'QuickFix Plumbing Services',
         type: 'Emergency Plumber',
         rating: 4.9,
@@ -83,6 +88,7 @@ const categoryData = {
       },
       {
         id: 6,
+        slug: 'pro-drain',
         name: 'Pro Drain Solutions',
         type: 'Drain Specialist',
         rating: 4.7,
@@ -115,6 +121,7 @@ function getCategoryInfo(slug) {
     businesses: [
       {
         id: 101,
+        slug: `premier-${slug}`,
         name: `Premier ${formattedName} Services`,
         type: formattedName,
         rating: 4.6,
@@ -125,6 +132,7 @@ function getCategoryInfo(slug) {
       },
       {
         id: 102,
+        slug: `elite-${slug}`,
         name: `Elite ${formattedName} Co.`,
         type: formattedName,
         rating: 4.4,
@@ -256,9 +264,9 @@ export default function CategoryPage() {
                   {biz.address}
                 </div>
                 <p className="business-description">{biz.description}</p>
-                <button className="btn-view-business" id={`view-business-${biz.id}`}>
+                <Link href={`/business/${biz.slug || biz.id}`} className="btn-view-business" id={`view-business-${biz.id}`}>
                   View Business
-                </button>
+                </Link>
               </div>
             </div>
           ))}

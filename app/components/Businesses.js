@@ -1,62 +1,67 @@
 'use client';
 
-const businesses = [
-  {
-    id: 1,
-    name: '1 Seafood & Chicken',
-    type: 'Seafood Restaurant',
-    rating: 4.5,
-    reviews: 245,
-    address: '3456 MacArthur Blvd, Oakland, CA 94602',
-    description:
-      'A beloved local seafood spot known for our fresh catches and Southern-style fried chicken. Family-owned and operated since 1995, we pride ourselves on quality ingredients and generous portions.',
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80',
-  },
-  {
-    id: 2,
-    name: 'Golden Dragon Asian Cuisine',
-    type: 'Asian Restaurant',
-    rating: 4.7,
-    reviews: 389,
-    address: '789 Dundas St W, Toronto, ON M5T 1H4',
-    description:
-      'Authentic Asian fusion cuisine featuring the best of Chinese, Thai, and Vietnamese flavors. Our chefs bring decades of experience creating memorable dining experiences with fresh ingredients.',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80',
-  },
-  {
-    id: 3,
-    name: 'Bella Italia Trattoria',
-    type: 'Italian Restaurant',
-    rating: 4.8,
-    reviews: 512,
-    address: '221 Baker St, London, NW1 6XE',
-    description:
-      'Traditional Italian cuisine made with imported ingredients from Italy. Our wood-fired pizzas and handmade pastas have been delighting customers for over 20 years.',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
-  },
-];
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { getBusinesses } from '../lib/api';
 
 function StarRating({ rating }) {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     if (i <= Math.floor(rating)) {
-      stars.push(
-        <span key={i} className="star">★</span>
-      );
+      stars.push(<span key={i} className="star">★</span>);
     } else if (i - rating < 1 && i - rating > 0) {
-      stars.push(
-        <span key={i} className="star half">★</span>
-      );
+      stars.push(<span key={i} className="star half">★</span>);
     } else {
-      stars.push(
-        <span key={i} className="star empty">★</span>
-      );
+      stars.push(<span key={i} className="star empty">★</span>);
     }
   }
   return <div className="stars">{stars}</div>;
 }
 
 export default function Businesses() {
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBusinesses() {
+      try {
+        const data = await getBusinesses({ page_size: 10 });
+        setBusinesses(data.results || []);
+      } catch (err) {
+        console.error('Error fetching businesses:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBusinesses();
+  }, []);
+
+  const getBusinessLink = (biz) => {
+    return `/business/${biz.slug || biz.id}/nearme.com`;
+  };
+
+  if (loading) {
+    return (
+      <section className="businesses-section" id="businesses">
+        <div className="businesses-header">
+          <h2>Top Businesses Near You</h2>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading businesses...</div>
+      </section>
+    );
+  }
+
+  if (businesses.length === 0) {
+    return (
+      <section className="businesses-section" id="businesses">
+        <div className="businesses-header">
+          <h2>Top Businesses Near You</h2>
+        </div>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No businesses found.</div>
+      </section>
+    );
+  }
+
   return (
     <section className="businesses-section" id="businesses">
       <div className="businesses-header">
@@ -66,7 +71,17 @@ export default function Businesses() {
       {businesses.map((biz) => (
         <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
           <div className="business-image">
-            <img src={biz.image} alt={biz.name} />
+            {biz.image ? (
+              <img src={biz.image} alt={biz.name} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+            )}
           </div>
           <div className="business-info">
             <h3>{biz.name}</h3>
@@ -84,7 +99,9 @@ export default function Businesses() {
               {biz.address}
             </div>
             <p className="business-description">{biz.description}</p>
-            <button className="btn-view-business" id={`view-business-${biz.id}`}>View Business</button>
+            <Link href={getBusinessLink(biz)} className="btn-view-business" id={`view-business-${biz.id}`}>
+              View Business
+            </Link>
           </div>
         </div>
       ))}
