@@ -1,15 +1,46 @@
 'use client';
+import { useEffect, useState } from 'react';
+import { generateAboutUs } from '../lib/api';
 
 export default function BusinessOverview({ business, setActiveTab }) {
+  const [aboutUsContent, setAboutUsContent] = useState(business.about || business.description || '');
+  const [generatingAboutUs, setGeneratingAboutUs] = useState(false);
   const photos = business.photos || [];
   const amenities = business.amenities || [];
   const faqs = business.faqs || [];
+
+  useEffect(() => {
+    // Generate about_us if it doesn't exist or is empty
+    const generateAbout = async () => {
+      if (!business.about && !business.aboutUs && business.slug) {
+        setGeneratingAboutUs(true);
+        try {
+          const response = await generateAboutUs(business.slug);
+          if (response && response.about_us) {
+            setAboutUsContent(response.about_us);
+          }
+        } catch (error) {
+          console.error('Failed to generate about_us:', error);
+        } finally {
+          setGeneratingAboutUs(false);
+        }
+      }
+    };
+
+    generateAbout();
+  }, [business.slug, business.about, business.aboutUs]);
 
   return (
     <div className="business-overview">
       <section className="overview-section" id="about">
         <h2>About</h2>
-        <p>{business.about || business.description || 'No description available.'}</p>
+        {generatingAboutUs ? (
+          <div className="loading-placeholder" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+            Generating About Us...
+          </div>
+        ) : (
+          <p>{aboutUsContent || 'No description available.'}</p>
+        )}
       </section>
 
       {photos.length > 0 && (

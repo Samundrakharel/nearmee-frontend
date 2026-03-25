@@ -75,6 +75,7 @@ export function transformBusiness(biz) {
   const menuPhotos = safeParse(biz.menu_photos, []);
   const googleReviews = safeParse(biz.google_reviews, []);
   const services = safeParse(biz.services, []);
+  const aboutUs = biz.about_us || '';
 
   // Normalize local_reviews into the shape components expect
   const localReviews = Array.isArray(biz.local_reviews) ? biz.local_reviews : [];
@@ -122,7 +123,8 @@ export function transformBusiness(biz) {
     name: biz.name,
     slug: biz.slug,
     description: biz.description || '',
-    about: biz.description || '',
+    about: aboutUs || biz.description || '',
+    // aboutUs: aboutUs, 
     address: biz.address || '',
     phone: biz.phone || '',
     website: biz.website || '',
@@ -275,9 +277,23 @@ export async function getBusinesses(params = {}) {
  * GET /businesses/{slug}/
  * Returns: Business (full detail)
  */
-export async function getBusinessBySlug(slug) {
-  const data = await request(`/businesses/${slug}/`);
-  return transformBusiness(data);
+export async function getBusinessBySlug(slug, queryParams = {}) {
+  const params = new URLSearchParams(queryParams).toString();
+  const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
+  const business = transformBusiness(data);
+
+  // Auto-generate about_us if not yet generated
+  if (!business.aboutUs) {
+    try {
+      const generated = await generateAboutUs(slug);
+      business.aboutUs = generated.about_us || '';
+      business.about = generated.about_us || business.about;
+    } catch (e) {
+      console.error('Failed to generate about_us:', e);
+    }
+  }
+
+  return business;
 }
 
 /**
@@ -311,3 +327,9 @@ export const getCategories = getBusinessTypes;
 export const getTopBusinesses = (location, limit) => getBusinesses({ is_featured: true, page_size: limit, location });
 export const getBusinessById = (id) => getBusinessBySlug(id);
 export const getBusinessesByCategory = (slug, page) => getBusinesses({ business_type: slug, page });
+export async function generateAboutUs(slug, force = false) {
+  const endpoint = force
+    ? `/businesses/${slug}/generate_about_us/?force=true`
+    : `/businesses/${slug}/generate_about_us/`;
+  return request(endpoint, { method: 'POST' });
+}
