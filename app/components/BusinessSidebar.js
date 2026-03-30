@@ -12,7 +12,7 @@ export default function BusinessSidebar({ business, activeTab }) {
   const reviewCategories = business.reviewCategories || [];
 
   return (
-    <aside className="business-sidebar">
+    <aside className="business-sidebar" style={{ height: '100%' }}>
       {activeTab === 'Overview' && reviewCategories.length > 0 && (
         <div className="sidebar-card ratings-card" style={{ marginBottom: '24px', padding: '24px', background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -23,11 +23,11 @@ export default function BusinessSidebar({ business, activeTab }) {
                   <span style={{ fontSize: '1.05rem', color: '#475569' }}>{Number(cat.rating).toFixed(1)}</span>
                 </div>
                 <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    width: `${(cat.rating / 10) * 100}%`, 
-                    height: '100%', 
-                    background: '#509597', 
-                    borderRadius: '4px' 
+                  <div style={{
+                    width: `${(cat.rating / 10) * 100}%`,
+                    height: '100%',
+                    background: '#509597',
+                    borderRadius: '4px'
                   }}></div>
                 </div>
               </div>
@@ -81,31 +81,31 @@ export default function BusinessSidebar({ business, activeTab }) {
             </div>
           )}
         </div>
-        
-        <div className="map-preview" style={{ marginTop: '24px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '450px' }}>
+
+        <div className="map-preview" style={{ marginTop: '24px' }}>
           {business.lat && business.lng ? (
             <iframe
               width="100%"
-              height="100%"
-              style={{ border: 0, borderRadius: '8px', marginBottom: '16px', flex: 1 }}
+              height="335"
+              style={{ border: 0, borderRadius: '8px', marginBottom: '16px' }}
               loading="lazy"
               allowFullScreen
-              src={`https://www.google.com/maps?q=${business.lat},${business.lng}&z=15&output=embed`}
+              src={`https://www.google.com/maps?q=${encodeURIComponent((business.name || '') + ' ' + (business.address || ''))}&z=15&output=embed`}
             ></iframe>
           ) : (
-            <div className="map-placeholder" style={{ flex: 1, minHeight: '250px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+            <div className="map-placeholder" style={{ minHeight: '250px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
             </div>
           )}
-          <a 
-            href={business.lat && business.lng ? `https://www.google.com/maps/dir/?api=1&destination=${business.lat},${business.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address)}`}
-            target="_blank" 
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent((business.name || '') + ' ' + (business.address || ''))}`}
+            target="_blank"
             rel="noopener noreferrer"
-            className="btn-directions" 
-            style={{ width: '100%', display: 'block', padding: '12px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontWeight: '600', cursor: 'pointer', marginTop: 'auto', textAlign: 'center', textDecoration: 'none' }}
+            className="btn-directions"
+            style={{ width: '100%', display: 'block', padding: '12px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontWeight: '600', cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}
           >
             Get Directions
           </a>

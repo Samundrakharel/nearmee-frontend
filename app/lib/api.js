@@ -215,23 +215,111 @@ export function transformBusinessListItem(biz) {
 // ─── Auth ──────────────────────────────────────────────────
 
 /**
- * POST /auth/login
+ * Helper to parse error responses from the backend.
+ * Returns an object with field-level errors.
  */
-export async function login(email, password) {
-  return request('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+async function parseErrorResponse(res) {
+  try {
+    const data = await res.json();
+    // Backend might return { detail: "..." }
+    if (data.detail) {
+      return { _general: data.detail };
+    }
+    // DRF returns non_field_errors for validation errors not tied to a specific field
+    if (data.non_field_errors) {
+      return { _general: Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors };
+    }
+    // Convert field arrays to single strings
+    const errors = {};
+    Object.entries(data).forEach(([key, value]) => {
+      errors[key] = Array.isArray(value) ? value.join(' ') : String(value);
+    });
+    return Object.keys(errors).length > 0 ? errors : { _general: 'Something went wrong.' };
+  } catch {
+    return { _general: `Request failed (${res.status})` };
+  }
 }
 
 /**
- * POST /auth/signup
+ * POST /accounts/register/
+ * Registers a new user (CUSTOMER or BUSINESS_LISTER).
  */
-export async function signup(name, email, password) {
-  return request('/auth/signup', {
+export async function registerUser(userData) {
+  const url = `${API_BASE}/accounts/register/`;
+  const res = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify({ name, email, password }),
+    headers: {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': '69420',
+    },
+    body: JSON.stringify(userData),
   });
+
+  if (!res.ok) {
+    const errors = await parseErrorResponse(res);
+    const err = new Error(errors._general || 'Registration failed');
+    err.fieldErrors = errors;
+    throw err;
+  }
+
+  return res.json();
+}
+
+/**
+ * POST /accounts/login/
+ * Returns { access, refresh } JWT tokens.
+ */
+export async function login(username, password) {
+  const url = `${API_BASE}/accounts/login/`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': '69420',
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!res.ok) {
+    const errors = await parseErrorResponse(res);
+    throw new Error(errors._general || errors.detail || 'Invalid credentials');
+  }
+
+  const data = await res.json();
+
+  // Store tokens
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('nearmee_token', data.access);
+    localStorage.setItem('nearmee_refresh_token', data.refresh);
+  }
+
+  return data;
+}
+
+/**
+ * GET /accounts/me/
+ * Returns the current user's profile.
+ */
+export async function getProfile() {
+  return request('/accounts/me/');
+}
+
+/**
+ * Logout — clear stored tokens.
+ */
+export function logout() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('nearmee_token');
+    localStorage.removeItem('nearmee_refresh_token');
+  }
+}
+
+/**
+ * Check if user is logged in.
+ */
+export function isLoggedIn() {
+  if (typeof window === 'undefined') return false;
+  return !!localStorage.getItem('nearmee_token');
 }
 
 // ─── Business Types (Categories) ───────────────────────────

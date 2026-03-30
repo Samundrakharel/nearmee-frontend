@@ -1,17 +1,49 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { isLoggedIn, logout, getProfile } from '../lib/api';
+
 export default function Header() {
+  const router = useRouter();
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (isLoggedIn()) {
+        setLoggedIn(true);
+        try {
+          const profile = await getProfile();
+          setUserName(profile.first_name || profile.username || '');
+        } catch {
+          // Token might be expired
+          setUserName('');
+        }
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setLoggedIn(false);
+    setUserName('');
+    router.push('/');
+  };
+
   return (
     <header className="header" id="header">
       <div className="header-inner">
         {/* Logo */}
-        <a href="/" className="logo" id="logo">
+        <Link href="/" className="logo" id="logo">
           <svg width="110" height="40" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
             <circle cx="75" cy="20" r="18" fill="#3B82F6" />
             <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
           </svg>
-        </a>
+        </Link>
 
         {/* Search Bar */}
         <div className="search-bar">
@@ -38,8 +70,47 @@ export default function Header() {
 
         {/* Nav Links */}
         <nav className="nav-links">
-          <button className="btn-login" id="btn-login">Login</button>
-          <button className="btn-signup" id="btn-signup">Sign Up</button>
+          {loggedIn ? (
+            <>
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: 'var(--color-text-dark)',
+              }}>
+                <span style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'var(--color-primary)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                }}>
+                  {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                </span>
+                {userName && <span style={{ whiteSpace: 'nowrap' }}>{userName}</span>}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="btn-login"
+                id="btn-logout"
+                style={{ cursor: 'pointer' }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="btn-login" id="btn-login">Login</Link>
+              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link>
+            </>
+          )}
         </nav>
       </div>
     </header>

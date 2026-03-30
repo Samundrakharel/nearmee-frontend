@@ -1,0 +1,255 @@
+{
+    "info": {
+        "_postman_id": "nearmee-accounts-api",
+        "name": "NearMee Accounts API",
+        "description": "API collection for testing User Management in NearMee application.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Register Customer",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"customer_jane\",\n    \"email\": \"jane.doe@gmail.com\",\n    \"password\": \"password123\",\n    \"confirm_password\": \"password123\",\n    \"user_type\": \"CUSTOMER\",\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"phone_number\": \"+1234567890\",\n    \"location\": \"San Francisco, CA\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/register/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "register",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Register Business Lister (Valid Email)",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"biz_owner\",\n    \"email\": \"ceo@freshlybaked.com\",\n    \"password\": \"secure_pass\",\n    \"confirm_password\": \"secure_pass\",\n    \"user_type\": \"BUSINESS_LISTER\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Smith\",\n    \"phone_number\": \"+1987654321\",\n    \"location\": \"New York, NY\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/register/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "register",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Register Business Lister (Invalid Public Email)",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"biz_owner_fail\",\n    \"email\": \"ceo@gmail.com\",\n    \"password\": \"secure_pass\",\n    \"confirm_password\": \"secure_pass\",\n    \"user_type\": \"BUSINESS_LISTER\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Smith\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/register/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "register",
+                        ""
+                    ]
+                },
+                "description": "Should fail with message that public domains like gmail.com are not allowed for business listers."
+            },
+            "response": []
+        },
+        {
+            "name": "Login (Obtain Token)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var jsonData = JSON.parse(responseBody);",
+                            "postman.setEnvironmentVariable(\"access_token\", jsonData.access);",
+                            "postman.setEnvironmentVariable(\"refresh_token\", jsonData.refresh);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username\": \"customer_jane\",\n    \"password\": \"password123\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/login/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "login",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Profile (Me)",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{access_token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/me/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "me",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Change Password",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{access_token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"old_password\": \"password123\",\n    \"new_password\": \"new_secure_pass\",\n    \"confirm_new_password\": \"new_secure_pass\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/change-password/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "change-password",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Password Reset Request",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"jane.doe@gmail.com\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/accounts/password-reset/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "accounts",
+                        "password-reset",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
