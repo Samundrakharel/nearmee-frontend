@@ -1,54 +1,34 @@
 'use client';
 
 export default function BusinessSidebar({ business, activeTab }) {
-  // Parse hours — could be array, JSON string, or null
-  let hoursArray = [];
-  if (Array.isArray(business.hours)) {
-    hoursArray = business.hours;
+  const fullDays = { 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday' };
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    let hours = parseInt(h, 10);
+    const ampm = hours >= 12 ? 'P.M' : 'A.M';
+    hours = hours % 12;
+    hours = hours ? hours : 12; 
+    return `${String(hours).padStart(2, '0')}:${m} ${ampm}`;
+  };
+
+  let parsedHours = {};
+  if (typeof business.hours === 'object' && business.hours !== null && !Array.isArray(business.hours)) {
+    parsedHours = business.hours;
   } else if (typeof business.hours === 'string') {
-    try { hoursArray = JSON.parse(business.hours); } catch { hoursArray = []; }
+    try { 
+      const parsed = JSON.parse(business.hours);
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        parsedHours = parsed;
+      }
+    } catch { }
   }
 
   const reviewCategories = business.reviewCategories || [];
 
   return (
     <aside className="business-sidebar" style={{ height: '100%' }}>
-      {activeTab === 'Overview' && reviewCategories.length > 0 && (
-        <div className="sidebar-card ratings-card" style={{ marginBottom: '24px', padding: '24px', background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {reviewCategories.map((cat, index) => (
-              <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.05rem', color: '#475569' }}>{cat.name}</span>
-                  <span style={{ fontSize: '1.05rem', color: '#475569' }}>{Number(cat.rating).toFixed(1)}</span>
-                </div>
-                <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${(cat.rating / 10) * 100}%`,
-                    height: '100%',
-                    background: '#509597',
-                    borderRadius: '4px'
-                  }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {hoursArray.length > 0 && (
-        <div className="sidebar-card hours-card" style={{ marginBottom: '24px', padding: '24px', background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>Business Hours</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {hoursArray.map((item, index) => (
-              <div key={item.day || index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: item.current ? '#0d7377' : '#475569', fontWeight: item.current ? '700' : '500' }}>
-                <span>{item.day}</span>
-                <span>{item.time || item.hours || ''}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="sidebar-card contact-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>Contact Information</h3>
@@ -82,7 +62,7 @@ export default function BusinessSidebar({ business, activeTab }) {
           )}
         </div>
 
-        <div className="map-preview" style={{ marginTop: '24px' }}>
+        <div id="business-map" className="map-preview" style={{ marginTop: '24px' }}>
           {business.lat && business.lng ? (
             <iframe
               width="100%"
@@ -110,6 +90,65 @@ export default function BusinessSidebar({ business, activeTab }) {
             Get Directions
           </a>
         </div>
+
+        {reviewCategories.length > 0 && (() => {
+          const avgRating = reviewCategories.reduce((acc, cat) => acc + Number(cat.rating), 0) / reviewCategories.length;
+          const displayRating = avgRating.toFixed(1);
+          let textRating = 'Good';
+          if (avgRating >= 9) textRating = 'Exceptional';
+          else if (avgRating >= 8) textRating = 'Excellent';
+          else if (avgRating >= 7) textRating = 'Very Good';
+          
+          return (
+            <div className="ratings-section" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '24px', color: '#509597', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {displayRating} <span style={{ color: '#cbd5e1', fontWeight: '300' }}>|</span> {textRating}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {reviewCategories.map((cat, index) => (
+                  <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.05rem', color: '#475569' }}>{cat.name}</span>
+                      <span style={{ fontSize: '1.05rem', color: '#0f172a', fontWeight: '500' }}>
+                        {Number(cat.rating).toString()}
+                      </span>
+                    </div>
+                    <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${(cat.rating / 10) * 100}%`,
+                        height: '100%',
+                        background: '#509597',
+                        borderRadius: '6px'
+                      }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {Object.keys(parsedHours).length > 0 && (
+          <div id="business-hours" className="hours-section" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#004b91' }}>Hours</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayCode => {
+                const dayData = parsedHours[dayCode];
+                if (!dayData) return null;
+                const timeText = (dayData.open && dayData.close) 
+                  ? `${formatTime(dayData.open)} - ${formatTime(dayData.close)}` 
+                  : ((dayData.closed || dayData.isClosed) ? 'Closed' : 'N/A');
+                
+                return (
+                  <div key={dayCode} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: '400' }}>
+                    <span>{fullDays[dayCode]}</span>
+                    <span>{timeText}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

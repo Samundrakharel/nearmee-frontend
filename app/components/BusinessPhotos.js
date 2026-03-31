@@ -1,8 +1,19 @@
 'use client';
 
+import { useRef } from 'react';
+
 export default function BusinessPhotos({ business }) {
   const rawPhotos = business.photos || [];
   const photos = rawPhotos.filter(Boolean).map(p => typeof p === 'string' ? p : p?.image || p?.google_photo_reference).filter(Boolean);
+
+  const fileInputRef = useRef(null);
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      console.log('Selected photos:', files);
+      // Logic to actually upload the photo to your API goes here
+    }
+  };
 
   return (
     <div className="business-photos-tab">
@@ -31,21 +42,31 @@ export default function BusinessPhotos({ business }) {
           </div>
         ))}
         {/* Add Photos Field */}
-        <div className="photo-item add-photo-btn" style={{
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          aspectRatio: '1/1',
-          border: '2px dashed #cbd5e1',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          background: '#f8fafc',
-          color: 'var(--color-primary)',
-          gap: '12px',
-          transition: 'all 0.2s'
-        }}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          style={{ display: 'none' }} 
+          accept="image/*" 
+          multiple
+        />
+        <div className="photo-item add-photo-btn" 
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            borderRadius: 'var(--radius-md)',
+            overflow: 'hidden',
+            aspectRatio: '1/1',
+            border: '2px dashed #cbd5e1',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            background: '#f8fafc',
+            color: 'var(--color-primary)',
+            gap: '12px',
+            transition: 'all 0.2s'
+          }}
           onMouseOver={(e) => { e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = 'var(--color-primary-light)'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
         >

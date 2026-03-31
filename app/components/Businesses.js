@@ -85,20 +85,24 @@ export default function Businesses() {
           </div>
           <div className="business-info">
             <h3>{biz.name}</h3>
-            <div className="business-type">{biz.type}</div>
-            <div className="business-rating">
-              <StarRating rating={biz.rating} />
-              <span className="rating-number">{biz.rating}</span>
-              <span className="review-count">({biz.reviews} reviews)</span>
-            </div>
-            <div className="business-address">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
-              </svg>
-              {biz.address}
-            </div>
-            <p className="business-description">{biz.description}</p>
+            {biz.type && <div className="business-type">{biz.type}</div>}
+            {biz.rating > 0 && (
+              <div className="business-rating">
+                <StarRating rating={biz.rating} />
+                <span className="rating-number">{biz.rating}</span>
+                {biz.reviews > 0 && <span className="review-count">({biz.reviews} reviews)</span>}
+              </div>
+            )}
+            {biz.address && (
+              <div className="business-address">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                {biz.address}
+              </div>
+            )}
+            {biz.description && <p className="business-description">{biz.description}</p>}
             <Link href={getBusinessLink(biz)} className="btn-view-business" id={`view-business-${biz.id}`}>
               View Business
             </Link>

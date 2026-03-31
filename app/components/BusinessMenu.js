@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function BusinessMenu({ business, setActiveTab }) {
   const menuImages = business.menuImages || [];
   const menuItems = business.menuItems || [];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      console.log('Selected files:', files);
+      // Logic to actually upload the photo to your API goes here
+      // e.g. uploadMenuPhoto(business.id, files[0])
+    }
+  };
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % menuImages.length);
@@ -136,16 +146,19 @@ export default function BusinessMenu({ business, setActiveTab }) {
             </div>
 
             <div style={{ textAlign: 'center', marginTop: '24px' }}>
-              <button style={{ 
-                padding: '10px 24px', 
-                background: '#fff', 
-                border: '1px solid #cbd5e1', 
-                borderRadius: '24px', 
-                fontSize: '0.95rem', 
-                fontWeight: '600',
-                color: '#0f172a',
-                cursor: 'pointer'
-              }}>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                style={{ display: 'none' }} 
+                accept="image/*" 
+                multiple
+              />
+              <button 
+                className="btn-login"
+                onClick={() => fileInputRef.current?.click()}
+                style={{ padding: '8px 24px', fontSize: '0.95rem' }}
+              >
                 Add menu photos
               </button>
             </div>

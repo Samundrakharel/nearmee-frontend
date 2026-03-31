@@ -177,11 +177,12 @@ export function transformBusiness(biz) {
     topReviews: reviewsList.slice(0, 3),
     googleReviews: googleReviews,
     localReviews: localReviews,
-    reviewCategories: [],
+    reviewCategories: safeParse(biz.review_categories, []),
 
     // Legacy compat
     amenities: [],
     faqs: [],
+    extensions: safeParse(biz.extensions, {}),
 
     // Google
     googlePlaceId: biz.google_place_id || '',

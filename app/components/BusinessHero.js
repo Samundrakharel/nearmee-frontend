@@ -39,29 +39,64 @@ export default function BusinessHero({ business }) {
              ) : null}
           </div>
 
-          <div className="business-address-hero" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem', marginBottom: '12px' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <button 
+            className="business-address-hero" 
+            onClick={() => {
+              const el = document.getElementById('business-map');
+              if (el) {
+                const yOffset = -100; // offset for sticky header
+                const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+              }
+            }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              color: '#475569', 
+              fontSize: '1.05rem', 
+              marginBottom: '12px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              textAlign: 'left',
+              textDecoration: 'underline',
+              textDecorationColor: 'transparent',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = 'var(--color-primary)';
+              e.currentTarget.style.textDecorationColor = 'var(--color-primary)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = '#475569';
+              e.currentTarget.style.textDecorationColor = 'transparent';
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
             <span>{business.address}</span>
-          </div>
+          </button>
 
           <div className="business-meta-row" style={{ display: 'flex', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>
             <div className="business-status" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ color: business.isOpen ? '#059669' : '#b91c1c', fontWeight: '600', fontSize: '1.05rem' }}>
                 {business.openState || (business.isOpen ? 'Open' : 'Closed')}
               </span>
-              <button className="btn-see-hours" style={{ 
-                padding: '4px 12px', 
-                background: '#f1f5f9', 
-                border: '1px solid #e2e8f0', 
-                borderRadius: '6px', 
-                fontSize: '0.9rem', 
-                color: '#334155', 
-                cursor: 'pointer',
-                fontWeight: '500'
-              }}>
+              <button 
+                className="btn-login"
+                onClick={() => {
+                  const el = document.getElementById('business-hours');
+                  if (el) {
+                    const yOffset = -100; // offset for sticky header
+                    const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                  }
+                }}
+              >
                 See Hours
               </button>
             </div>

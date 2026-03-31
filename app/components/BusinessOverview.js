@@ -5,6 +5,7 @@ import { generateAboutUs } from '../lib/api';
 export default function BusinessOverview({ business, setActiveTab }) {
   const [aboutUsContent, setAboutUsContent] = useState(business.about || business.description || '');
   const [generatingAboutUs, setGeneratingAboutUs] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const photos = business.photos || [];
   const amenities = business.amenities || [];
   const faqs = business.faqs || [];
@@ -67,19 +68,50 @@ export default function BusinessOverview({ business, setActiveTab }) {
         </section>
       )}
 
-      {amenities.length > 0 && (
-        <section className="overview-section" id="amenities">
-          <h2>Amenities</h2>
-          <div className="amenities-grid">
-            {amenities.map((amenity, index) => (
-              <div key={index} className="amenity-item">
-                <span className="dot"></span>
-                {typeof amenity === 'string' ? amenity : amenity.name}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {Object.keys(business.extensions || {}).length > 0 && (() => {
+        const extensions = business.extensions || {};
+        const allKeys = Object.keys(extensions).filter(k => Array.isArray(extensions[k]) && extensions[k].length > 0);
+        if (allKeys.length === 0) return null;
+
+        const preferredKeys = ['offerings', 'accessibility', 'atmosphere'];
+        const previewKeys = preferredKeys.filter(k => allKeys.includes(k));
+        
+        // If the business doesn't have any of the preferred keys, just show up to 3 keys as a fallback
+        const defaultVisibleKeys = previewKeys.length > 0 ? previewKeys : allKeys.slice(0, 3);
+        const keysToShow = showAllAmenities ? allKeys : defaultVisibleKeys;
+        const hasMore = allKeys.length > defaultVisibleKeys.length;
+
+        return (
+          <section className="overview-section" id="amenities-and-more">
+            <h2>Amenities and More</h2>
+            <div className="extensions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginTop: '16px' }}>
+              {keysToShow.map((key) => (
+                <div key={key} className="extension-category">
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: '600', color: '#0f172a', marginBottom: '12px' }}>
+                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  </h3>
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {extensions[key].map((item, index) => (
+                      <li key={index} style={{ color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                        <span style={{ color: '#64748b', fontSize: '1.2rem', lineHeight: '1' }}>•</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            {hasMore && (
+              <button
+                onClick={() => setShowAllAmenities(!showAllAmenities)}
+                className="btn-see-more"
+              >
+                {showAllAmenities ? 'Show less' : 'See more'}
+              </button>
+            )}
+          </section>
+        );
+      })()}
 
       {faqs.length > 0 && (
         <section className="overview-section" id="faq">

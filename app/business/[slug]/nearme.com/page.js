@@ -10,6 +10,7 @@ import BusinessOverview from '../../../components/BusinessOverview';
 import BusinessSidebar from '../../../components/BusinessSidebar';
 import BusinessReviews from '../../../components/BusinessReviews';
 import BusinessMenu from '../../../components/BusinessMenu';
+import BusinessMenuPreview from '../../../components/BusinessMenuPreview';
 import BusinessPhotos from '../../../components/BusinessPhotos';
 import { getBusinessBySlug } from '../../../lib/api';
 
@@ -40,7 +41,7 @@ export default function BusinessPage() {
   return (
     <div className="business-view-page">
       <Header />
-      {activeTab === 'Menu' ? (
+      {activeTab === 'FullMenu' ? (
         <BusinessMenu business={business} setActiveTab={setActiveTab} />
       ) : (
         <>
@@ -54,7 +55,8 @@ export default function BusinessPage() {
                   {activeTab === 'Overview' && <BusinessOverview business={business} setActiveTab={setActiveTab} />}
                   {activeTab === 'Reviews' && <BusinessReviews business={business} />}
                   {activeTab === 'Photos' && <BusinessPhotos business={business} />}
-                  {!['Overview', 'Reviews', 'Photos'].includes(activeTab) && (
+                  {activeTab === 'Menu' && <BusinessMenuPreview business={business} setActiveTab={setActiveTab} />}
+                  {!['Overview', 'Reviews', 'Photos', 'Menu'].includes(activeTab) && (
                     <div className="tab-placeholder">
                       <h2>{activeTab} Content Coming Soon</h2>
                     </div>
