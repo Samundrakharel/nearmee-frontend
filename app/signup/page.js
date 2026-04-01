@@ -22,6 +22,7 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+977');
   const [location, setLocation] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,7 +44,11 @@ export default function SignUpPage() {
     if (password && confirmPassword && password !== confirmPassword) {
       errors.confirm_password = 'Passwords do not match.';
     }
-    if (!phoneNumber.trim()) errors.phone_number = 'Phone number is required.';
+    if (!phoneNumber.trim()) {
+      errors.phone_number = 'Phone number is required.';
+    } else if (!/^\d{10}$/.test(phoneNumber.trim())) {
+      errors.phone_number = 'Phone number must be exactly 10 digits.';
+    }
     if (!location.trim()) errors.location = 'Location is required.';
     if (!agreedToTerms) errors.terms = 'You must agree to the Terms of Service.';
 
@@ -65,7 +70,7 @@ export default function SignUpPage() {
       user_type: role === 'business' ? 'BUSINESS_LISTER' : 'CUSTOMER',
       first_name: firstName.trim(),
       last_name: lastName.trim(),
-      phone_number: phoneNumber.trim(),
+      phone_number: `${countryCode}${phoneNumber.trim()}`,
       location: location.trim(),
     };
 
@@ -228,11 +233,40 @@ export default function SignUpPage() {
           {/* Phone Number */}
           <div className="auth-input-group">
             <label htmlFor="signup-phone">Phone Number *</label>
-            <div className="auth-input-wrapper" style={fieldErrors.phone_number ? { borderColor: '#dc2626' } : {}}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-              </svg>
-              <input type="tel" id="signup-phone" placeholder="Phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '8px', width: '100%' }}>
+              <div className="auth-input-wrapper" style={{ padding: '0 12px', position: 'relative', ...(fieldErrors.phone_number ? { borderColor: '#dc2626' } : {}) }}>
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'inherit', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
+                >
+                  <option value="+1">+1 (US/CA)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+61">+61 (AU)</option>
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+977">+977 (NP)</option>
+                </select>
+                <div style={{ pointerEvents: 'none', position: 'absolute', right: '12px', display: 'flex', alignItems: 'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div className="auth-input-wrapper" style={fieldErrors.phone_number ? { borderColor: '#dc2626' } : {}}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                </svg>
+                <input
+                  type="tel"
+                  id="signup-phone"
+                  placeholder="Phone number"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, ''); // Only allow numbers
+                    if (val.length <= 10) setPhoneNumber(val); // Limit to 10 digits
+                  }}
+                />
+              </div>
             </div>
             <FieldError field="phone_number" />
           </div>
