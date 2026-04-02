@@ -9,6 +9,7 @@ import BusinessTabs from '../../../components/BusinessTabs';
 import BusinessOverview from '../../../components/BusinessOverview';
 import BusinessSidebar from '../../../components/BusinessSidebar';
 import BusinessReviews from '../../../components/BusinessReviews';
+import BusinessFullReviews from '../../../components/BusinessFullReviews';
 import BusinessMenu from '../../../components/BusinessMenu';
 import BusinessMenuPreview from '../../../components/BusinessMenuPreview';
 import BusinessPhotos from '../../../components/BusinessPhotos';
@@ -35,14 +36,22 @@ export default function BusinessPage() {
     }
   }, [slug]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
+
   if (loading) return <div className="loading" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
   if (!business) return <div className="error" style={{ padding: '100px', textAlign: 'center' }}>Business not found</div>;
 
   return (
     <div className="business-view-page">
       <Header />
-      {activeTab === 'FullMenu' ? (
-        <BusinessMenu business={business} setActiveTab={setActiveTab} />
+      {['FullMenu', 'FullReviews'].includes(activeTab) ? (
+        activeTab === 'FullMenu' ? (
+          <BusinessMenu business={business} setActiveTab={setActiveTab} />
+        ) : (
+          <BusinessFullReviews business={business} setActiveTab={setActiveTab} />
+        )
       ) : (
         <>
           <BusinessHero business={business} />
@@ -53,7 +62,7 @@ export default function BusinessPage() {
               <div className="business-layout">
                 <div className="business-content">
                   {activeTab === 'Overview' && <BusinessOverview business={business} setActiveTab={setActiveTab} />}
-                  {activeTab === 'Reviews' && <BusinessReviews business={business} />}
+                  {activeTab === 'Reviews' && <BusinessReviews business={business} setActiveTab={setActiveTab} />}
                   {activeTab === 'Photos' && <BusinessPhotos business={business} />}
                   {activeTab === 'Menu' && <BusinessMenuPreview business={business} setActiveTab={setActiveTab} />}
                   {!['Overview', 'Reviews', 'Photos', 'Menu'].includes(activeTab) && (

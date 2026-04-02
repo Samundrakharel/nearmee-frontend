@@ -64,13 +64,34 @@ export default function BusinessMenu({ business, setActiveTab }) {
                 ) : null}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem', marginBottom: '8px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <button 
+                onClick={() => {
+                  setActiveTab('Overview');
+                  setTimeout(() => {
+                    const el = document.getElementById('business-map');
+                    if (el) {
+                      const yOffset = -100;
+                      const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+                      window.scrollTo({ top: y, behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem', marginBottom: '8px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent', transition: 'all 0.2s', textAlign: 'left' }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.color = 'var(--color-primary, #0d7377)';
+                  e.currentTarget.style.textDecorationColor = 'var(--color-primary, #0d7377)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.color = '#475569';
+                  e.currentTarget.style.textDecorationColor = 'transparent';
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{business.address}</span>
-              </div>
+              </button>
               
               {business.phone && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem' }}>
