@@ -4,11 +4,15 @@ export default function BusinessHero({ business }) {
   return (
     <div className="business-hero-wrapper">
       <div className="business-cover" style={{ height: '300px', width: '100%', overflow: 'hidden' }}>
-        {business.coverImage ? (
-          <img src={business.coverImage} alt={business.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {(business.coverImage || business.thumbnail) ? (
+          <img
+            src={business.coverImage || business.thumbnail}
+            alt={business.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1e3a5f 0%, #0d7377 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
           </div>
         )}
       </div>
@@ -22,25 +26,25 @@ export default function BusinessHero({ business }) {
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
           </div>
-          
+
           <div className="business-categories" style={{ color: 'var(--color-text-medium)', fontSize: '1.05rem', marginBottom: '8px' }}>
-             {business.categories && business.categories.length > 0 ? (
-                business.categories.map((cat, index) => {
-                  const catName = typeof cat === 'string' ? cat : cat.name;
-                  return (
-                    <span key={index}>
-                      <a href="#" style={{ color: '#475569', textDecoration: 'underline', textDecorationColor: '#cbd5e1' }}>{catName}</a>
-                      {index < business.categories.length - 1 && ', '}
-                    </span>
-                  );
-                })
-             ) : business.type ? (
-                <span style={{ color: '#475569' }}>{business.type}</span>
-             ) : null}
+            {business.categories && business.categories.length > 0 ? (
+              business.categories.map((cat, index) => {
+                const catName = typeof cat === 'string' ? cat : cat.name;
+                return (
+                  <span key={index}>
+                    <a href="#" style={{ color: '#475569', textDecoration: 'underline', textDecorationColor: '#cbd5e1' }}>{catName}</a>
+                    {index < business.categories.length - 1 && ', '}
+                  </span>
+                );
+              })
+            ) : business.type ? (
+              <span style={{ color: '#475569' }}>{business.type}</span>
+            ) : null}
           </div>
 
-          <button 
-            className="business-address-hero" 
+          <button
+            className="business-address-hero"
             onClick={() => {
               const el = document.getElementById('business-map');
               if (el) {
@@ -49,12 +53,12 @@ export default function BusinessHero({ business }) {
                 window.scrollTo({ top: y, behavior: 'smooth' });
               }
             }}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              color: '#475569', 
-              fontSize: '1.05rem', 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#475569',
+              fontSize: '1.05rem',
               marginBottom: '12px',
               background: 'none',
               border: 'none',
@@ -86,7 +90,7 @@ export default function BusinessHero({ business }) {
               <span style={{ color: business.isOpen ? '#059669' : '#b91c1c', fontWeight: '600', fontSize: '1.05rem' }}>
                 {business.openState || (business.isOpen ? 'Open' : 'Closed')}
               </span>
-              <button 
+              <button
                 className="btn-login"
                 onClick={() => {
                   const el = document.getElementById('business-hours');

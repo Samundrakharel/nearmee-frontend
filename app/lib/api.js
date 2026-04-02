@@ -71,6 +71,15 @@ export function transformBusiness(biz) {
     ? biz.images.map(img => (typeof img === 'string' ? img : (img.image || img.google_photo_reference))).filter(Boolean)
     : [];
 
+  // Add thumbnail to the photos array if it exists
+  const allPhotos = [];
+  if (biz.thumbnail) {
+    allPhotos.push(biz.thumbnail);
+  }
+  if (images.length > 0) {
+    allPhotos.push(...images);
+  }
+
   const hours = safeParse(biz.hours, []);
   const menuPhotos = safeParse(biz.menu_photos, []);
   const googleReviews = safeParse(biz.google_reviews, []);
@@ -129,6 +138,7 @@ export function transformBusiness(biz) {
     phone: biz.phone || '',
     website: biz.website || '',
     email: biz.email || '',
+    thumbnail: biz.thumbnail || '',
     coverImage: biz.cover_image || '',
     rating: avgRating,
     totalReviews: totalReviews,
@@ -155,7 +165,7 @@ export function transformBusiness(biz) {
     type: biz.business_type_name || biz.business_type?.name || '',
     categories: categories,
     categoryObjects: biz.categories || [],
-    photos: images,
+    photos: allPhotos,
     images: biz.images || [],
     hours: hours,
     services: services,
@@ -206,7 +216,9 @@ export function transformBusinessListItem(biz) {
     reviews: biz.total_reviews || 0,
     address: biz.address || '',
     description: biz.description || '',
-    image: biz.cover_image || '',
+    image: biz.thumbnail || biz.cover_image || '',
+    thumbnail: biz.thumbnail || '',
+    coverImage: biz.cover_image || '',
     isFeatured: biz.is_featured || false,
     cityName: biz.city_name || '',
     priceRange: biz.price_range || '',
@@ -408,6 +420,82 @@ export async function getBusinessReviews(slug) {
  */
 export async function searchBusinesses(query, location, page = 1) {
   return getBusinesses({ search: query, location, page });
+}
+
+// ─── User Submissions ─────────────────────────────────────
+
+/**
+ * POST /user-menu-photos/
+ * Upload a menu photo for a business.
+ * Requires authentication.
+ */
+export async function uploadMenuPhoto(formData) {
+  const url = `${API_BASE}/user-menu-photos/`;
+
+  const config = {
+    method: 'POST',
+    headers: {},
+  };
+
+  // Attach auth token
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('nearmee_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const res = await fetch(url, config);
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(error.detail || `Upload failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * POST /user-reviews/
+ * Submit a review for a business.
+ * Requires authentication.
+ */
+export async function submitReview(reviewData) {
+  return request('/user-reviews/', {
+    method: 'POST',
+    body: JSON.stringify(reviewData),
+  });
+}
+
+/**
+ * POST /user-business-submissions/
+ * Submit a new business for listing.
+ * Requires authentication.
+ */
+export async function submitBusiness(formData) {
+  const url = `${API_BASE}/user-business-submissions/`;
+
+  const config = {
+    method: 'POST',
+    headers: {},
+  };
+
+  // Attach auth token
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('nearmee_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const res = await fetch(url, config);
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(error.detail || `Submission failed: ${res.status}`);
+  }
+
+  return res.json();
 }
 
 // ─── Legacy aliases ────────────────────────────────────────
