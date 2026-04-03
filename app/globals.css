@@ -464,7 +464,7 @@ input {
 }
 
 .section-title {
-  text-align: center;
+  text-align: left;
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-text-dark);

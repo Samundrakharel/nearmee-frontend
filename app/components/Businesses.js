@@ -25,7 +25,7 @@ export default function Businesses() {
   useEffect(() => {
     async function fetchBusinesses() {
       try {
-        const data = await getBusinesses({ page_size: 10 });
+        const data = await getBusinesses({ page_size: 5 });
         setBusinesses(data.results || []);
       } catch (err) {
         console.error('Error fetching businesses:', err);
@@ -65,10 +65,10 @@ export default function Businesses() {
   return (
     <section className="businesses-section" id="businesses">
       <div className="businesses-header">
-        <h2>Top Businesses Near You</h2>
+        <h2>Top 5 Businesses Near You</h2>
         <a href="#" className="view-all-link" id="view-all-link">View All</a>
       </div>
-      {businesses.map((biz) => (
+      {businesses.slice(0, 5).map((biz) => (
         <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
           <div className="business-image">
             {biz.image ? (
@@ -76,9 +76,9 @@ export default function Businesses() {
             ) : (
               <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
                 </svg>
               </div>
             )}

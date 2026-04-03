@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
-import { getBusinessTypeBySlug, getBusinesses } from '../../../lib/api';
+import { getCategoryBySlug, getBusinessesByCategorySlug } from '../../../lib/api';
 import '../../category.css';
 
 const ratings = ['4', '3', '2'];
@@ -39,6 +39,10 @@ export default function CategoryPage() {
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [selectedNeighborhoods, setSelectedNeighborhoods] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilters, setActiveFilters] = useState({
+    rating: '',
+    neighborhood: ''
+  });
 
   // Fetch category info and businesses
   useEffect(() => {
@@ -46,11 +50,15 @@ export default function CategoryPage() {
       setLoading(true);
       try {
         // Fetch category details
-        const catData = await getBusinessTypeBySlug(slug).catch(() => null);
+        const catData = await getCategoryBySlug(slug).catch(() => null);
         setCategoryInfo(catData);
 
-        // Fetch businesses for this category
-        const bizData = await getBusinesses({ business_type: slug, page: currentPage });
+        // Fetch businesses for this category with filters
+        const bizData = await getBusinessesByCategorySlug(slug, { 
+          page: currentPage, 
+          rating: activeFilters.rating,
+          neighborhood: activeFilters.neighborhood
+        });
         setBusinesses(bizData.results || []);
         setTotalResults(bizData.count || 0);
         setTotalPages(bizData.total_pages || 1);
@@ -61,7 +69,19 @@ export default function CategoryPage() {
       }
     }
     fetchData();
-  }, [slug, currentPage]);
+  }, [slug, currentPage, activeFilters]);
+
+  const handleApplyFilters = () => {
+    setActiveFilters({
+      rating: selectedRatings.length > 0 ? selectedRatings[0] : '',
+      neighborhood: selectedNeighborhoods.length > 0 ? selectedNeighborhoods[0] : ''
+    });
+    setCurrentPage(1);
+  };
+
+  const toggleRatingFilter = (value) => {
+    setSelectedRatings((prev) => (prev.includes(value) ? [] : [value]));
+  };
 
   const formattedTitle = categoryInfo?.name || slug
     .split('-')
@@ -94,7 +114,7 @@ export default function CategoryPage() {
               <div
                 key={r}
                 className={`filter-option ${selectedRatings.includes(r) ? 'active' : ''}`}
-                onClick={() => toggleFilter(r, selectedRatings, setSelectedRatings)}
+                onClick={() => toggleRatingFilter(r)}
               >
                 <span className="filter-checkbox" />
                 {r}★ &amp; up
@@ -116,7 +136,11 @@ export default function CategoryPage() {
             ))}
           </div>
 
-          <button className="btn-apply-filters" id="btn-apply-filters">
+          <button 
+            className="btn-apply-filters" 
+            id="btn-apply-filters"
+            onClick={handleApplyFilters}
+          >
             Apply Filters
           </button>
         </aside>

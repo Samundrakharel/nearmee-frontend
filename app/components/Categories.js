@@ -1,119 +1,141 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { getBusinesses } from '../lib/api';
 
-// Default SVG icons for common business types
+// Custom minimal SVG icons for specific business types matching user mockups
 const defaultIcons = {
-  restaurants: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/>
-      <path d="M7 2v20"/>
-      <path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
+  asian: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 21L21 7"></path>
+      <path d="M7 17l4-4"></path>
+      <path d="M3 21l3.5-3.5"></path>
+      <path d="M14 6l4-4"></path>
+      <circle cx="10" cy="10" r="3"></circle>
     </svg>
   ),
-  plumbers: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+  japanese: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12c0 2.2-2.5 4.5-5 5.5-2.5 1-6.5 1-9.5-1C4 14 2 12 2 12s2-2 5.5-4.5c3-2 7-2 9.5-1 2.5 1 5 3.5 5 5.5z"></path>
+      <path d="M15 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"></path>
+      <path d="M22 12l-4-4"></path>
+      <path d="M22 12l-4 4"></path>
+      <path d="M2 12l4-4"></path>
+      <path d="M2 12l4 4"></path>
     </svg>
   ),
-  'auto-services': (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h8l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2M5 17v2m14-2v2"/>
-      <circle cx="7.5" cy="14" r="1.5"/>
-      <circle cx="16.5" cy="14" r="1.5"/>
+  bagel: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2A9.5 9.5 0 0 0 3 10.5c0 2 1.3 4 3 5.5C8 17.5 10 18 12 18s4-.5 6-2c1.7-1.5 3-3.5 3-5.5A9.5 9.5 0 0 0 12 2z"></path>
+      <ellipse cx="12" cy="10.5" rx="3" ry="2.5"></ellipse>
+      <path d="M5 16s2 3 7 3 7-3 7-3"></path>
     </svg>
   ),
-  hotels: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21V7a2 2 0 012-2h6v16"/>
-      <path d="M11 7h8a2 2 0 012 2v12"/>
-      <path d="M3 21h18"/>
-      <path d="M7 9h2m-2 4h2m4-4h2m-2 4h2m-2 4h2"/>
+  bakery: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22a9 9 0 0 0 9-9c0-3-1.5-6-4.5-7.5C13.5 4 11 2 11 2c-1 3-3 5-5.5 6.5C3 10 2 12 2 15a9 9 0 0 0 10 7z"></path>
+      <path d="M8 14h8"></path>
+      <path d="M9 18h6"></path>
     </svg>
   ),
-  doctors: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+  breakfast: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="12" rx="6" ry="8"></ellipse>
     </svg>
   ),
-  lawyers: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17M12 3l11 6-11 6L1 9l11-6z"/>
+  caterer: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+      <line x1="6" y1="17" x2="18" y2="17"></line>
     </svg>
   ),
-  salons: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3"/>
-      <line x1="4" y1="21" x2="20" y2="21"/>
-      <line x1="12" y1="16" x2="12" y2="21"/>
+  truck: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="3" width="15" height="13"></rect>
+      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+      <circle cx="5.5" cy="18.5" r="2.5"></circle>
+      <circle cx="18.5" cy="18.5" r="2.5"></circle>
     </svg>
   ),
-  gyms: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6.5 6.5l11 11"/>
-      <path d="M21 3l-5.5 5.5"/>
-      <path d="M3 21l5.5-5.5"/>
-      <path d="M18.5 5.5L21 3"/>
-      <path d="M5.5 18.5L3 21"/>
-      <path d="M14 4l6 6"/>
-      <path d="M4 14l6 6"/>
+  chicken: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m14 10 4-4a3.53 3.53 0 0 0-5-5l-4 4"></path>
+      <path d="m10 14-4 4a3.53 3.53 0 0 0 5 5l4-4"></path>
+      <path d="M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0"></path>
     </svg>
   ),
-  'real-estate': (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21h18"/>
-      <path d="M5 21V7l8-4v18"/>
-      <path d="M19 21V11l-6-4"/>
-      <path d="M9 9h1m-1 4h1m4-4h1m-1 4h1"/>
+  coffee: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+      <line x1="6" y1="1" x2="6" y2="4"></line>
+      <line x1="10" y1="1" x2="10" y2="4"></line>
+      <line x1="14" y1="1" x2="14" y2="4"></line>
     </svg>
   ),
-  'financial-services': (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="1" x2="12" y2="23"/>
-      <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+  delivery: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="7" cy="17" r="3"></circle>
+      <circle cx="17" cy="17" r="3"></circle>
+      <line x1="14" y1="17" x2="10" y2="17"></line>
+      <polyline points="14 14 17 14 19 11"></polyline>
+      <path d="M12 14v-4l-3-3h-4"></path>
+      <path d="M5 14v-2"></path>
     </svg>
   ),
   default: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21h18"/>
-      <path d="M5 21V7l8-4v18"/>
-      <path d="M19 21V11l-6-4"/>
-      <path d="M9 9h1m-1 4h1m4-4h1m-1 4h1"/>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"></path>
+      <path d="M3 9h18"></path>
     </svg>
-  ),
+  )
 };
 
 function getCategoryIcon(name) {
   const key = name?.toLowerCase() || '';
-  if (key.includes('restaurant') || key.includes('food')) return defaultIcons['restaurants'];
-  if (key.includes('plumb')) return defaultIcons['plumbers'];
-  if (key.includes('auto') || key.includes('car')) return defaultIcons['auto-services'];
-  if (key.includes('hotel') || key.includes('stay')) return defaultIcons['hotels'];
-  if (key.includes('doctor') || key.includes('clinic') || key.includes('medical')) return defaultIcons['doctors'];
-  if (key.includes('lawyer') || key.includes('legal')) return defaultIcons['lawyers'];
-  if (key.includes('salon') || key.includes('spa') || key.includes('barber')) return defaultIcons['salons'];
-  if (key.includes('gym') || key.includes('fitness') || key.includes('health')) return defaultIcons['gyms'];
-  if (key.includes('real estate') || key.includes('property')) return defaultIcons['real-estate'];
-  if (key.includes('finance') || key.includes('bank') || key.includes('financial')) return defaultIcons['financial-services'];
+  if (key.includes('asian')) return defaultIcons['asian'];
+  if (key.includes('japan')) return defaultIcons['japanese'];
+  if (key.includes('bagel')) return defaultIcons['bagel'];
+  if (key.includes('bakery')) return defaultIcons['bakery'];
+  if (key.includes('breakfast')) return defaultIcons['breakfast'];
+  if (key.includes('cater') && key.includes('suppl')) return defaultIcons['truck'];
+  if (key.includes('cater')) return defaultIcons['caterer'];
+  if (key.includes('chicken')) return defaultIcons['chicken'];
+  if (key.includes('coffee')) return defaultIcons['coffee'];
+  if (key.includes('delivery')) return defaultIcons['delivery'];
   
-  return null;
+  return defaultIcons.default;
 }
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const scrollContainerRef = useRef(null);
+  const loadingScrollContainerRef = useRef(null);
+
+  const scrollLeft = (ref) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: -344, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = (ref) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: 344, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const { getBusinessTypes } = await import('../lib/api');
-        const data = await getBusinessTypes();
+        const { getRestaurantCategories } = await import('../lib/api');
+        const data = await getRestaurantCategories();
         const results = data.results || [];
         setCategories(results.filter(cat => cat.is_active !== false));
       } catch (err) {
-        console.error('Error fetching business types:', err);
+        console.error('Error fetching restaurant categories:', err);
       } finally {
         setLoading(false);
       }
@@ -123,41 +145,191 @@ export default function Categories() {
 
   if (loading) {
     return (
-      <section className="categories-section" id="categories">
-        <h2 className="section-title">Browse by Category</h2>
-        <div className="categories-grid">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="category-card" style={{ opacity: 0.5, animation: 'pulse 1.5s infinite' }}>
-              <div className="category-icon" style={{ width: 28, height: 28, background: '#e2e8f0', borderRadius: '50%' }} />
-              <span style={{ width: 60, height: 14, background: '#e2e8f0', borderRadius: 4, display: 'inline-block' }} />
+      <section className="categories-section" id="categories" style={{ padding: '60px 0', background: '#f8f9fa' }}>
+        <div className="container">
+          <h2 className="section-title">Browse by Category</h2>
+          <div 
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <button 
+              onClick={() => scrollLeft(loadingScrollContainerRef)}
+              style={{
+                position: 'absolute', left: '-20px', top: '50%', transform: 'translateY(-50%)',
+                zIndex: 10, width: '40px', height: '40px', borderRadius: '50%',
+                background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                color: '#64748b',
+                opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: isHovered ? 'auto' : 'none'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div 
+              ref={loadingScrollContainerRef}
+              style={{ 
+                display: 'flex', overflowX: 'auto', gap: '24px', paddingBottom: '8px', 
+                scrollbarWidth: 'none', msOverflowStyle: 'none'
+              }}
+              className="hide-scrollbar"
+            >
+            {[...Array(6)].map((_, i) => (
+              <div key={i} style={{ 
+                minWidth: '280px',
+                height: '180px', 
+                borderRadius: '12px', 
+                background: '#fff',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', opacity: 0.5, animation: 'pulse 1.5s infinite' 
+              }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#e0f2fe' }} />
+                <span style={{ width: '120px', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
+              </div>
+            ))}
             </div>
-          ))}
+            <button 
+              onClick={() => scrollRight(loadingScrollContainerRef)}
+              style={{
+                position: 'absolute', right: '-20px', top: '50%', transform: 'translateY(-50%)',
+                zIndex: 10, width: '40px', height: '40px', borderRadius: '50%',
+                background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                color: '#64748b',
+                opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: isHovered ? 'auto' : 'none'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="categories-section" id="categories">
-      <h2 className="section-title">Browse by Category</h2>
-      <div className="categories-grid">
-        {categories.map((cat) => {
-          const slug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
-          return (
-            <Link key={cat.id || cat.name} href={`/category/${slug}/nearme.com`} style={{ textDecoration: 'none' }}>
-              <div className="category-card" id={`cat-${slug}`}>
-                <div className="category-icon">
-                  {getCategoryIcon(cat.name) || (cat.icon && (cat.icon.startsWith('http') || cat.icon.startsWith('/')) ? (
-                    <img src={cat.icon} alt={cat.name} style={{ width: 28, height: 28, objectFit: 'contain' }} />
-                  ) : (
-                    defaultIcons.default
-                  ))}
+    <section className="categories-section" id="categories" style={{ padding: '60px 0', background: '#f8f9fa' }}>
+      <div className="container">
+        <h2 className="section-title">Browse by Category</h2>
+        <style>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div 
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <button 
+            onClick={() => scrollLeft(scrollContainerRef)}
+            style={{
+              position: 'absolute', left: '-20px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 10, width: '48px', height: '48px', borderRadius: '50%',
+              background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              color: '#0ea5e9', transition: 'all 0.2s', opacity: isHovered ? 1 : 0, pointerEvents: isHovered ? 'auto' : 'none'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div 
+            ref={scrollContainerRef}
+            style={{ 
+              display: 'flex', 
+              overflowX: 'auto',
+              gap: '24px', 
+              paddingBottom: '24px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              scrollBehavior: 'smooth'
+            }}
+            className="hide-scrollbar"
+          >
+          {categories.map((cat) => {
+            const slug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
+            
+            // Note: Currently API doesn't return business counts, using fallback text if property is missing
+            const businessCountText = cat.business_count || cat.businesses_count 
+              ? `${cat.business_count || cat.businesses_count} businesses`
+              : 'Explore businesses';
+
+            return (
+              <Link key={cat.id || cat.name} href={`/category/${slug}/nearme.com`} style={{ textDecoration: 'none', minWidth: '320px' }}>
+                <div 
+                  className="category-card-modern" 
+                  id={`cat-${slug}`}
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '32px 24px',
+                    gap: '12px',
+                    background: '#fff',
+                    borderRadius: '12px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    transition: 'box-shadow 0.2s',
+                    cursor: 'pointer',
+                    height: '100%',
+                    border: '1px solid #f1f5f9'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.08)'}
+                  onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'}
+                >
+                  <div style={{ 
+                    width: '64px', 
+                    height: '64px', 
+                    borderRadius: '50%', 
+                    background: 'rgba(14, 165, 233, 0.1)', // Light blue theme circle background
+                    color: '#0ea5e9', // Blue icon stroke
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '8px'
+                  }}>
+                    {getCategoryIcon(cat.name)}
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <h3 style={{ 
+                      color: '#0f172a', 
+                      fontWeight: '600', 
+                      fontSize: '1rem', 
+                      margin: '0 0 6px 0' 
+                    }}>
+                      {cat.name}
+                    </h3>
+                    <p style={{
+                      color: '#64748b',
+                      fontSize: '0.85rem',
+                      margin: 0
+                    }}>
+                      {businessCountText}
+                    </p>
+                  </div>
                 </div>
-                <span>{cat.name}</span>
-              </div>
-            </Link>
-          );
-        })}
+              </Link>
+            );
+          })}
+          </div>
+          <button 
+            onClick={() => scrollRight(scrollContainerRef)}
+            style={{
+              position: 'absolute', right: '-20px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 10, width: '48px', height: '48px', borderRadius: '50%',
+              background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              color: '#0ea5e9', transition: 'all 0.2s', opacity: isHovered ? 1 : 0, pointerEvents: isHovered ? 'auto' : 'none'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        
       </div>
     </section>
   );

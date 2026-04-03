@@ -353,6 +353,46 @@ export async function getBusinessTypeBySlug(slug) {
   return request(`/business-types/${slug}/`);
 }
 
+/**
+ * GET /categories/
+ * Fetch restaurant categories
+ */
+export async function getRestaurantCategories(page = 1) {
+  return request(`/categories/?page=${page}`);
+}
+
+/**
+ * GET /categories/{slug}/
+ * Fetch a specific category
+ */
+export async function getCategoryBySlug(slug) {
+  return request(`/categories/${slug}/`);
+}
+
+/**
+ * GET /categories/{slug}/businesses/
+ * Fetch businesses for a specific category with optional filters
+ */
+export async function getBusinessesByCategorySlug(slug, params = {}) {
+  const searchParams = new URLSearchParams();
+  const page = params.page || 1;
+  searchParams.append('page', page);
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (key !== 'page' && value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+
+  const query = searchParams.toString();
+  const data = await request(`/categories/${slug}/businesses/?${query}`);
+  return {
+    ...data,
+    // Safely map if results exist, otherwise assume data is an array
+    results: (data.results || (Array.isArray(data) ? data : [])).map(transformBusinessListItem),
+  };
+}
+
 // ─── Businesses ────────────────────────────────────────────
 
 /**
