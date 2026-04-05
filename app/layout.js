@@ -1,4 +1,5 @@
 import './globals.css';
+import { LocationProvider } from './context/LocationContext';
 
 export const metadata = {
   title: 'Nearmee - Find the Best Local Businesses Near You',
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LocationProvider>
+          {children}
+        </LocationProvider>
+      </body>
     </html>
   );
 }

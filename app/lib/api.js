@@ -318,6 +318,17 @@ export async function getProfile() {
 }
 
 /**
+ * PATCH /accounts/me/
+ * Updates the current user's profile.
+ */
+export async function updateProfile(profileData) {
+  return request('/accounts/me/', {
+    method: 'PATCH',
+    body: JSON.stringify(profileData),
+  });
+}
+
+/**
  * Logout — clear stored tokens.
  */
 export function logout() {

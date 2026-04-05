@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Categories from './components/Categories';
@@ -12,7 +13,9 @@ export default function Home() {
       <main>
         <Hero />
         <Categories />
-        <Businesses />
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: '40px' }}>Loading businesses...</div>}>
+          <Businesses />
+        </Suspense>
         <CTA />
       </main>
       <Footer />

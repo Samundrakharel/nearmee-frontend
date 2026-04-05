@@ -4,12 +4,23 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { isLoggedIn, logout, getProfile } from '../lib/api';
+import { useLocation } from '../context/LocationContext';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+
+  const { address, loading, setManualLocation } = useLocation();
+  const [locationValue, setLocationValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (address) {
+      setLocationValue(address);
+    }
+  }, [address]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,6 +45,27 @@ export default function Header() {
     router.push('/');
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+
+    // If location field was manually changed, geocode it
+    if (locationValue && locationValue !== address) {
+      await setManualLocation(locationValue);
+    }
+
+    // Navigate to home page with search query
+    const targetUrl = searchQuery.trim() ? `/?search=${encodeURIComponent(searchQuery.trim())}` : '/';
+    router.push(targetUrl);
+
+    // Scroll to businesses section if already on home page
+    if (pathname === '/') {
+      const businessesSection = document.getElementById('businesses');
+      if (businessesSection) {
+        businessesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <header className="header" id="header">
       <div className="header-inner">
@@ -48,27 +80,39 @@ export default function Header() {
 
         {/* Search Bar - Hidden on Home Page */}
         {pathname !== '/' && (
-          <div className="search-bar">
+          <form className="search-bar" onSubmit={handleSearch}>
             <div className="search-input-group">
               <span className="search-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
                 </svg>
               </span>
-              <input type="text" placeholder="What are you looking for?" id="search-input" />
+              <input
+                type="text"
+                placeholder="What are you looking for?"
+                id="search-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
             <div className="location-input-group">
               <span className="location-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                  <circle cx="12" cy="9" r="2.5"/>
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
                 </svg>
               </span>
-              <input type="text" placeholder="Where?" id="location-input" />
+              <input
+                type="text"
+                placeholder={loading ? 'Detecting location...' : 'Enter city or area'}
+                id="location-input"
+                value={locationValue}
+                onChange={(e) => setLocationValue(e.target.value)}
+              />
             </div>
-            <button className="btn-search" id="btn-search">Search</button>
-          </div>
+            <button type="submit" className="btn-search" id="btn-search">Search</button>
+          </form>
         )}
 
         {/* Nav Links */}
@@ -110,8 +154,9 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-login" id="btn-login">Login</Link>
-              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link>
+              {/* Temporarily hidden,might need in future */}
+              {/* <Link href="/login" className="btn-login" id="btn-login">Login</Link>
+              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link> */}
             </>
           )}
         </nav>

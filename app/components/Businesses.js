@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { getBusinesses } from '../lib/api';
+import { useLocation } from '../context/LocationContext';
 
 function StarRating({ rating }) {
   const stars = [];
@@ -22,10 +24,29 @@ export default function Businesses() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const searchParams = useSearchParams();
+  const searchKeyword = searchParams.get('search') || '';
+
+  const { lat, lng, address, loading: locationLoading } = useLocation();
+
+  // Fetch businesses whenever location changes
   useEffect(() => {
+    // Wait for location to resolve (or be denied)
+    if (locationLoading) return;
+
     async function fetchBusinesses() {
+      setLoading(true);
       try {
-        const data = await getBusinesses({ page_size: 5 });
+        const params = { page_size: 5 };
+        if (searchKeyword) {
+          params.search = searchKeyword;
+        }
+        if (lat && lng) {
+          params.lat = lat;
+          params.lng = lng;
+          params.radius = 10;
+        }
+        const data = await getBusinesses(params);
         setBusinesses(data.results || []);
       } catch (err) {
         console.error('Error fetching businesses:', err);
@@ -34,81 +55,90 @@ export default function Businesses() {
       }
     }
     fetchBusinesses();
-  }, []);
+  }, [lat, lng, locationLoading, searchKeyword]);
 
   const getBusinessLink = (biz) => {
     return `/business/${biz.slug || biz.id}/nearme.com`;
   };
 
-  if (loading) {
-    return (
-      <section className="businesses-section" id="businesses">
-        <div className="businesses-header">
-          <h2>Top Businesses Near You</h2>
-        </div>
-        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading businesses...</div>
-      </section>
-    );
-  }
-
-  if (businesses.length === 0) {
-    return (
-      <section className="businesses-section" id="businesses">
-        <div className="businesses-header">
-          <h2>Top Businesses Near You</h2>
-        </div>
-        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No businesses found.</div>
-      </section>
-    );
-  }
-
   return (
     <section className="businesses-section" id="businesses">
       <div className="businesses-header">
-        <h2>Top 5 Businesses Near You</h2>
-        <a href="#" className="view-all-link" id="view-all-link">View All</a>
+        <h2>Top Businesses Near You</h2>
+        {businesses.length > 0 && (
+          <a href="#" className="view-all-link" id="view-all-link">View All</a>
+        )}
       </div>
-      {businesses.slice(0, 5).map((biz) => (
-        <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
-          <div className="business-image">
-            {biz.image ? (
-              <img src={biz.image} alt={biz.name} />
-            ) : (
-              <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <polyline points="21 15 16 10 5 21" />
-                </svg>
+
+      {/* Loading state */}
+      {(loading || locationLoading) && (
+        <div className="businesses-loading">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="business-card-skeleton">
+              <div className="skeleton-image pulse" />
+              <div className="skeleton-info">
+                <div className="skeleton-line wide pulse" />
+                <div className="skeleton-line medium pulse" />
+                <div className="skeleton-line narrow pulse" />
               </div>
-            )}
-          </div>
-          <div className="business-info">
-            <h3>{biz.name}</h3>
-            {biz.type && <div className="business-type">{biz.type}</div>}
-            {biz.rating > 0 && (
-              <div className="business-rating">
-                <StarRating rating={biz.rating} />
-                <span className="rating-number">{biz.rating}</span>
-                {biz.reviews > 0 && <span className="review-count">({biz.reviews} reviews)</span>}
-              </div>
-            )}
-            {biz.address && (
-              <div className="business-address">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                  <circle cx="12" cy="9" r="2.5" />
-                </svg>
-                {biz.address}
-              </div>
-            )}
-            {biz.description && <p className="business-description">{biz.description}</p>}
-            <Link href={getBusinessLink(biz)} className="btn-view-business" id={`view-business-${biz.id}`}>
-              View Business
-            </Link>
-          </div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* Empty state */}
+      {!loading && !locationLoading && businesses.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+          No businesses found{address ? ` near ${address}` : ''}. Try a different location.
+        </div>
+      )}
+
+      {/* Business cards */}
+      {!loading && !locationLoading && businesses.length > 0 && (
+        <>
+          {businesses.slice(0, 5).map((biz) => (
+            <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
+              <div className="business-image">
+                {biz.image ? (
+                  <img src={biz.image} alt={biz.name} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="business-info">
+                <h3>{biz.name}</h3>
+                {biz.type && <div className="business-type">{biz.type}</div>}
+                {biz.rating > 0 && (
+                  <div className="business-rating">
+                    <StarRating rating={biz.rating} />
+                    <span className="rating-number">{biz.rating}</span>
+                    {biz.reviews > 0 && <span className="review-count">({biz.reviews} reviews)</span>}
+                  </div>
+                )}
+                {biz.address && (
+                  <div className="business-address">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                      <circle cx="12" cy="9" r="2.5" />
+                    </svg>
+                    {biz.address}
+                  </div>
+                )}
+                {biz.description && <p className="business-description">{biz.description}</p>}
+                <Link href={getBusinessLink(biz)} className="btn-view-business" id={`view-business-${biz.id}`}>
+                  View Business
+                </Link>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </section>
   );
 }

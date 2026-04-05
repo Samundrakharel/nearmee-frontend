@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import Footer from '../../components/Footer';
-import Header from '../../components/Header';
-import { isLoggedIn, submitBusiness } from '../../lib/api';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
+import { isLoggedIn, submitBusiness } from '../lib/api';
 
 export default function SubmitBusinessPage() {
     const router = useRouter();
