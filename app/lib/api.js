@@ -407,6 +407,13 @@ export async function getBusinessesByCategorySlug(slug, params = {}) {
 // ─── Businesses ────────────────────────────────────────────
 
 /**
+ * GET /categories/?search=query
+ */
+export async function searchCategories(query) {
+  return request(`/categories/?search=${encodeURIComponent(query)}`);
+}
+
+/**
  * GET /businesses/
  * Returns: { count, total_pages, next, previous, current_page, results: Business[] }
  */

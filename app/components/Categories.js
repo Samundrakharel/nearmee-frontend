@@ -175,14 +175,19 @@ export default function Categories() {
               className="hide-scrollbar"
             >
             {[...Array(6)].map((_, i) => (
-              <div key={i} style={{ 
+              <div key={i} className="category-skeleton-card" style={{ 
                 minWidth: '280px',
                 height: '180px', 
-                borderRadius: '12px', 
+                borderRadius: '16px', 
                 background: '#fff',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', opacity: 0.5, animation: 'pulse 1.5s infinite' 
               }}>
+                <style>{`
+                  @media (max-width: 768px) {
+                    .category-skeleton-card { min-width: 85% !important; }
+                  }
+                `}</style>
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#e0f2fe' }} />
                 <span style={{ width: '120px', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
               </div>
@@ -208,7 +213,7 @@ export default function Categories() {
   }
 
   return (
-    <section className="categories-section" id="categories" style={{ padding: '60px 0', background: '#f8f9fa' }}>
+    <section className="categories-section" id="categories" style={{ background: '#f8f9fa' }}>
       <div className="container">
         <h2 className="section-title">Browse by Category</h2>
         <style>{`
@@ -237,27 +242,16 @@ export default function Categories() {
           </button>
           <div 
             ref={scrollContainerRef}
-            style={{ 
-              display: 'flex', 
-              overflowX: 'auto',
-              gap: '24px', 
-              paddingBottom: '24px',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              scrollBehavior: 'smooth'
-            }}
-            className="hide-scrollbar"
+            className="categories-slider-container"
           >
           {categories.map((cat) => {
             const slug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
-            
-            // Note: Currently API doesn't return business counts, using fallback text if property is missing
             const businessCountText = cat.business_count || cat.businesses_count 
               ? `${cat.business_count || cat.businesses_count} businesses`
               : 'Explore businesses';
 
             return (
-              <Link key={cat.id || cat.name} href={`/category/${slug}/nearme.com`} style={{ textDecoration: 'none', minWidth: '320px' }}>
+              <Link key={cat.id || cat.name} href={`/category/${slug}/nearme.com`} className="category-card-link" style={{ textDecoration: 'none' }}>
                 <div 
                   className="category-card-modern" 
                   id={`cat-${slug}`}
@@ -269,22 +263,28 @@ export default function Categories() {
                     padding: '32px 24px',
                     gap: '12px',
                     background: '#fff',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                    transition: 'box-shadow 0.2s',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                    transition: 'var(--transition-smooth)',
                     cursor: 'pointer',
                     height: '100%',
                     border: '1px solid #f1f5f9'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.08)'}
-                  onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.boxShadow = 'var(--shadow-premium)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.04)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
                 >
                   <div style={{ 
                     width: '64px', 
                     height: '64px', 
                     borderRadius: '50%', 
-                    background: 'rgba(14, 165, 233, 0.1)', // Light blue theme circle background
-                    color: '#0ea5e9', // Blue icon stroke
+                    background: 'rgba(14, 165, 233, 0.1)', 
+                    color: '#0ea5e9', 
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -296,14 +296,15 @@ export default function Categories() {
                     <h3 style={{ 
                       color: '#0f172a', 
                       fontWeight: '600', 
-                      fontSize: '1rem', 
-                      margin: '0 0 6px 0' 
+                      fontSize: '1.2rem', 
+                      margin: '0 0 6px 0',
+                      textTransform: 'capitalize'
                     }}>
                       {cat.name}
                     </h3>
                     <p style={{
                       color: '#64748b',
-                      fontSize: '0.85rem',
+                      fontSize: '0.9rem',
                       margin: 0
                     }}>
                       {businessCountText}
@@ -329,7 +330,6 @@ export default function Categories() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
-        
       </div>
     </section>
   );

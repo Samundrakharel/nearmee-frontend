@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import { getCategoryBySlug, getBusinessesByCategorySlug } from '../../../lib/api';
+import { LoadingIcon } from '../../../components/LoadingIcon';
 import '../../category.css';
 
 const ratings = ['4', '3', '2'];
@@ -40,9 +41,9 @@ export default function CategoryPage() {
   const [selectedNeighborhoods, setSelectedNeighborhoods] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeFilters, setActiveFilters] = useState({
-    rating: '',
     neighborhood: ''
   });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch category info and businesses
   useEffect(() => {
@@ -83,10 +84,8 @@ export default function CategoryPage() {
     setSelectedRatings((prev) => (prev.includes(value) ? [] : [value]));
   };
 
-  const formattedTitle = categoryInfo?.name || slug
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
+  const rawTitle = categoryInfo?.name || slug.split('-').join(' ');
+  const formattedTitle = rawTitle.replace(/\b\w/g, c => c.toUpperCase());
 
   function toggleFilter(value, selected, setSelected) {
     setSelected((prev) =>
@@ -104,9 +103,45 @@ export default function CategoryPage() {
     <>
       <Header />
       <div className="category-page">
+        {/* Mobile Filter Toggle */}
+        <button 
+          className="mobile-filter-toggle btn-login"
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          style={{
+            display: 'none',
+            width: '100%',
+            marginBottom: '20px',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
+            height: '48px',
+            borderRadius: '12px',
+            fontWeight: 600
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
+          {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+        </button>
+
+        <style>{`
+          @media (max-width: 768px) {
+            .mobile-filter-toggle { display: flex !important; }
+            .filter-sidebar { 
+              display: ${isFilterOpen ? 'block' : 'none'} !important;
+              position: relative !important;
+              top: 0 !important;
+              margin-bottom: 24px;
+              width: 100% !important;
+              border: 1px solid var(--color-border);
+              border-radius: 16px;
+              padding: 20px !important;
+            }
+          }
+        `}</style>
+
         {/* Sidebar Filters */}
-        <aside className="filter-sidebar">
-          <h2>Filter Results</h2>
+        <aside className="filter-sidebar glass" style={{ borderRadius: '16px', padding: '24px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '24px' }}>Filters</h2>
 
           <div className="filter-group">
             <h3>Rating</h3>
@@ -155,20 +190,44 @@ export default function CategoryPage() {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading businesses...</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', padding: '40px', color: '#64748b' }}>
+              <div style={{ color: '#3B82F6' }}><LoadingIcon size={48} /></div>
+              <div style={{ marginTop: '16px', fontSize: '1.1rem', fontWeight: '500' }}>Almost there…</div>
+            </div>
           ) : businesses.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No businesses found in this category.</div>
           ) : (
             <>
               {/* Business Cards */}
               {businesses.map((biz) => (
-                <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
-                  <div className="business-image">
+                <div 
+                  key={biz.id} 
+                  className="business-card" 
+                  id={`business-${biz.id}`}
+                  style={{ 
+                    borderRadius: '16px', 
+                    overflow: 'hidden', 
+                    padding: '20px', 
+                    display: 'flex', 
+                    gap: '20px',
+                    transition: 'var(--transition-smooth)',
+                    border: '1px solid #f1f5f9'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.boxShadow = 'var(--shadow-premium)';
+                    e.currentTarget.style.borderColor = 'var(--color-primary-light)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.borderColor = '#f1f5f9';
+                  }}
+                >
+                  <div className="business-image" style={{ borderRadius: '12px' }}>
                     {biz.image ? (
-                      <img src={biz.image} alt={biz.name} />
+                      <img src={biz.image} alt={biz.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                           <circle cx="8.5" cy="8.5" r="1.5"/>
                           <polyline points="21 15 16 10 5 21"/>
@@ -177,22 +236,21 @@ export default function CategoryPage() {
                     )}
                   </div>
                   <div className="business-info">
-                    <h3>{biz.name}</h3>
-                    <div className="business-type">{biz.type}</div>
-                    <div className="business-rating">
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>{biz.name}</h3>
+                    <div className="business-type" style={{ fontWeight: 600, color: 'var(--color-primary)', fontSize: '0.9rem', marginBottom: '8px' }}>{biz.type}</div>
+                    <div className="business-rating" style={{ marginBottom: '12px' }}>
                       <StarRating rating={biz.rating} />
-                      <span className="rating-number">{biz.rating}</span>
+                      <span className="rating-number" style={{ fontWeight: 700 }}>{biz.rating}</span>
                       <span className="review-count">({biz.reviews} reviews)</span>
                     </div>
-                    <div className="business-address">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="business-address" style={{ fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                         <circle cx="12" cy="9" r="2.5" />
                       </svg>
                       {biz.address}
                     </div>
-                    <p className="business-description">{biz.description}</p>
-                    <Link href={`/business/${biz.slug || biz.id}/nearme.com`} className="btn-view-business" id={`view-business-${biz.id}`}>
+                    <Link href={`/business/${biz.slug || biz.id}/nearme.com`} className="btn-view-business" id={`view-business-${biz.id}`} style={{ borderRadius: '12px', padding: '10px 24px', fontWeight: 600 }}>
                       View Business
                     </Link>
                   </div>

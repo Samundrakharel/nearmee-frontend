@@ -3,7 +3,7 @@
 export default function BusinessHero({ business }) {
   return (
     <div className="business-hero-wrapper">
-      <div className="business-cover" style={{ height: '300px', width: '100%', overflow: 'hidden' }}>
+      <div className="business-cover" style={{ height: '320px', width: '100%', overflow: 'hidden', position: 'relative' }}>
         {(business.coverImage || business.thumbnail) ? (
           <img
             src={business.coverImage || business.thumbnail}
@@ -15,16 +15,18 @@ export default function BusinessHero({ business }) {
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
           </div>
         )}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%)' }} />
       </div>
-      <div className="business-hero-info" style={{ background: '#fff', paddingTop: '32px', paddingBottom: '24px' }}>
+      <div className="business-hero-info" style={{ background: '#fff', padding: '32px 0 24px' }}>
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: '1.2', margin: 0, color: '#0f172a' }}>{business.name}</h1>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '6px' }}>
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
+          <div className="business-title-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: '800', lineHeight: '1.2', margin: 0, color: '#0f172a' }}>{business.name}</h1>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '4px', flexShrink: 0 }}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
           </div>
 
           <div className="business-categories" style={{ color: 'var(--color-text-medium)', fontSize: '1.05rem', marginBottom: '8px' }}>
@@ -106,10 +108,12 @@ export default function BusinessHero({ business }) {
             </div>
 
             {business.phone && (
-              <div className="business-phone" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '1.05rem', fontWeight: '500' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-                </svg>
+              <div className="business-phone" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#475569', fontSize: '1.1rem', fontWeight: '600' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                  </svg>
+                </div>
                 <span>{business.phone}</span>
               </div>
             )}

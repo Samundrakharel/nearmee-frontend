@@ -27,37 +27,35 @@ export default function BusinessSidebar({ business, activeTab }) {
   const reviewCategories = business.reviewCategories || [];
 
   return (
-    <aside className="business-sidebar" style={{ height: '100%' }}>
-
-
-      <div className="sidebar-card contact-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: '#0f172a' }}>Contact Information</h3>
-        <div className="contact-info">
+    <aside className="business-sidebar" style={{ height: 'auto' }}>
+      <div className="sidebar-card contact-card glass" style={{ border: '1px solid var(--color-border)', borderRadius: '20px', padding: '28px' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>Contact Info</h3>
+        <div className="contact-info" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {business.phone && (
-            <div className="contact-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
               </svg>
-              <a href={`tel:${business.phone}`}>{business.phone}</a>
+              <a href={`tel:${business.phone}`} style={{ fontWeight: 600 }}>{business.phone}</a>
             </div>
           )}
           {business.website && (
-            <div className="contact-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" y1="12" x2="22" y2="12" />
                 <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
               </svg>
-              <a href={business.website} target="_blank" rel="noopener noreferrer">Visit Website</a>
+              <a href={business.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>Visit Website</a>
             </div>
           )}
           {business.address && (
-            <div className="contact-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="contact-item" style={{ display: 'flex', alignItems: 'start', gap: '12px', color: '#475569', fontSize: '1rem', lineHeight: '1.4' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: '3px', flexShrink: 0 }}>
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <span>{business.address}</span>
+              <span style={{ fontWeight: 500 }}>{business.address}</span>
             </div>
           )}
         </div>
@@ -85,8 +83,9 @@ export default function BusinessSidebar({ business, activeTab }) {
             target="_blank"
             rel="noopener noreferrer"
             className="btn-directions"
-            style={{ width: '100%', display: 'block', padding: '12px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontWeight: '600', cursor: 'pointer', textAlign: 'center', textDecoration: 'none' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', background: 'var(--color-primary)', border: 'none', borderRadius: '14px', color: '#fff', fontWeight: '700', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', transition: 'var(--transition-smooth)' }}
           >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>
             Get Directions
           </a>
         </div>

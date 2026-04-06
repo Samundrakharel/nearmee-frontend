@@ -3,10 +3,11 @@
 import { useLocation } from '../context/LocationContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getBusinesses, searchCategories } from '../lib/api';
 
 export default function Hero() {
   const router = useRouter();
-  const { address, loading, setManualLocation, lat, lng } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, lat, lng } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -19,27 +20,87 @@ export default function Hero() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
+    if (!searchQuery.trim() && (!locationValue || locationValue === address)) {
+      return;
+    }
+
     setSearching(true);
 
-    // If location field was changed manually, geocode the new location
-    if (locationValue && locationValue !== address) {
-      await setManualLocation(locationValue);
-    }
+    try {
+      let currentLat = lat;
+      let currentLng = lng;
 
-    // Push search query to URL so Businesses component can use it
-    if (searchQuery.trim()) {
-      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push('/');
-    }
+      // 1. If location field was changed manually, geocode it immediately
+      if (locationValue && locationValue !== address) {
+        const result = await forwardGeocode(locationValue);
+        if (result) {
+          currentLat = result.lat;
+          currentLng = result.lng;
+          // Also update the context so other components know the new location
+          await setManualLocation(locationValue);
+        }
+      }
 
-    // Scroll to businesses section
-    const businessesSection = document.getElementById('businesses');
-    if (businessesSection) {
-      businessesSection.scrollIntoView({ behavior: 'smooth' });
-    }
+      // 2. Perform a "Smart Redirect" check if search query exists
+      if (searchQuery.trim()) {
+        const params = { 
+          search: searchQuery.trim(), 
+          page_size: 10 // Get a small batch to check for exact match
+        };
+        
+        if (currentLat && currentLng) {
+          params.lat = currentLat;
+          params.lng = currentLng;
+          params.radius = 10; // 10km radius
+        }
 
-    setSearching(false);
+        const data = await getBusinesses(params);
+        const results = data.results || [];
+
+        // Logic: 
+        // - Only redirect if there is an exact name match.
+        // This prevents category searches (like "asian restaurant") from redirecting to a single business.
+        const targetBusiness = results.find(
+          biz => biz.name.toLowerCase() === searchQuery.trim().toLowerCase()
+        );
+
+        if (targetBusiness) {
+          router.push(`/business/${targetBusiness.slug || targetBusiness.id}/nearme.com`);
+          setSearching(false);
+          return;
+        }
+      }
+
+        // 3. Fallback check: Is there an exact category name match?
+        try {
+          const catData = await searchCategories(searchQuery.trim());
+          const catResults = catData.results || [];
+          const targetCategory = catResults.find(
+            cat => cat.name.toLowerCase() === searchQuery.trim().toLowerCase()
+          );
+
+          if (targetCategory) {
+            router.push(`/category/${targetCategory.slug}/nearme.com`);
+            setSearching(false);
+            return;
+          }
+        } catch (err) {
+          console.error('Category search error:', err);
+        }
+
+        // 4. Fallback: Push search query to URL if no direct match found
+      if (searchQuery.trim()) {
+        router.push(`/?search=${encodeURIComponent(searchQuery.trim())}#businesses`);
+      } else {
+        router.push('/#businesses');
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      // Fallback search in case of API error
+      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}#businesses`);
+    } finally {
+      setSearching(false);
+    }
   };
 
   return (
@@ -56,36 +117,38 @@ export default function Hero() {
         <p>
           Restaurants, plumbers, doctors, and more — discover top-rated businesses in your city.
         </p>
-        <form className="hero-search" onSubmit={handleSearch}>
+        <form className="hero-search glass" onSubmit={handleSearch} style={{ padding: '8px 8px 8px 24px', maxWidth: '800px' }}>
           <div className="hero-search-input">
             <span className="search-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
             </span>
             <input 
               type="text" 
-              placeholder="What are you looking for?" 
+              placeholder="Restaurants, plumbers, doctors..." 
               id="hero-search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ fontSize: '1.1rem', fontWeight: 500 }}
             />
           </div>
           <div className="hero-search-divider" />
           <div className="hero-location-input">
             <span className="location-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                <circle cx="12" cy="9" r="2.5" />
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                <circle cx="12" cy="10" r="3" />
               </svg>
             </span>
             <input 
               type="text" 
-              placeholder={loading ? 'Detecting location...' : 'Enter city or area'} 
+              placeholder={loading ? 'Location...' : 'Kathmandu...'} 
               id="hero-location-input" 
               value={locationValue}
               onChange={(e) => setLocationValue(e.target.value)}
+              style={{ fontSize: '1.1rem', fontWeight: 500 }}
             />
           </div>
           <button 
@@ -93,8 +156,9 @@ export default function Hero() {
             className="btn-search" 
             id="hero-btn-search"
             disabled={searching}
+            style={{ borderRadius: '14px', height: '52px', padding: '0 32px', fontSize: '1rem', fontWeight: 700 }}
           >
-            {searching ? 'Searching...' : 'Search'}
+            {searching ? '...' : 'Search'}
           </button>
         </form>
         

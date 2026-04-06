@@ -32,34 +32,38 @@ export default function BusinessOverview({ business, setActiveTab }) {
   }, [business.slug, business.about, business.aboutUs]);
 
   return (
-    <div className="business-overview">
+    <div className="business-overview" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
       <section className="overview-section" id="about">
-        <h2>About</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', color: '#0f172a' }}>About</h2>
         {generatingAboutUs ? (
-          <div className="loading-placeholder" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
-            Generating About Us...
+          <div className="loading-placeholder glass" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', borderRadius: '16px' }}>
+            <div style={{ marginBottom: '12px' }}><LoadingIcon size={24} /></div>
+            Generating description...
           </div>
         ) : (
-          <p>{aboutUsContent || 'No description available.'}</p>
+          <p style={{ fontSize: '1.05rem', lineHeight: '1.7', color: '#475569', margin: 0 }}>{aboutUsContent || 'No description available.'}</p>
         )}
       </section>
 
       {photos.length > 0 && (
         <section className="overview-section" id="overview-photos">
-          <div className="section-header">
-            <h2>Photos</h2>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Photos</h2>
             {setActiveTab && (
-              <button onClick={() => setActiveTab('Photos')} className="view-all" style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: '600', cursor: 'pointer' }}>
-                View All Photos
+              <button onClick={() => setActiveTab('Photos')} className="view-all" style={{ background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--color-primary)', fontWeight: '700', cursor: 'pointer', padding: '8px 16px', borderRadius: '10px', fontSize: '0.9rem', transition: 'var(--transition-smooth)' }}>
+                View All
               </button>
             )}
           </div>
-          <div className="photos-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginTop: '16px' }}>
+          <div className="photos-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
             {photos.filter(Boolean).slice(0, 4).map((photo, index) => {
               const photoUrl = typeof photo === 'string' ? photo : photo?.image;
               if (!photoUrl) return null;
               return (
-                <div key={index} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', aspectRatio: '1/1', border: '1px solid var(--color-border)' }}>
+                <div key={index} className="photo-item" style={{ borderRadius: '16px', overflow: 'hidden', aspectRatio: '1/1', border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'var(--transition-smooth)' }}>
+                  <style>{`
+                    .photo-item:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
+                  `}</style>
                   <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               );
@@ -83,17 +87,18 @@ export default function BusinessOverview({ business, setActiveTab }) {
 
         return (
           <section className="overview-section" id="amenities-and-more">
-            <h2>Amenities and More</h2>
-            <div className="extensions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginTop: '16px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', color: '#0f172a' }}>Amenities and More</h2>
+            <div className="extensions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
               {keysToShow.map((key) => (
-                <div key={key} className="extension-category">
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: '600', color: '#0f172a', marginBottom: '12px' }}>
+                <div key={key} className="extension-category glass" style={{ border: '1px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)' }}></span>
                     {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                   </h3>
-                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {extensions[key].map((item, index) => (
-                      <li key={index} style={{ color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                        <span style={{ color: '#64748b', fontSize: '1.2rem', lineHeight: '1' }}>•</span>
+                      <li key={index} style={{ color: '#475569', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12" /></svg>
                         {item}
                       </li>
                     ))}
@@ -104,9 +109,10 @@ export default function BusinessOverview({ business, setActiveTab }) {
             {hasMore && (
               <button
                 onClick={() => setShowAllAmenities(!showAllAmenities)}
-                className="btn-see-more"
+                className="view-all"
+                style={{ marginTop: '24px', background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--color-primary)', fontWeight: '700', cursor: 'pointer', padding: '10px 20px', borderRadius: '12px', fontSize: '0.95rem' }}
               >
-                {showAllAmenities ? 'Show less' : 'See more'}
+                {showAllAmenities ? 'Show less' : 'See all amenities'}
               </button>
             )}
           </section>

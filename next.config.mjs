@@ -5,12 +5,21 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: 'nearmee.net',
+      },
+      {
+        protocol: 'http',
+        hostname: 'web', // Internal Docker name for Django
+        port: '8000',
       },
       {
         protocol: 'https',
-        hostname: 'unrisen-abbie-attentively.ngrok-free.dev',
+        hostname: 'images.unsplash.com',
       },
+      //{
+      //  protocol: 'https',
+      //  hostname: 'unrisen-abbie-attentively.ngrok-free.dev',
+      //},
       {
         protocol: 'https',
         hostname: '**.googleusercontent.com',

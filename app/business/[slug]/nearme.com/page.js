@@ -14,6 +14,7 @@ import BusinessMenu from '../../../components/BusinessMenu';
 import BusinessMenuPreview from '../../../components/BusinessMenuPreview';
 import BusinessPhotos from '../../../components/BusinessPhotos';
 import { getBusinessBySlug } from '../../../lib/api';
+import { LoadingIcon } from '../../../components/LoadingIcon';
 
 export default function BusinessPage() {
   const { slug } = useParams();
@@ -40,7 +41,12 @@ export default function BusinessPage() {
     window.scrollTo(0, 0);
   }, [activeTab]);
 
-  if (loading) return <div className="loading" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (loading) return (
+    <div className="loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '40px', color: '#64748b' }}>
+      <div style={{ color: '#3B82F6' }}><LoadingIcon size={48} /></div>
+      <div style={{ marginTop: '16px', fontSize: '1.2rem', fontWeight: '500' }}>Almost there…</div>
+    </div>
+  );
   if (!business) return <div className="error" style={{ padding: '100px', textAlign: 'center' }}>Business not found</div>;
 
   return (

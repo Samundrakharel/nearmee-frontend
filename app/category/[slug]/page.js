@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import { getCategoryBySlug, getBusinessesByCategorySlug } from '../../lib/api';
+import { useLocation } from '../../context/LocationContext';
+import { LoadingIcon } from '../../components/LoadingIcon';
 import '../category.css';
 
 const ratings = ['4', '3', '2'];
@@ -27,6 +29,7 @@ function StarRating({ rating }) {
 export default function CategoryPage() {
   const params = useParams();
   const slug = params.slug;
+  const { lat, lng } = useLocation();
 
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,11 +66,19 @@ export default function CategoryPage() {
           setCategoryName(catData.name);
         }
 
-        const data = await getBusinessesByCategorySlug(slug, { 
+        const filterParams = { 
           page: currentPage, 
           rating: activeFilters.rating,
           neighborhood: activeFilters.neighborhood
-        });
+        };
+
+        if (lat && lng) {
+          filterParams.lat = lat;
+          filterParams.lng = lng;
+          filterParams.radius = 10;
+        }
+
+        const data = await getBusinessesByCategorySlug(slug, filterParams);
         setBusinesses(data.results || []);
         if (data.total_pages) setTotalPages(data.total_pages);
       } catch (err) {
@@ -78,7 +89,7 @@ export default function CategoryPage() {
       }
     }
     fetchCategoryData();
-  }, [slug, currentPage, activeFilters]);
+  }, [slug, currentPage, activeFilters, lat, lng]);
 
   const handleApplyFilters = () => {
     setActiveFilters({
@@ -147,14 +158,17 @@ export default function CategoryPage() {
         {/* Main Content */}
         <div className="category-results">
           <div className="category-results-header">
-            <h1>{title}</h1>
+            <h1 style={{ textTransform: 'capitalize' }}>{title}</h1>
             <span className="results-count">
               {loading ? '...' : `Showing ${businesses.length} results`}
             </span>
           </div>
 
           {loading ? (
-            <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>Loading businesses...</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', padding: '40px', color: '#64748b' }}>
+              <div style={{ color: '#3B82F6' }}><LoadingIcon size={48} /></div>
+              <div style={{ marginTop: '16px', fontSize: '1.1rem', fontWeight: '500' }}>Almost there…</div>
+            </div>
           ) : error ? (
             <div style={{ padding: '80px', textAlign: 'center', color: '#b91c1c' }}>{error}</div>
           ) : businesses.length === 0 ? (
