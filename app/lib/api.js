@@ -5,14 +5,23 @@
  * Configuration:
  *   Set NEXT_PUBLIC_API_BASE_URL in .env.local
  */
+// const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const getApiBase = () => {
+  // If we are on the server (SSR), use the internal Docker network
+  if (typeof window === 'undefined') {
+    return process.env.INTERNAL_API_URL || 'http://web:8000/api';
+  }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+  // If we are in the browser, use the public URL
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+};
+
+export const API_BASE = getApiBase();
 
 // ─── Helpers ───────────────────────────────────────────────
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-
 
   const config = {
     headers: {
