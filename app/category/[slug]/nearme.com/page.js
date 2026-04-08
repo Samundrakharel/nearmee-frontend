@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 import { getCategoryBySlug, getBusinessesByCategorySlug } from '../../../lib/api';
-import { LoadingIcon } from '../../../components/LoadingIcon';
+import { CategoryResultsSkeleton } from '../../../components/Skeleton';
 import '../../category.css';
 
 const ratings = ['4', '3', '2'];
@@ -190,10 +190,7 @@ export default function CategoryPage() {
           </div>
 
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', padding: '40px', color: '#64748b' }}>
-              <div style={{ color: '#3B82F6' }}><LoadingIcon size={48} /></div>
-              <div style={{ marginTop: '16px', fontSize: '1.1rem', fontWeight: '500' }}>Almost there…</div>
-            </div>
+            <CategoryResultsSkeleton />
           ) : businesses.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No businesses found in this category.</div>
           ) : (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { CategoryCardSkeleton } from './Skeleton';
 
 // Custom minimal SVG icons for specific business types matching user mockups
 const defaultIcons = {
@@ -145,67 +146,21 @@ export default function Categories() {
 
   if (loading) {
     return (
-      <section className="categories-section" id="categories" style={{ padding: '60px 0', background: '#f8f9fa' }}>
+      <section className="categories-section" id="categories" style={{ background: '#f8f9fa' }}>
         <div className="container">
           <h2 className="section-title">Browse by Category</h2>
           <div 
             style={{ position: 'relative' }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
           >
-            <button 
-              onClick={() => scrollLeft(loadingScrollContainerRef)}
-              style={{
-                position: 'absolute', left: '-20px', top: '50%', transform: 'translateY(-50%)',
-                zIndex: 10, width: '40px', height: '40px', borderRadius: '50%',
-                background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                color: '#64748b',
-                opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: isHovered ? 'auto' : 'none'
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
             <div 
               ref={loadingScrollContainerRef}
-              style={{ 
-                display: 'flex', overflowX: 'auto', gap: '24px', paddingBottom: '8px', 
-                scrollbarWidth: 'none', msOverflowStyle: 'none'
-              }}
-              className="hide-scrollbar"
+              className="categories-slider-container"
+              style={{ overflowX: 'hidden' }}
             >
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="category-skeleton-card" style={{ 
-                minWidth: '280px',
-                height: '180px', 
-                borderRadius: '16px', 
-                background: '#fff',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', opacity: 0.5, animation: 'pulse 1.5s infinite' 
-              }}>
-                <style>{`
-                  @media (max-width: 768px) {
-                    .category-skeleton-card { min-width: 85% !important; }
-                  }
-                `}</style>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#e0f2fe' }} />
-                <span style={{ width: '120px', height: '16px', background: '#e2e8f0', borderRadius: '4px' }} />
-              </div>
-            ))}
+              {[...Array(6)].map((_, i) => (
+                <CategoryCardSkeleton key={i} />
+              ))}
             </div>
-            <button 
-              onClick={() => scrollRight(loadingScrollContainerRef)}
-              style={{
-                position: 'absolute', right: '-20px', top: '50%', transform: 'translateY(-50%)',
-                zIndex: 10, width: '40px', height: '40px', borderRadius: '50%',
-                background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                color: '#64748b',
-                opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s', pointerEvents: isHovered ? 'auto' : 'none'
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
           </div>
         </div>
       </section>

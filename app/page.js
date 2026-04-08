@@ -5,7 +5,7 @@ import Categories from './components/Categories';
 import Businesses from './components/Businesses';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
-import { LoadingIcon } from './components/LoadingIcon';
+import { BusinessCardSkeleton } from './components/Skeleton';
 
 export default function Home() {
   return (
@@ -15,9 +15,12 @@ export default function Home() {
         <Hero />
         <Categories />
         <Suspense fallback={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: '40px', color: '#64748b' }}>
-            <div style={{ color: '#3B82F6' }}><LoadingIcon size={48} /></div>
-            <div style={{ marginTop: '16px', fontSize: '1.1rem', fontWeight: '500' }}>Almost there…</div>
+          <div className="container" style={{ padding: '64px 0' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[...Array(3)].map((_, i) => (
+                <BusinessCardSkeleton key={i} />
+              ))}
+            </div>
           </div>
         }>
           <Businesses />

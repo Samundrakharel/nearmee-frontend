@@ -10,6 +10,7 @@ import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import UserSubmissionActions from '../../components/UserSubmissionActions';
 import { getBusinessBySlug } from '../../lib/api';
+import { BusinessDetailSkeleton } from '../../components/Skeleton';
 
 export default function BusinessPage() {
   const { slug } = useParams();
@@ -32,7 +33,7 @@ export default function BusinessPage() {
     }
   }, [slug]);
 
-  if (loading) return <div className="loading" style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
+  if (loading) return <BusinessDetailSkeleton />;
   if (!business) return <div className="error" style={{ padding: '100px', textAlign: 'center' }}>Business not found</div>;
 
   return (

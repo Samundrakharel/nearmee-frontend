@@ -11,6 +11,7 @@ export default function Header() {
   const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [greeting, setGreeting] = useState('');
 
   const { address, loading, setManualLocation, forwardGeocode, lat, lng } = useLocation();
   const [locationValue, setLocationValue] = useState('');
@@ -38,6 +39,21 @@ export default function Header() {
       }
     };
     checkAuth();
+
+    // Set greeting based on time
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour >= 5 && hour < 12) {
+        setGreeting('Good morning');
+      } else if (hour >= 12 && hour < 18) {
+        setGreeting('Good afternoon');
+      } else {
+        setGreeting('Good evening');
+      }
+    };
+    updateGreeting();
+    const interval = setInterval(updateGreeting, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {
@@ -230,7 +246,7 @@ export default function Header() {
                 }}>
                   {userName ? userName.charAt(0).toUpperCase() : 'U'}
                 </span>
-                {userName && <span style={{ whiteSpace: 'nowrap' }}>{userName}</span>}
+                {userName && <span style={{ whiteSpace: 'nowrap' }}>{greeting}, {userName}</span>}
               </span>
               <button
                 onClick={handleLogout}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getBusinesses } from '../lib/api';
 import { useLocation } from '../context/LocationContext';
+import { BusinessCardSkeleton } from './Skeleton';
 
 function StarRating({ rating }) {
   const stars = [];
@@ -75,14 +76,7 @@ export default function Businesses() {
         {(loading || locationLoading) && (
           <div className="businesses-loading">
             {[1, 2, 3].map(i => (
-              <div key={i} className="business-card-skeleton">
-                <div className="skeleton-image pulse" />
-                <div className="skeleton-info">
-                  <div className="skeleton-line wide pulse" />
-                  <div className="skeleton-line medium pulse" />
-                  <div className="skeleton-line narrow pulse" />
-                </div>
-              </div>
+              <BusinessCardSkeleton key={i} />
             ))}
           </div>
         )}
