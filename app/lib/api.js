@@ -442,6 +442,27 @@ export async function getBusinesses(params = {}) {
 }
 
 /**
+ * GET /top-by-category/
+ * Returns: Array of { category: { id, name, ... }, businesses: Business[] }
+ */
+export async function getTopBusinessesByCategory(params = {}) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  const data = await request(`/top-by-category/${query ? '?' + query : ''}`);
+  
+  // Transform the businesses within each category
+  return (Array.isArray(data) ? data : []).map(group => ({
+    ...group,
+    businesses: (group.businesses || []).map(transformBusinessListItem)
+  }));
+}
+
+/**
  * GET /businesses/{slug}/
  * Returns: Business (full detail)
  */
