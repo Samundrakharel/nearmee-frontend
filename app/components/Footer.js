@@ -20,7 +20,7 @@ export default function Footer() {
           <ul>
             <li><a href="#" id="footer-about" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>About Us</a></li>
             <li><a href="#" id="footer-contact" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>Contact Us</a></li>
-            <li><a href="#" id="footer-list" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>List Your Business</a></li>
+            <li><a href="/signup" id="footer-list" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>List Your Business</a></li>
           </ul>
         </div>
         <div className="footer-col">

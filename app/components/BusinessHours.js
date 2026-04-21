@@ -5,18 +5,18 @@ export default function BusinessHours({ business }) {
 
   return (
     <div className="business-hours-tab">
-      <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '24px', textAlign: 'center' }}>Business Hours</h2>
-      <div className="hours-container" style={{ 
-        maxWidth: '400px', 
-        margin: '0 auto', 
-        background: '#fff', 
+      <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '24px', textAlign: 'center' }}>Opening Hours</h2>
+      <div className="hours-container" style={{
+        maxWidth: '400px',
+        margin: '0 auto',
+        background: '#fff',
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--color-border)',
         overflow: 'hidden'
       }}>
         {hours.map((item, index) => (
-          <div 
-            key={item.day} 
+          <div
+            key={item.day}
             className={`hours-row ${item.current ? 'current-day' : ''}`}
             style={{
               display: 'flex',

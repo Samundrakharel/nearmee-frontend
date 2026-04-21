@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '../lib/api';
+import { HexagonOverlay } from '../components/HexagonLoader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
+      {loading && <HexagonOverlay label="Signing In…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

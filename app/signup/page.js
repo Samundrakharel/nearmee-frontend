@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../lib/api';
+import { HexagonOverlay } from '../components/HexagonLoader';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -131,6 +132,7 @@ export default function SignUpPage() {
 
   return (
     <div className="auth-page">
+      {loading && <HexagonOverlay label="Creating Account…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

@@ -1,6 +1,7 @@
 'use client';
 
 import Logo from './Logo';
+import HexagonLoader, { HexagonOverlay } from './HexagonLoader';
 export default function Skeleton({ width, height, borderRadius, style, className = '' }) {
   return (
     <div
@@ -149,47 +150,7 @@ function FilterSidebarSkeleton() {
 export function CategoryResultsSkeleton() {
   return (
     <>
-      {/* ── Header ── */}
-      <header className="header" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
-        <div className="header-inner container" style={{ gap: '16px' }}>
-          {/* Real logo — not a skeleton */}
-          <Logo />
-          {/* Search input */}
-          <Skeleton
-            width="100%"
-            height="42px"
-            borderRadius="21px"
-            style={{ flex: 1, maxWidth: '340px' }}
-          />
-          {/* Location input */}
-          <Skeleton width="160px" height="42px" borderRadius="21px" style={{ flexShrink: 0 }} />
-          {/* Search button */}
-          <Skeleton width="88px" height="42px" borderRadius="21px" style={{ flexShrink: 0 }} />
-        </div>
-      </header>
-
-      {/* ── Body: sidebar + results ── */}
-      <div
-        className="category-page"
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-      >
-        {/* Left sidebar */}
-        <FilterSidebarSkeleton />
-
-        {/* Right: results */}
-        <div className="category-results">
-          {/* Title + result count */}
-          <div className="category-results-header">
-            <Skeleton width="55%" height="2rem" style={{ marginBottom: '8px' }} />
-            <Skeleton width="160px" height="0.9rem" />
-          </div>
-
-          {/* Business cards */}
-          {[0, 1, 2].map(i => (
-            <BusinessCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
+      <HexagonOverlay label="Finding businesses…" />
     </>
   );
 }
@@ -200,10 +161,9 @@ export function CategoryResultsSkeleton() {
 export function BusinessDetailSkeleton() {
   return (
     <div className="business-view-page">
-      {/* Header */}
+      {/* Real header */}
       <header className="header" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
         <div className="header-inner container" style={{ gap: '16px' }}>
-          {/* Real logo — not a skeleton */}
           <Logo />
           <Skeleton width="100%" height="42px" borderRadius="21px" style={{ flex: 1, maxWidth: '340px' }} />
           <Skeleton width="160px" height="42px" borderRadius="21px" style={{ flexShrink: 0 }} />
@@ -211,93 +171,36 @@ export function BusinessDetailSkeleton() {
         </div>
       </header>
 
-      {/* Hero image */}
-      <Skeleton
-        width="100%"
-        height="320px"
-        borderRadius="0"
-        style={{ display: 'block' }}
-      />
+      {/* Hero */}
+      <Skeleton width="100%" height="320px" borderRadius="0" />
 
-      {/* Tabs bar */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 24px' }}>
-        <div
-          className="container"
-          style={{ display: 'flex', gap: '32px', height: '56px', alignItems: 'center' }}
-        >
-          {['72px', '56px', '80px', '64px'].map((w, i) => (
-            <Skeleton key={i} width={w} height="18px" />
-          ))}
+      {/* Tabs */}
+      <div style={{ borderBottom: '1px solid #e2e8f0', background: '#fff' }}>
+        <div className="container" style={{ display: 'flex', gap: '32px', height: '60px', alignItems: 'center' }}>
+          <Skeleton width="80px" height="24px" />
+          <Skeleton width="90px" height="24px" />
+          <Skeleton width="70px" height="24px" />
         </div>
       </div>
 
-      {/* Body */}
-      <main className="business-main" style={{ paddingTop: '32px', paddingBottom: '64px' }}>
+      <main className="business-main" style={{ padding: '40px 0' }}>
         <div className="container">
-          <div className="business-layout">
-            {/* Left: overview content */}
-            <div className="business-content">
-              {/* Business name + meta */}
-              <Skeleton width="50%" height="2rem" style={{ marginBottom: '10px' }} />
-              <Skeleton width="25%" height="1rem" style={{ marginBottom: '10px' }} />
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                <Skeleton width="90px" height="1rem" />
-                <Skeleton width="40px" height="1rem" />
-                <Skeleton width="80px" height="1rem" />
-              </div>
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '24px' }}>
-                <Skeleton width="14px" height="14px" borderRadius="50%" />
-                <Skeleton width="55%" height="1rem" />
-              </div>
-
-              {/* Description block */}
-              <div style={{ padding: '24px', border: '1px solid #f1f5f9', borderRadius: '16px', marginBottom: '24px' }}>
-                <Skeleton width="120px" height="1.4rem" style={{ marginBottom: '16px' }} />
-                <Skeleton width="100%" height="1rem" style={{ marginBottom: '10px' }} />
-                <Skeleton width="100%" height="1rem" style={{ marginBottom: '10px' }} />
-                <Skeleton width="80%" height="1rem" style={{ marginBottom: '10px' }} />
-                <Skeleton width="90%" height="1rem" />
-              </div>
-
-              {/* Reviews block */}
-              <div style={{ padding: '24px', border: '1px solid #f1f5f9', borderRadius: '16px' }}>
-                <Skeleton width="100px" height="1.4rem" style={{ marginBottom: '20px' }} />
-                {[0, 1].map(i => (
-                  <div key={i} style={{ display: 'flex', gap: '14px', marginBottom: '20px' }}>
-                    <CircleSkeleton size="40px" />
-                    <div style={{ flex: 1 }}>
-                      <Skeleton width="30%" height="1rem" style={{ marginBottom: '8px' }} />
-                      <Skeleton width="80px" height="0.9rem" style={{ marginBottom: '8px' }} />
-                      <Skeleton width="100%" height="0.9rem" style={{ marginBottom: '6px' }} />
-                      <Skeleton width="70%" height="0.9rem" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="business-layout" style={{ display: 'flex', gap: '40px' }}>
+            <div className="business-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <Skeleton width="60%" height="32px" />
+              <Skeleton width="100%" height="100px" borderRadius="12px" />
+              <Skeleton width="100%" height="150px" borderRadius="12px" />
             </div>
-
-            {/* Right: sidebar */}
-            <aside className="business-sidebar">
-              <div style={{ padding: '24px', border: '1px solid #f1f5f9', borderRadius: '16px', marginBottom: '24px' }}>
-                {/* Call / directions buttons */}
-                <Skeleton width="100%" height="48px" borderRadius="24px" style={{ marginBottom: '12px' }} />
-                <Skeleton width="100%" height="48px" borderRadius="24px" style={{ marginBottom: '24px' }} />
-
-                {/* Info rows: phone, address, hours */}
-                {[0, 1, 2].map(i => (
-                  <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '14px' }}>
-                    <Skeleton width="18px" height="18px" borderRadius="50%" style={{ flexShrink: 0 }} />
-                    <Skeleton width="75%" height="0.9rem" />
-                  </div>
-                ))}
-
-                {/* Mini map */}
-                <Skeleton width="100%" height="160px" borderRadius="12px" style={{ marginTop: '16px' }} />
-              </div>
+            {/* Sidebar */}
+            <aside style={{ width: '320px', flexShrink: 0 }}>
+              <Skeleton width="100%" height="300px" borderRadius="16px" />
             </aside>
           </div>
         </div>
       </main>
+
+      {/* Hexagon loader overlay */}
+      <HexagonOverlay label="Loading business…" />
     </div>
   );
 }

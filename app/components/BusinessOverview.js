@@ -45,6 +45,52 @@ export default function BusinessOverview({ business, setActiveTab }) {
         )}
       </section>
 
+      {(() => {
+        const menuItems = business.menuItems || business.menus || [
+          { name: 'Signature Double Burger', price: '$8.99', description: 'Two 100% pure beef patties, hand-leafed lettuce, tomato, spread, with or without cheese.', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80' },
+          { name: 'Classic Fries', price: '$3.49', description: 'Fresh cut potatoes prepared in 100% cholesterol-free oil.', image: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=400&q=80' },
+          { name: 'Strawberry Shake', price: '$4.29', description: 'A delicious creamy strawberry shake.', image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&q=80' },
+          { name: 'Grilled Cheese', price: '$4.99', description: 'Two slices of melted American cheese, hand-leafed lettuce, tomato, spread.', image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80' }
+        ];
+
+        return (
+          <section className="overview-section" id="popular-menu">
+            <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Popular Menu Items</h2>
+              {setActiveTab && (
+                <button onClick={() => setActiveTab('Menu')} className="view-all" style={{ background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--color-primary)', fontWeight: '700', cursor: 'pointer', padding: '8px 16px', borderRadius: '10px', fontSize: '0.9rem', transition: 'var(--transition-smooth)' }}>
+                  View All
+                </button>
+              )}
+            </div>
+            <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              {menuItems.slice(0, 4).map((item, idx) => (
+                <div key={idx} className="menu-item-card glass" style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary-light)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, background: '#f1f5f9' }}>
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                        <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', lineHeight: '1.2' }}>{item.name}</h4>
+                        <span style={{ fontWeight: '700', color: '#059669', fontSize: '1.05rem' }}>{item.price}</span>
+                      </div>
+                      {item.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
       {photos.length > 0 && (
         <section className="overview-section" id="overview-photos">
           <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -79,7 +125,7 @@ export default function BusinessOverview({ business, setActiveTab }) {
 
         const preferredKeys = ['offerings', 'accessibility', 'atmosphere'];
         const previewKeys = preferredKeys.filter(k => allKeys.includes(k));
-        
+
         // If the business doesn't have any of the preferred keys, just show up to 3 keys as a fallback
         const defaultVisibleKeys = previewKeys.length > 0 ? previewKeys : allKeys.slice(0, 3);
         const keysToShow = showAllAmenities ? allKeys : defaultVisibleKeys;

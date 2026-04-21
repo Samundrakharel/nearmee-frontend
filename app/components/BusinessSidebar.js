@@ -1,6 +1,20 @@
 'use client';
+import { useState } from 'react';
+import { getBusinessSubdomainUrl } from '../lib/api';
 
 export default function BusinessSidebar({ business, activeTab }) {
+  const [copied, setCopied] = useState(false);
+
+  const subdomainUrl = business.slug ? getBusinessSubdomainUrl(business.slug) : null;
+
+  const handleCopyLink = () => {
+    if (!subdomainUrl) return;
+    navigator.clipboard.writeText(subdomainUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   const fullDays = { 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday' };
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
@@ -29,7 +43,7 @@ export default function BusinessSidebar({ business, activeTab }) {
   return (
     <aside className="business-sidebar" style={{ height: 'auto' }}>
       <div className="sidebar-card contact-card glass" style={{ border: '1px solid var(--color-border)', borderRadius: '20px', padding: '28px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>Contact Info</h3>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>Contact info</h2>
         <div className="contact-info" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {business.phone && (
             <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem' }}>
@@ -47,6 +61,64 @@ export default function BusinessSidebar({ business, activeTab }) {
                 <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
               </svg>
               <a href={business.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>Visit Website</a>
+            </div>
+          )}
+
+          {subdomainUrl && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '4px' }}>
+              {/* Subdomain link */}
+              <a
+                href={subdomainUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                id="business-subdomain-link"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  padding: '11px 16px', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                  color: '#fff', fontWeight: '700', fontSize: '0.95rem',
+                  textDecoration: 'none', transition: 'opacity 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+                onMouseOut={e => e.currentTarget.style.opacity = '1'}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                </svg>
+                🌐 {business.slug}.nearmee.net
+              </a>
+
+              {/* Copy link button */}
+              <button
+                onClick={handleCopyLink}
+                id="business-copy-link"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  padding: '10px 16px', borderRadius: '12px',
+                  background: copied ? '#dcfce7' : '#f1f5f9',
+                  color: copied ? '#16a34a' : '#475569',
+                  border: `1px solid ${copied ? '#bbf7d0' : 'var(--color-border)'}`,
+                  fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {copied ? (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                    Copy Link
+                  </>
+                )}
+              </button>
             </div>
           )}
           {business.address && (
@@ -129,7 +201,7 @@ export default function BusinessSidebar({ business, activeTab }) {
 
         {Object.keys(parsedHours).length > 0 && (
           <div id="business-hours" className="hours-section" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#004b91' }}>Hours</h3>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#004b91' }}>Opening hours</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayCode => {
                 const dayData = parsedHours[dayCode];

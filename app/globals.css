@@ -243,7 +243,8 @@ input {
 
 .btn-search:hover {
   background: var(--color-accent-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .nav-links {
@@ -295,6 +296,8 @@ input {
 .btn-login:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
 }
 
 .btn-signup {
@@ -312,6 +315,8 @@ input {
 
 .btn-signup:hover {
   background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 /* ===== HERO SECTION ===== */
@@ -614,6 +619,11 @@ input {
   font-weight: 700;
   color: var(--color-text-dark);
   margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.business-info h3:hover {
+  color: var(--color-primary);
 }
 
 .business-type {
@@ -712,6 +722,8 @@ input {
 .btn-view-business:hover {
   background: var(--color-text-dark);
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== LOCATION SEARCH BANNER ===== */
@@ -833,7 +845,8 @@ input {
 
 .btn-location-search:hover {
   background: var(--color-primary-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .location-search-error {
@@ -933,13 +946,13 @@ input {
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(13, 115, 119, 0.3);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
 }
 
 .btn-cta:hover {
   background: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(13, 115, 119, 0.4);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 /* ===== FOOTER ===== */
@@ -1225,6 +1238,8 @@ input {
 .btn-directions:hover {
   background: #f9fafb;
   border-color: var(--color-text-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* Overview Content */
@@ -2101,4 +2116,91 @@ input {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* ===== HEXAGON LOADER ===== */
+.hex-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 60vh;
+}
+
+.hex-icon {
+  color: #3b82f6;
+}
+
+.hex-loader-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  animation: hexLabelFade 1.6s ease-in-out infinite;
+}
+
+@keyframes hexLabelFade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+
+
+/* ===== PRE-HYDRATION PAGE LOADER ===== */
+#page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#page-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Animated logo mark */
+#page-loader .loader-logo svg {
+  animation: loaderPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes loaderPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(0.96); }
+}
+
+/* Spinner ring */
+#page-loader .loader-ring {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: loaderSpin 0.8s linear infinite;
+}
+
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Top progress bar */
+#page-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  z-index: 100000;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }

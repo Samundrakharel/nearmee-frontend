@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getTopBusinessesByCategory } from '../lib/api';
@@ -21,22 +21,33 @@ function StarRating({ rating }) {
   return <div className="stars">{stars}</div>;
 }
 
-export default function Businesses() {
-  const [categorizedBusinesses, setCategorizedBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Businesses({ initialCategorizedBusinesses }) {
+  const [categorizedBusinesses, setCategorizedBusinesses] = useState(initialCategorizedBusinesses || []);
+  const [loading, setLoading] = useState(false);
 
   const searchParams = useSearchParams();
   const searchKeyword = searchParams.get('search') || '';
 
   const { lat, lng, address, loading: locationLoading } = useLocation();
 
+  const isFirstRender = useRef(true);
+
   // Fetch businesses whenever location changes
   useEffect(() => {
     // Wait for location to resolve (or be denied)
     if (locationLoading) return;
 
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      // Note: we don't return here if lat/lng are present because we MIGHT want to
+      // load location-specific businesses. But initial is fine to show.
+    }
+
     async function fetchBusinesses() {
-      setLoading(true);
+      // Don't show loading on first load if we have data, but do afterwards
+      if (!isFirstRender.current) {
+        setLoading(true);
+      }
       try {
         const params = {};
         if (searchKeyword) {
@@ -107,20 +118,24 @@ export default function Businesses() {
               {group.businesses.slice(0, 5).map((biz) => (
                 <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
                   <div className="business-image">
-                    {biz.image ? (
-                      <img src={biz.image} alt={biz.name} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <polyline points="21 15 16 10 5 21" />
-                        </svg>
-                      </div>
-                    )}
+                    <Link href={getBusinessLink(biz)} style={{ display: 'block', width: '100%', height: '100%' }}>
+                      {biz.image ? (
+                        <img src={biz.image} alt={biz.name} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                        </div>
+                      )}
+                    </Link>
                   </div>
                   <div className="business-info">
-                    <h3>{biz.name}</h3>
+                    <Link href={getBusinessLink(biz)} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <h3>{biz.name}</h3>
+                    </Link>
                     {biz.type && <div className="business-type">{biz.type}</div>}
                     {biz.rating > 0 && (
                       <div className="business-rating">

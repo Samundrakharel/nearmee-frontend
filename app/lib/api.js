@@ -9,7 +9,7 @@
 const getApiBase = () => {
   // If we are on the server (SSR), use the internal Docker network
   if (typeof window === 'undefined') {
-    return process.env.INTERNAL_API_URL || 'http://web:8000/api';
+    return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://web:8000/api';
   }
 
   // If we are in the browser, use the public URL
@@ -18,7 +18,19 @@ const getApiBase = () => {
 
 export const API_BASE = getApiBase();
 
-// ─── Helpers ───────────────────────────────────────────────
+// ─── Subdomain URL Helper ───────────────────────────────────
+
+/**
+ * Generate a subdomain URL for a given business slug.
+ * e.g. pizza-hut → https://pizza-hut.nearmee.net
+ */
+export function getBusinessSubdomainUrl(slug) {
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
+  return `${protocol}://${slug}.${baseDomain}${port}`;
+}
+
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

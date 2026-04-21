@@ -108,9 +108,9 @@ function getCategoryIcon(name) {
   return defaultIcons.default;
 }
 
-export default function Categories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Categories({ initialCategories }) {
+  const [categories, setCategories] = useState(initialCategories || []);
+  const [loading, setLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
   const scrollContainerRef = useRef(null);
@@ -128,8 +128,18 @@ export default function Categories() {
     }
   };
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (initialCategories && initialCategories.length > 0) {
+        return;
+      }
+    }
+
     async function fetchCategories() {
+      setLoading(true);
       try {
         const { getRestaurantCategories } = await import('../lib/api');
         const data = await getRestaurantCategories();
@@ -142,7 +152,7 @@ export default function Categories() {
       }
     }
     fetchCategories();
-  }, []);
+  }, [initialCategories]);
 
   if (loading) {
     return (
