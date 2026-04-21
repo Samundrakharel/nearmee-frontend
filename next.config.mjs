@@ -1,11 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+
+  // Allow the app to be served from any subdomain of nearmee.net
+  // This is required for business subdomain routing (e.g. pizza-hut.nearmee.net)
+  async headers() {
+    return [];
+  },
+
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'nearmee.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.nearmee.net',
       },
       {
         protocol: 'http',
