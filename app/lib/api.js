@@ -31,6 +31,47 @@ export function getBusinessSubdomainUrl(slug) {
   return `${protocol}://${slug}.${baseDomain}${port}`;
 }
 
+/**
+ * Check if the current hostname is a business subdomain.
+ * e.g. pizza-hut.nearmee.net → true
+ *      nearmee.net → false
+ *      www.nearmee.net → false
+ */
+export function isBusinessSubdomain() {
+  if (typeof window === 'undefined') return false;
+  
+  const hostname = window.location.hostname;
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  
+  // If it's exactly the base domain or localhost, it's NOT a business subdomain
+  if (hostname === baseDomain || hostname === 'localhost' || hostname === '127.0.0.1') {
+    return false;
+  }
+  
+  // Check against reserved subdomains
+  const parts = hostname.split('.');
+  const subdomain = parts[0];
+  const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media"];
+  
+  if (reserved.includes(subdomain.toLowerCase())) {
+    return false;
+  }
+  
+  // If it ends with the base domain and has a subdomain part, it's a business subdomain
+  return hostname.endsWith(`.${baseDomain}`);
+}
+
+/**
+ * Get the main domain URL (e.g. https://nearmee.net).
+ * Useful for links that need to go back to the home page from a subdomain.
+ */
+export function getMainDomainUrl() {
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
+  return `${protocol}://${baseDomain}${port}`;
+}
+
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

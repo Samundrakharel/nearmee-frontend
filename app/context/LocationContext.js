@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { isLoggedIn, updateProfile } from '../lib/api';
+import { isLoggedIn, updateProfile, isBusinessSubdomain } from '../lib/api';
 
 const LocationContext = createContext();
 
@@ -207,7 +207,10 @@ export function LocationProvider({ children }) {
     }
 
     // 2. Request fresh location from browser
-    requestLocation();
+    // ONLY if we are NOT on a business subdomain
+    if (!isBusinessSubdomain()) {
+      requestLocation();
+    }
   }, [requestLocation]);
 
   const contextValue = {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { isLoggedIn, logout, getProfile, getBusinesses, searchCategories, getBusinessSubdomainUrl } from '../lib/api';
+import { isLoggedIn, logout, getProfile, getBusinesses, searchCategories, getBusinessSubdomainUrl, isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
 import { useLocation } from '../context/LocationContext';
 
 export default function Header() {
@@ -147,13 +147,28 @@ export default function Header() {
     <header className="header glass" id="header">
       <div className="header-inner">
         {/* Logo */}
-        <Link href="/" className="logo" id="header-logo" onClick={() => setIsMobileSearchOpen(false)}>
-          <svg width="100" height="35" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
-            <circle cx="75" cy="20" r="18" fill="#3B82F6" />
-            <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
-          </svg>
-        </Link>
+        {isBusinessSubdomain() ? (
+          <a href={getMainDomainUrl()} className="logo" id="header-logo">
+            <svg width="100" height="35" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
+              <circle cx="75" cy="20" r="18" fill="#3B82F6" />
+              <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
+            </svg>
+          </a>
+        ) : (
+          <Link 
+            href="/" 
+            className="logo" 
+            id="header-logo" 
+            onClick={() => setIsMobileSearchOpen(false)}
+          >
+            <svg width="100" height="35" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
+              <circle cx="75" cy="20" r="18" fill="#3B82F6" />
+              <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
+            </svg>
+          </Link>
+        )}
 
         {/* Search Bar - Hidden on Home Page */}
         {pathname !== '/' && (
