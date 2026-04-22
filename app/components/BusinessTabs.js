@@ -4,32 +4,47 @@ export default function BusinessTabs({ activeTab, setActiveTab }) {
   const tabs = ['Overview', 'Reviews', 'Menu', 'Photos'];
 
   return (
-    <div className="business-tabs-container">
+    <div className="business-tabs-container" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
       <div className="container">
-        <div className="business-tabs" style={{ 
+        <div style={{ 
           display: 'flex', 
           gap: '32px', 
-          overflowX: 'auto', 
-          scrollbarWidth: 'none', 
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          padding: '0 4px'
+          padding: '16px 0',
         }}>
           <style>{`
-            .business-tabs::-webkit-scrollbar { display: none; }
-            .tab-item { transition: var(--transition-smooth); white-space: nowrap; }
-            .tab-item:hover { color: var(--color-primary); }
-            .tab-item.active { color: var(--color-primary); font-weight: 700; }
-            .tab-item.active::after { 
-              content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; 
-              background: var(--color-primary); border-radius: 3px 3px 0 0;
+            .business-tabs-container ::-webkit-scrollbar { display: none; }
+            .tab-link {
+              background: none;
+              border: none;
+              padding: 0;
+              cursor: pointer;
+              font-size: 1rem;
+              font-weight: 500;
+              color: #64748b;
+              text-decoration: underline;
+              text-decoration-color: transparent;
+              text-underline-offset: 3px;
+              white-space: nowrap;
+              transition: color 0.15s ease, text-decoration-color 0.15s ease;
+            }
+            .tab-link:hover {
+              color: #3B82F6;
+              text-decoration-color: #3B82F6;
+            }
+            .tab-link.active {
+              color: #1e293b;
+              font-weight: 600;
+              text-decoration-color: #1e293b;
             }
           `}</style>
           {tabs.map((tab) => (
             <button
               key={tab}
-              className={`tab-item ${activeTab === tab ? 'active' : ''}`}
+              className={`tab-link ${activeTab === tab ? 'active' : ''}`}
               onClick={() => setActiveTab(tab)}
-              style={{ background: 'none', border: 'none', padding: '20px 0', cursor: 'pointer', fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-medium)', position: 'relative' }}
             >
               {tab}
             </button>

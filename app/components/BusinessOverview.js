@@ -57,11 +57,6 @@ export default function BusinessOverview({ business, setActiveTab }) {
           <section className="overview-section" id="popular-menu">
             <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Popular Menu Items</h2>
-              {setActiveTab && (
-                <button onClick={() => setActiveTab('Menu')} className="view-all" style={{ background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--color-primary)', fontWeight: '700', cursor: 'pointer', padding: '8px 16px', borderRadius: '10px', fontSize: '0.9rem', transition: 'var(--transition-smooth)' }}>
-                  View All
-                </button>
-              )}
             </div>
             <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
               {menuItems.slice(0, 4).map((item, idx) => (
@@ -87,6 +82,11 @@ export default function BusinessOverview({ business, setActiveTab }) {
                 </div>
               ))}
             </div>
+            {setActiveTab && (
+              <button onClick={() => setActiveTab('Menu')} className="btn-see-more">
+                See Full Menu
+              </button>
+            )}
           </section>
         );
       })()}
@@ -95,11 +95,6 @@ export default function BusinessOverview({ business, setActiveTab }) {
         <section className="overview-section" id="overview-photos">
           <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Photos</h2>
-            {setActiveTab && (
-              <button onClick={() => setActiveTab('Photos')} className="view-all" style={{ background: 'rgba(59, 130, 246, 0.1)', border: 'none', color: 'var(--color-primary)', fontWeight: '700', cursor: 'pointer', padding: '8px 16px', borderRadius: '10px', fontSize: '0.9rem', transition: 'var(--transition-smooth)' }}>
-                View All
-              </button>
-            )}
           </div>
           <div className="photos-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
             {photos.filter(Boolean).slice(0, 4).map((photo, index) => {
@@ -115,6 +110,11 @@ export default function BusinessOverview({ business, setActiveTab }) {
               );
             })}
           </div>
+          {setActiveTab && (
+            <button onClick={() => setActiveTab('Photos')} className="btn-see-more">
+              View All Photos
+            </button>
+          )}
         </section>
       )}
 
@@ -246,6 +246,11 @@ export default function BusinessOverview({ business, setActiveTab }) {
             <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>No reviews yet.</p>
           )}
         </div>
+        {setActiveTab && (
+          <button onClick={() => setActiveTab('Reviews')} className="btn-see-more">
+            See Full Reviews
+          </button>
+        )}
       </section>
     </div>
   );
