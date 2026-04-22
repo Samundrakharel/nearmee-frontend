@@ -1,6 +1,14 @@
 export default function Footer() {
   return (
     <footer className="footer" id="footer" style={{ borderTop: '1px solid var(--color-border)', backgroundColor: '#fff' }}>
+      <style>{`
+        .footer-col ul a {
+          transition: color 0.2s ease;
+        }
+        .footer-col ul a:hover {
+          color: #3B82F6 !important;
+        }
+      `}</style>
       <div className="footer-inner">
         <div className="footer-brand">
           <a href="/" className="logo">
@@ -38,3 +46,4 @@ export default function Footer() {
     </footer>
   );
 }
+

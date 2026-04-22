@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { getTopBusinessesByCategory } from '../lib/api';
+import { getTopBusinessesByCategory, getBusinessSubdomainUrl } from '../lib/api';
 import { useLocation } from '../context/LocationContext';
 import { BusinessCardSkeleton } from './Skeleton';
 
@@ -69,7 +69,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
   }, [lat, lng, locationLoading, searchKeyword]);
 
   const getBusinessLink = (biz) => {
-    return `/business/${biz.slug || biz.id}/nearme.com`;
+    return getBusinessSubdomainUrl(biz.slug || biz.id);
   };
 
   // Prioritize categories that have businesses

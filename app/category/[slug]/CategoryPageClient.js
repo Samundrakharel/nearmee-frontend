@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
-import { getCategoryBySlug, getBusinessesByCategorySlug } from '../../lib/api';
+import { getCategoryBySlug, getBusinessesByCategorySlug, getBusinessSubdomainUrl } from '../../lib/api';
 import { useLocation } from '../../context/LocationContext';
 import { HexagonOverlay } from '../../components/HexagonLoader';
 import { BusinessCardSkeleton } from '../../components/Skeleton';
@@ -192,12 +192,12 @@ export default function CategoryPageClient({
               {businesses.map((biz) => (
                 <div key={biz.id} className="business-card" id={`business-${biz.id}`}>
                   <div className="business-image">
-                    <Link href={`/business/${biz.slug || biz.id}/nearme.com`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                    <Link href={getBusinessSubdomainUrl(biz.slug || biz.id)} style={{ display: 'block', width: '100%', height: '100%' }}>
                       <img src={biz.image || biz.coverImage || biz.thumbnail || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80'} alt={biz.name} />
                     </Link>
                   </div>
                   <div className="business-info">
-                    <Link href={`/business/${biz.slug || biz.id}/nearme.com`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link href={getBusinessSubdomainUrl(biz.slug || biz.id)} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h3>{biz.name}</h3>
                     </Link>
                     <div className="business-type">{biz.type || title}</div>
@@ -214,7 +214,7 @@ export default function CategoryPageClient({
                       {biz.address || 'Address not listed'}
                     </div>
                     <p className="business-description">{biz.description || 'No description provided.'}</p>
-                    <Link href={`/business/${biz.slug || biz.id}/nearme.com`} className="btn-view-business" id={`view-business-${biz.id}`}>
+                    <Link href={getBusinessSubdomainUrl(biz.slug || biz.id)} className="btn-view-business" id={`view-business-${biz.id}`}>
                       View Business
                     </Link>
                   </div>
@@ -275,9 +275,9 @@ export default function CategoryPageClient({
           <div className="more-categories">
             <h2>More Categories You May Like</h2>
             <div className="more-categories-tags">
-                <Link href={`/category/bakery/nearme.com`} className="more-category-tag">Bakery</Link>
-                <Link href={`/category/asian-restaurant/nearme.com`} className="more-category-tag">Asian Restaurant</Link>
-                <Link href={`/category/breakfast-restaurant/nearme.com`} className="more-category-tag">Breakfast</Link>
+                <Link href={`/category/bakery`} className="more-category-tag">Bakery</Link>
+                <Link href={`/category/asian-restaurant`} className="more-category-tag">Asian Restaurant</Link>
+                <Link href={`/category/breakfast-restaurant`} className="more-category-tag">Breakfast</Link>
             </div>
           </div>
         </div>

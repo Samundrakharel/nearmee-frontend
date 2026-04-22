@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { isLoggedIn, logout, getProfile, getBusinesses, searchCategories } from '../lib/api';
+import { isLoggedIn, logout, getProfile, getBusinesses, searchCategories, getBusinessSubdomainUrl } from '../lib/api';
 import { useLocation } from '../context/LocationContext';
 
 export default function Header() {
@@ -109,7 +109,7 @@ export default function Header() {
         );
 
         if (targetBusiness) {
-          router.push(`/business/${targetBusiness.slug || targetBusiness.id}/nearme.com`);
+          window.location.href = getBusinessSubdomainUrl(targetBusiness.slug || targetBusiness.id);
           setSearching(false);
           return;
         }
@@ -124,7 +124,7 @@ export default function Header() {
           );
 
           if (targetCategory) {
-            router.push(`/category/${targetCategory.slug}/nearme.com`);
+            router.push(`/category/${targetCategory.slug}`);
             setSearching(false);
             return;
           }

@@ -216,7 +216,7 @@ export default function Categories({ initialCategories }) {
               : 'Explore businesses';
 
             return (
-              <Link key={cat.id || cat.name} href={`/category/${slug}/nearme.com`} className="category-card-link" style={{ textDecoration: 'none' }}>
+              <Link key={cat.id || cat.name} href={`/category/${slug}`} className="category-card-link" style={{ textDecoration: 'none' }}>
                 <div 
                   className="category-card-modern" 
                   id={`cat-${slug}`}
