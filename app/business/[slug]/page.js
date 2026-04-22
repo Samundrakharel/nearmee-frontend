@@ -17,7 +17,7 @@ export async function generateMetadata(props) {
     title: `${business.name} | Nearmee`,
     description: business.description || `View reviews, menus, and photos for ${business.name} on Nearmee.`,
     alternates: {
-      canonical: `https://www.nearmee.com/business/${params.slug}`,
+      canonical: `https://www.nearmee.net/business/${params.slug}`,
     },
     robots: {
       index: true,

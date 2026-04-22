@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Nearmee - Find the Best Local Businesses Near You',
   description: 'Discover the best local businesses in your area. From restaurants to services, find everything you need near you.',
   alternates: {
-    canonical: 'https://www.nearmee.com',
+    canonical: 'https://www.nearmee.net',
   },
   robots: {
     index: true,

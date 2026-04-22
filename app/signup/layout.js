@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Create an Account | Nearmee',
   description: 'Join Nearmee to discover the best local businesses near you.',
   alternates: {
-    canonical: 'https://www.nearmee.com/signup',
+    canonical: 'https://www.nearmee.net/signup',
   },
   robots: {
     index: false,
