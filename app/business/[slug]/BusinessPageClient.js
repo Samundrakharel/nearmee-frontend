@@ -59,7 +59,7 @@ export default function BusinessPageClient({ slug, initialBusiness }) {
     return (
       <div className="business-view-page">
         <Header />
-        <BusinessHero business={business} />
+        {/* Hero is hidden here to provide a clean full-page view */}
         <BusinessTabs activeTab={activeTab} setActiveTab={handleTabChange} />
         {activeTab === 'Reviews' && <BusinessFullReviews business={business} setActiveTab={handleTabChange} />}
         {activeTab === 'Menu' && <BusinessMenu business={business} setActiveTab={handleTabChange} />}

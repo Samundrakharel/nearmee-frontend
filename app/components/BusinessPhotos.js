@@ -16,8 +16,13 @@ export default function BusinessPhotos({ business }) {
   };
 
   return (
-    <div className="business-photos-tab">
-      <h2 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '32px', color: 'var(--color-text-dark)' }}>Photos</h2>
+    <div className="business-photos-tab" style={{ padding: '32px 0' }}>
+      {/* Breadcrumb Area */}
+      <div className="breadcrumb" style={{ fontSize: '0.95rem', color: '#475569', marginBottom: '24px' }}>
+        <span style={{ cursor: 'pointer' }} onClick={() => window.location.hash = '#overview'}>{business.name}</span> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Photos</span>
+      </div>
+
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '32px', color: 'var(--color-text-dark)' }}>{business.name} Photos</h1>
       <div className="photos-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',

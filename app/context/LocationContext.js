@@ -208,8 +208,17 @@ export function LocationProvider({ children }) {
 
     // 2. Request fresh location from browser
     // ONLY if we are NOT on a business subdomain
-    if (!isBusinessSubdomain()) {
-      requestLocation();
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      const isSub = hostname !== baseDomain && 
+                    hostname !== 'localhost' && 
+                    hostname !== '127.0.0.1' && 
+                    !hostname.startsWith('www.');
+      
+      if (!isSub) {
+        requestLocation();
+      }
     }
   }, [requestLocation]);
 

@@ -18,6 +18,31 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isSubdomain, setIsSubdomain] = useState(false);
+  const [homeUrl, setHomeUrl] = useState('/');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      
+      // A subdomain is any hostname that isn't the base domain, localhost, or starts with www.
+      const isSub = hostname !== baseDomain && 
+                    hostname !== 'localhost' && 
+                    hostname !== '127.0.0.1' && 
+                    !hostname.startsWith('www.');
+      
+      setIsSubdomain(isSub);
+      
+      if (isSub) {
+        const protocol = window.location.protocol;
+        const port = window.location.port ? `:${window.location.port}` : '';
+        setHomeUrl(`${protocol}//${baseDomain}${port}`);
+      } else {
+        setHomeUrl('/');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (address) {
@@ -147,8 +172,8 @@ export default function Header() {
     <header className="header glass" id="header">
       <div className="header-inner">
         {/* Logo */}
-        {isBusinessSubdomain() ? (
-          <a href={getMainDomainUrl()} className="logo" id="header-logo">
+        {isSubdomain ? (
+          <a href={homeUrl} className="logo" id="header-logo">
             <svg width="100" height="35" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
               <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
               <circle cx="75" cy="20" r="18" fill="#3B82F6" />
