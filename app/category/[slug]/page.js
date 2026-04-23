@@ -7,12 +7,12 @@ export async function generateMetadata(props) {
   const catData = await getCategoryBySlug(params.slug).catch(() => null);
   const rawTitle = catData?.name || params.slug.split('-').join(' ');
   const formattedTitle = rawTitle.replace(/\b\w/g, c => c.toUpperCase());
-  
+
   return {
     title: `${formattedTitle} Near You | Nearmee`,
     description: `Find the best ${formattedTitle.toLowerCase()} near you on Nearmee. Read reviews, view menus, and more.`,
     alternates: {
-      canonical: `https://nearmee.net/category/${params.slug}`,
+      canonical: `https://www.nearmee.net/category/${params.slug}`,
     },
     robots: {
       index: true,
@@ -27,7 +27,7 @@ export default async function CategoryPage(props) {
 
   // Fetch initial data on the server
   const catData = await getCategoryBySlug(slug).catch(() => null);
-  
+
   const bizData = await getBusinessesByCategorySlug(slug, { page: 1 }).catch(() => ({
     results: [],
     count: 0,
@@ -36,7 +36,7 @@ export default async function CategoryPage(props) {
 
   return (
     <>
-      <CategoryPageClient 
+      <CategoryPageClient
         slug={slug}
         initialCategoryInfo={catData}
         initialBusinesses={bizData.results || []}

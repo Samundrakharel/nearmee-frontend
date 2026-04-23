@@ -4,7 +4,7 @@ import BusinessPageClient from './BusinessPageClient';
 export async function generateMetadata(props) {
   const params = await props.params;
   const business = await getBusinessBySlug(params.slug).catch(() => null);
-  
+
   if (!business) {
     return {
       title: 'Business Not Found | Nearmee',
@@ -17,7 +17,7 @@ export async function generateMetadata(props) {
     title: `${business.name} | Nearmee`,
     description: business.description || `View reviews, menus, and photos for ${business.name} on Nearmee.`,
     alternates: {
-      canonical: `https://${params.slug}.nearmee.net`,
+      canonical: `https://www.nearmee.com/business/${params.slug}`,
     },
     robots: {
       index: true,
@@ -30,6 +30,6 @@ export default async function BusinessPage(props) {
   const params = await props.params;
   const { slug } = params;
   const business = await getBusinessBySlug(slug).catch(() => null);
-  
+
   return <BusinessPageClient slug={slug} initialBusiness={business} />;
 }

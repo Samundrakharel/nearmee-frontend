@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Nearmee - Find the Best Local Businesses Near You',
   description: 'Discover the best local businesses in your area. From restaurants to services, find everything you need near you.',
   alternates: {
-    canonical: 'https://nearmee.net',
+    canonical: 'https://www.nearmee.net',
   },
   robots: {
     index: true,
@@ -25,7 +25,8 @@ export default function RootLayout({ children }) {
           Inline styles for the loader so they apply BEFORE globals.css downloads.
           This ensures the loader is visible on very first paint.
         */}
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           #page-loader {
             position: fixed; inset: 0; z-index: 99999;
             background: #fff;
@@ -69,7 +70,8 @@ export default function RootLayout({ children }) {
           Shows the loader immediately on hard refresh / first load,
           then hides it once the page is fully interactive.
         */}
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script dangerouslySetInnerHTML={{
+          __html: `
           (function () {
             // Inject a top progress bar
             var bar = document.createElement('div');
