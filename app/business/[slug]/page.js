@@ -13,9 +13,13 @@ export async function generateMetadata(props) {
     };
   }
 
+  // Use SEO title from backend if available, otherwise fallback to default
+  const seoTitle = business.seo?.title || `${business.name} | Nearmee`;
+  const description = business.description || `View reviews, menus, and photos for ${business.name} on Nearmee.`;
+  console.log('Business Page Metadata:', { seoTitle });
   return {
-    title: `${business.name} | Nearmee`,
-    description: business.description || `View reviews, menus, and photos for ${business.name} on Nearmee.`,
+    title: seoTitle,
+    description: description,
     alternates: {
       canonical: `https://www.nearmee.net/business/${params.slug}`,
     },

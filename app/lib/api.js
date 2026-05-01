@@ -39,24 +39,24 @@ export function getBusinessSubdomainUrl(slug) {
  */
 export function isBusinessSubdomain() {
   if (typeof window === 'undefined') return false;
-  
+
   const hostname = window.location.hostname;
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
-  
+
   // If it's exactly the base domain or localhost, it's NOT a business subdomain
   if (hostname === baseDomain || hostname === 'localhost' || hostname === '127.0.0.1') {
     return false;
   }
-  
+
   // Check against reserved subdomains
   const parts = hostname.split('.');
   const subdomain = parts[0];
   const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media"];
-  
+
   if (reserved.includes(subdomain.toLowerCase())) {
     return false;
   }
-  
+
   // If it ends with the base domain and has a subdomain part, it's a business subdomain
   return hostname.endsWith(`.${baseDomain}`);
 }
@@ -216,6 +216,18 @@ export function transformBusiness(biz) {
     todayHours: openState,
     createdAt: biz.created_at,
     updatedAt: biz.updated_at,
+
+    // SEO titles from backend
+    seo: biz.seo || {
+      title: `${biz.name} | Nearmee`,
+      menu_title: `${biz.name} Menu | Nearmee`,
+      reviews_title: `${biz.name} Reviews | Nearmee`,
+      services_title: `${biz.name} Services | Nearmee`,
+    },
+
+    // DEBUG: Log the SEO data
+    // Remove this after debugging
+    _debug_seo: biz.seo,
 
     // Nested objects
     city: biz.city || null,
@@ -507,7 +519,7 @@ export async function getTopBusinessesByCategory(params = {}) {
   });
   const query = searchParams.toString();
   const data = await request(`/top-by-category/${query ? '?' + query : ''}`);
-  
+
   // Transform the businesses within each category
   return (Array.isArray(data) ? data : []).map(group => ({
     ...group,

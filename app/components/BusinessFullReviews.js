@@ -19,9 +19,9 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
   function StarRating({ rating, size = '1rem' }) {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
-        stars.push(
-          <span key={i} style={{ color: i <= rating ? 'var(--color-star, #fbbf24)' : '#ddd', fontSize: size }}>★</span>
-        );
+      stars.push(
+        <span key={i} style={{ color: i <= rating ? 'var(--color-star, #fbbf24)' : '#ddd', fontSize: size }}>★</span>
+      );
     }
     return <div style={{ display: 'flex', gap: '2px' }}>{stars}</div>;
   }
@@ -36,13 +36,13 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
           <div className="breadcrumb" style={{ fontSize: '0.95rem', color: '#475569', marginBottom: '24px' }}>
             <span style={{ cursor: 'pointer', "&:hover": { textDecoration: 'underline' } }} onClick={() => setActiveTab('Overview')}>{business.name}</span> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Reviews</span>
           </div>
-          
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>{business.name} Reviews</h1>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>{business.seo?.reviews_title || `${business.name} Reviews`}</h1>
               </div>
-              
+
               <div style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '8px' }}>
                 {categories.length > 0 ? (
                   categories.map((cat, index) => {
@@ -59,7 +59,7 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
                 ) : null}
               </div>
 
-              <button 
+              <button
                 onClick={() => {
                   setActiveTab('Overview');
                   setTimeout(() => {
@@ -93,13 +93,13 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
 
         {/* Main Content Area */}
         <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
-          
+
           {/* Left Column: Rating Summary */}
           <div style={{ flex: '0 0 350px', position: 'sticky', top: '24px' }}>
-            <div className="rating-summary-card" style={{ 
-              background: '#fff', 
-              padding: '32px', 
-              borderRadius: 'var(--radius-md, 12px)', 
+            <div className="rating-summary-card" style={{
+              background: '#fff',
+              padding: '32px',
+              borderRadius: 'var(--radius-md, 12px)',
               border: '1px solid var(--color-border, #e2e8f0)',
             }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '24px', color: 'var(--color-text-dark, #0f172a)' }}>Rating Summary</h2>
@@ -113,25 +113,25 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
                 </div>
 
                 <div className="rating-bars">
-                {starPercentages.map((item) => (
-                  <div key={item.star} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--color-text-medium, #64748b)', width: '45px', flexShrink: 0 }}>{item.star} stars</span>
-                    <div style={{ 
-                      flex: 1, 
-                      height: '8px', 
-                      background: '#f1f5f9', 
-                      borderRadius: '4px', 
-                      overflow: 'hidden' 
-                    }}>
-                      <div style={{ 
-                        width: `${item.percentage}%`, 
-                        height: '100%', 
-                        background: '#fbbf24',
-                        borderRadius: '4px' 
-                      }} />
+                  {starPercentages.map((item) => (
+                    <div key={item.star} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--color-text-medium, #64748b)', width: '45px', flexShrink: 0 }}>{item.star} stars</span>
+                      <div style={{
+                        flex: 1,
+                        height: '8px',
+                        background: '#f1f5f9',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${item.percentage}%`,
+                          height: '100%',
+                          background: '#fbbf24',
+                          borderRadius: '4px'
+                        }} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               </div>
             </div>
@@ -142,23 +142,23 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
             <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>All Reviews</h2>
             <div className="reviews-list">
               {list.length > 0 ? list.map((review, index) => (
-                <div key={index} className="review-card" style={{ 
-                  background: '#fff', 
-                  padding: '24px', 
-                  borderRadius: 'var(--radius-md, 12px)', 
+                <div key={index} className="review-card" style={{
+                  background: '#fff',
+                  padding: '24px',
+                  borderRadius: 'var(--radius-md, 12px)',
                   border: '1px solid var(--color-border, #e2e8f0)',
                   marginBottom: '16px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '50%', 
-                        background: '#eff6ff', 
-                        color: '#3b82f6', 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: '#eff6ff',
+                        color: '#3b82f6',
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: '700',
                         fontSize: '0.9rem',

@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import BusinessFullReviews from '../../components/BusinessFullReviews';
 import BusinessHero from '../../components/BusinessHero';
+import BusinessMenu from '../../components/BusinessMenu';
 import BusinessOverview from '../../components/BusinessOverview';
+import BusinessPhotos from '../../components/BusinessPhotos';
 import BusinessSidebar from '../../components/BusinessSidebar';
 import BusinessTabs from '../../components/BusinessTabs';
-import BusinessReviews from '../../components/BusinessReviews';
-import BusinessFullReviews from '../../components/BusinessFullReviews';
-import BusinessMenu from '../../components/BusinessMenu';
-import BusinessMenuPreview from '../../components/BusinessMenuPreview';
-import BusinessPhotos from '../../components/BusinessPhotos';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
-import UserSubmissionActions from '../../components/UserSubmissionActions';
 import { BusinessDetailSkeleton } from '../../components/Skeleton';
+import UserSubmissionActions from '../../components/UserSubmissionActions';
 
 // Map URL hashes → tab names
 const HASH_TO_TAB = {
@@ -36,12 +34,46 @@ export default function BusinessPageClient({ slug, initialBusiness }) {
   const [activeTab, setActiveTab] = useState('Overview');
   const [loading] = useState(false);
 
+  // DEBUG: Log the business data to see SEO structure
+  useEffect(() => {
+    if (business) {
+      console.log('=== BUSINESS DATA ===');
+      console.log('Full business object:', business);
+      console.log('SEO data:', business.seo);
+      console.log('Debug SEO:', business._debug_seo);
+      console.log('====================');
+    }
+  }, [business]);
+
   // On mount: read hash from URL to set the initial active tab
   useEffect(() => {
     const hash = window.location.hash.toLowerCase();
     const tab = HASH_TO_TAB[hash];
     if (tab) setActiveTab(tab);
   }, []);
+
+  // Update page title based on active tab and SEO titles
+  useEffect(() => {
+    if (!business || !business.seo) return;
+
+    let pageTitle = business.seo.title;
+
+    switch (activeTab) {
+      case 'Reviews':
+        pageTitle = business.seo.reviews_title || business.seo.title;
+        break;
+      case 'Menu':
+        pageTitle = business.seo.menu_title || business.seo.title;
+        break;
+      case 'Photos':
+        pageTitle = business.seo.title;
+        break;
+      default:
+        pageTitle = business.seo.title;
+    }
+
+    document.title = pageTitle;
+  }, [activeTab, business]);
 
   // When tab changes: update URL hash without scrolling
   const handleTabChange = (tab) => {
