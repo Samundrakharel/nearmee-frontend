@@ -3,31 +3,39 @@ import BusinessPageClient from './BusinessPageClient';
 
 export async function generateMetadata(props) {
   const params = await props.params;
-  const business = await getBusinessBySlug(params.slug).catch(() => null);
 
-  if (!business) {
+  try {
+    const apiBase = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    const res = await fetch(`${apiBase}/businesses/${params.slug}/`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420',
+      },
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) throw new Error(`API ${res.status}`);
+
+    const biz = await res.json();
+    const seoTitle = biz?.seo?.title || `${biz?.name} | Nearmee`;
+    const description = biz?.description || `View reviews, menus, and photos for ${biz?.name} on Nearmee.`;
+
     return {
-      title: 'Business Not Found | Nearmee',
-      description: 'The business you are looking for could not be found.',
+      title: seoTitle,
+      description,
+      alternates: {
+        canonical: `https://www.nearmee.net/business/${params.slug}`,
+      },
+      robots: { index: true, follow: true },
+    };
+  } catch (e) {
+    console.error('generateMetadata failed:', e.message);
+    return {
+      title: 'Business | Nearmee',
+      description: 'Find local businesses on Nearmee.',
       robots: { index: false, follow: false },
     };
   }
-
-  // Use SEO title from backend if available, otherwise fallback to default
-  const seoTitle = business.seo?.title || `${business.name} | Nearmee`;
-  const description = business.description || `View reviews, menus, and photos for ${business.name} on Nearmee.`;
-  console.log('Business Page Metadata:', { seoTitle });
-  return {
-    title: seoTitle,
-    description: description,
-    alternates: {
-      canonical: `https://www.nearmee.net/business/${params.slug}`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
-  };
 }
 
 export default async function BusinessPage(props) {

@@ -21,7 +21,7 @@ export default function BusinessHero({ business }) {
         <div className="container">
           <div className="business-title-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: '800', lineHeight: '1.2', margin: 0, color: '#0f172a' }}>{business.name}</h1>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 3.5vw, 1.75rem)', fontWeight: '800', lineHeight: '1.3', margin: 0, color: '#0f172a' }}>{business.seo?.title || business.name}</h1>
             </div>
           </div>
 

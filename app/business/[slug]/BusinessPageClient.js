@@ -52,24 +52,26 @@ export default function BusinessPageClient({ slug, initialBusiness }) {
     if (tab) setActiveTab(tab);
   }, []);
 
-  // Update page title based on active tab and SEO titles
+  // Update page title based on active tab and SEO titles from API
   useEffect(() => {
-    if (!business || !business.seo) return;
+    if (!business) return;
 
-    let pageTitle = business.seo.title;
+    const seo = business.seo || {};
+    const baseTitle = seo.title || `${business.name} | Nearmee`;
+    let pageTitle;
 
     switch (activeTab) {
       case 'Reviews':
-        pageTitle = business.seo.reviews_title || business.seo.title;
+        pageTitle = seo.reviews_title || baseTitle;
         break;
       case 'Menu':
-        pageTitle = business.seo.menu_title || business.seo.title;
+        pageTitle = seo.menu_title || baseTitle;
         break;
       case 'Photos':
-        pageTitle = business.seo.title;
+        pageTitle = seo.services_title || baseTitle;
         break;
       default:
-        pageTitle = business.seo.title;
+        pageTitle = baseTitle;
     }
 
     document.title = pageTitle;
