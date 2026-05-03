@@ -274,6 +274,9 @@ export function transformBusiness(biz) {
 
     // For business list cards (shorthand)
     image: biz.cover_image || (images.length > 0 ? images[0] : ''),
+
+    // SEO Schema (JSON-LD)
+    schema: biz.schema || null,
   };
 }
 
@@ -531,13 +534,13 @@ export async function getTopBusinessesByCategory(params = {}) {
  * GET /businesses/{slug}/
  * Returns: Business (full detail)
  */
-export async function getBusinessBySlug(slug, queryParams = {}) {
+export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = false) {
   const params = new URLSearchParams(queryParams).toString();
   const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
   const business = transformBusiness(data);
 
   // Auto-generate about_us if not yet generated
-  if (!business.aboutUs) {
+  if (!skipGenerate && !business.aboutUs) {
     try {
       const generated = await generateAboutUs(slug);
       business.aboutUs = generated.about_us || '';

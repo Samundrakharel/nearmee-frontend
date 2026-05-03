@@ -5,20 +5,12 @@ export async function generateMetadata(props) {
   const params = await props.params;
 
   try {
-    const apiBase = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
-    const res = await fetch(`${apiBase}/businesses/${params.slug}/`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': '69420',
-      },
-      next: { revalidate: 3600 },
-    });
+    const biz = await getBusinessBySlug(params.slug, {}, true);
+    
+    if (!biz) throw new Error('Business not found');
 
-    if (!res.ok) throw new Error(`API ${res.status}`);
-
-    const biz = await res.json();
-    const seoTitle = biz?.seo?.title || `${biz?.name} | Nearmee`;
-    const description = biz?.description || `View reviews, menus, and photos for ${biz?.name} on Nearmee.`;
+    const seoTitle = biz.seo?.title || `${biz.name} | Nearmee`;
+    const description = biz.description || `View reviews, menus, and photos for ${biz.name} on Nearmee.`;
 
     return {
       title: seoTitle,
@@ -43,5 +35,15 @@ export default async function BusinessPage(props) {
   const { slug } = params;
   const business = await getBusinessBySlug(slug).catch(() => null);
 
-  return <BusinessPageClient slug={slug} initialBusiness={business} />;
+  return (
+    <>
+      {business?.schema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(business.schema) }}
+        />
+      )}
+      <BusinessPageClient slug={slug} initialBusiness={business} />
+    </>
+  );
 }
