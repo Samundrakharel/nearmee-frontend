@@ -13,25 +13,28 @@ import Header from '../../components/Header';
 import { BusinessDetailSkeleton } from '../../components/Skeleton';
 import UserSubmissionActions from '../../components/UserSubmissionActions';
 
-// Map URL hashes → tab names
-const HASH_TO_TAB = {
-  '#overview': 'Overview',
-  '#reviews': 'Reviews',
-  '#menu': 'Menu',
-  '#photos': 'Photos',
+// Map URL paths → tab names
+const PATH_TO_TAB = {
+  'overview': 'Overview',
+  'reviews': 'Reviews',
+  'menu': 'Menu',
+  'photos': 'Photos',
 };
-const TAB_TO_HASH = {
-  'Overview': '#overview',
-  'Reviews': '#reviews',
-  'Menu': '#menu',
-  'Photos': '#photos',
+const TAB_TO_PATH = {
+  'Overview': 'overview',
+  'Reviews': 'reviews',
+  'FullReviews': 'reviews',
+  'Menu': 'menu',
+  'FullMenu': 'menu',
+  'Photos': 'photos',
 };
 // Full-page tabs that bypass the sidebar layout
 const FULL_PAGE_TABS = ['Reviews', 'Menu', 'Photos'];
 
-export default function BusinessPageClient({ slug, initialBusiness }) {
+export default function BusinessPageClient({ slug, initialBusiness, initialTabPath }) {
   const [business] = useState(initialBusiness);
-  const [activeTab, setActiveTab] = useState('Overview');
+  // Initialize from props (server-side determined) or fallback to 'Overview'
+  const [activeTab, setActiveTab] = useState(PATH_TO_TAB[initialTabPath] || 'Overview');
   const [loading] = useState(false);
 
   // DEBUG: Log the business data to see SEO structure
@@ -45,12 +48,13 @@ export default function BusinessPageClient({ slug, initialBusiness }) {
     }
   }, [business]);
 
-  // On mount: read hash from URL to set the initial active tab
+  // Sync state if initialTabPath changes (e.g. on back button)
   useEffect(() => {
-    const hash = window.location.hash.toLowerCase();
-    const tab = HASH_TO_TAB[hash];
-    if (tab) setActiveTab(tab);
-  }, []);
+    if (initialTabPath) {
+      const tab = PATH_TO_TAB[initialTabPath.toLowerCase()];
+      if (tab) setActiveTab(tab);
+    }
+  }, [initialTabPath]);
 
   // Update page title based on active tab and SEO titles from API
   useEffect(() => {
@@ -77,11 +81,22 @@ export default function BusinessPageClient({ slug, initialBusiness }) {
     document.title = pageTitle;
   }, [activeTab, business]);
 
-  // When tab changes: update URL hash without scrolling
+  // When tab changes: update URL path without scrolling
   const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    const hash = TAB_TO_HASH[tab] || '#overview';
-    window.history.pushState(null, '', hash);
+    // Normalize tab names from some components
+    const normalizedTab = tab === 'FullReviews' ? 'Reviews' : (tab === 'FullMenu' ? 'Menu' : tab);
+    
+    setActiveTab(normalizedTab);
+    const pathSegment = TAB_TO_PATH[normalizedTab] || 'overview';
+    
+    // Update the URL path
+    // If it's overview, we can just go to the root of the business page
+    const newPath = pathSegment === 'overview' ? `/` : `/${pathSegment}`;
+    
+    // We use window.history.pushState to avoid a full page reload if possible,
+    // but Next.js router is better for consistency.
+    // However, since we are on a subdomain, "/" should stay on the subdomain.
+    window.history.pushState(null, '', newPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

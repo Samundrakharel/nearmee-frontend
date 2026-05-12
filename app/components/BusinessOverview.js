@@ -34,7 +34,7 @@ export default function BusinessOverview({ business, setActiveTab }) {
   return (
     <div className="business-overview" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
       <section className="overview-section" id="about">
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', color: '#0f172a' }}>About</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', color: '#0f172a' }}>About - {business.name}</h2>
         {generatingAboutUs ? (
           <div className="loading-placeholder glass" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', borderRadius: '16px' }}>
             <div style={{ marginBottom: '12px' }}><LoadingIcon size={24} /></div>
@@ -94,7 +94,7 @@ export default function BusinessOverview({ business, setActiveTab }) {
       {photos.length > 0 && (
         <section className="overview-section" id="overview-photos">
           <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Photos</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Photos of {business.name}</h2>
           </div>
           <div className="photos-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
             {photos.filter(Boolean).slice(0, 4).map((photo, index) => {

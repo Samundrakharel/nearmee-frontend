@@ -13,7 +13,7 @@ export function LocationProvider({ children }) {
     loading: true,
     error: null,
     denied: false,       // true when user explicitly denies permission
-    source: null,        // 'gps' | 'manual' | 'saved'
+    source: null,        // 'gps' | 'manual' | 'saved' | 'ip'
   });
 
   const updateLocationState = useCallback((newState) => {
@@ -107,9 +107,42 @@ export function LocationProvider({ children }) {
     }
   };
 
+  /**
+   * IP-based geolocation fallback using ipapi.co.
+   * Returns country/region-level lat & lng — no API key needed.
+   */
+  const ipGeolocate = useCallback(async () => {
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      if (data && data.latitude && data.longitude) {
+        // Show only the country name for IP-based fallback
+        const country = data.country_name || '';
+        const address = country;
+
+        const locationData = {
+          lat: data.latitude,
+          lng: data.longitude,
+          address,
+          source: 'ip',
+          denied: true,   // GPS was still denied; just showing fallback
+          error: 'Showing results near your country. Allow location for better results.',
+        };
+        updateLocationState(locationData);
+        console.info('Using IP-based location fallback:', address);
+      } else {
+        updateLocationState({ error: 'Could not determine location.', loading: false, denied: true });
+      }
+    } catch (err) {
+      console.error('IP geolocation failed:', err);
+      updateLocationState({ error: 'Could not determine location.', loading: false, denied: true });
+    }
+  }, [updateLocationState]);
+
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      updateLocationState({ error: 'Geolocation not supported', loading: false, denied: true });
+      // Browser doesn't support GPS — fall back to IP location
+      ipGeolocate();
       return;
     }
 
@@ -125,12 +158,12 @@ export function LocationProvider({ children }) {
         
         persistToBackend(latitude, longitude, address);
       },
-      (err) => {
+      async (err) => {
         let errorMessage = 'Failed to get location';
         let isDenied = false;
         switch(err.code) {
           case err.PERMISSION_DENIED:
-            errorMessage = 'Location access denied. Search for a location below.';
+            errorMessage = 'Location access denied.';
             isDenied = true;
             break;
           case err.POSITION_UNAVAILABLE:
@@ -141,15 +174,13 @@ export function LocationProvider({ children }) {
             break;
         }
         console.warn('Geolocation warning:', errorMessage, err);
-        updateLocationState({ 
-          error: errorMessage, 
-          denied: isDenied,
-          loading: false 
-        });
+
+        // Fall back to IP geolocation instead of showing blank results
+        await ipGeolocate();
       },
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
     );
-  }, [updateLocationState]);
+  }, [updateLocationState, ipGeolocate]);
 
   /**
    * Set location manually by searching a place name.

@@ -22,7 +22,11 @@ export default function BusinessPhotos({ business }) {
         <span style={{ cursor: 'pointer' }} onClick={() => window.location.hash = '#overview'}>{business.name}</span> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Photos</span>
       </div>
 
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '32px', color: 'var(--color-text-dark)' }}>{business.name} Photos</h1>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '32px' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: 'var(--color-text-dark)' }}>
+          {business.name} - Photos
+        </h1>
+      </div>
       <div className="photos-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',

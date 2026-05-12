@@ -22,7 +22,7 @@ export default function BusinessSidebar({ business, activeTab }) {
     let hours = parseInt(h, 10);
     const ampm = hours >= 12 ? 'P.M' : 'A.M';
     hours = hours % 12;
-    hours = hours ? hours : 12; 
+    hours = hours ? hours : 12;
     return `${String(hours).padStart(2, '0')}:${m} ${ampm}`;
   };
 
@@ -30,7 +30,7 @@ export default function BusinessSidebar({ business, activeTab }) {
   if (typeof business.hours === 'object' && business.hours !== null && !Array.isArray(business.hours)) {
     parsedHours = business.hours;
   } else if (typeof business.hours === 'string') {
-    try { 
+    try {
       const parsed = JSON.parse(business.hours);
       if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
         parsedHours = parsed;
@@ -43,7 +43,7 @@ export default function BusinessSidebar({ business, activeTab }) {
   return (
     <aside className="business-sidebar" style={{ height: 'auto' }}>
       <div className="sidebar-card contact-card glass" style={{ border: '1px solid var(--color-border)', borderRadius: '20px', padding: '28px' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>Contact info</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>Contact Info</h2>
         <div className="contact-info" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {business.phone && (
             <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem' }}>
@@ -169,7 +169,7 @@ export default function BusinessSidebar({ business, activeTab }) {
           if (avgRating >= 9) textRating = 'Exceptional';
           else if (avgRating >= 8) textRating = 'Excellent';
           else if (avgRating >= 7) textRating = 'Very Good';
-          
+
           return (
             <div className="ratings-section" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
               <h3 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '24px', color: '#509597', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -201,15 +201,15 @@ export default function BusinessSidebar({ business, activeTab }) {
 
         {Object.keys(parsedHours).length > 0 && (
           <div id="business-hours" className="hours-section" style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#004b91' }}>Opening hours</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '20px', color: '#004b91' }}>Opening Hours</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayCode => {
                 const dayData = parsedHours[dayCode];
                 if (!dayData) return null;
-                const timeText = (dayData.open && dayData.close) 
-                  ? `${formatTime(dayData.open)} - ${formatTime(dayData.close)}` 
+                const timeText = (dayData.open && dayData.close)
+                  ? `${formatTime(dayData.open)} - ${formatTime(dayData.close)}`
                   : ((dayData.closed || dayData.isClosed) ? 'Closed' : 'N/A');
-                
+
                 return (
                   <div key={dayCode} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#475569', fontWeight: '400' }}>
                     <span>{fullDays[dayCode]}</span>

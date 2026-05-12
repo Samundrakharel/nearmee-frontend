@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Subdomain Routing Proxy (Next.js 16+)
- *
- * When a request arrives at a business subdomain (e.g. pizza-hut.nearmee.net),
- * this proxy rewrites it internally to /business/pizza-hut so the existing
- * business detail page is served — no URL change visible to the user.
+ * Subdomain Routing Proxy
+ * 
+ * Handles rewriting business subdomains (e.g., pizza-hut.nearmee.net)
+ * to internal routes (/business/pizza-hut).
  */
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
@@ -19,10 +18,12 @@ const MAIN_DOMAINS = new Set([
   'www.nearmee.net',
   'localhost',
   'localhost:3000',
+  'nearmee.local',
+  'nearmee.local:3000',
 ]);
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
 
 export function proxy(request) {
@@ -37,16 +38,21 @@ export function proxy(request) {
     return NextResponse.next();
   }
 
-  // Check if this is a subdomain of nearmee.net
-  const subdomainSuffix = `.${BASE_DOMAIN}`;
-  const isSubdomain = hostWithoutPort.endsWith(subdomainSuffix);
+  // Check if this is a subdomain of nearmee.net or nearmee.local
+  const isNearmeeNet = hostWithoutPort.endsWith(`.${BASE_DOMAIN}`);
+  const isNearmeeLocal = hostWithoutPort.endsWith('.nearmee.local');
 
-  if (!isSubdomain) {
+  if (!isNearmeeNet && !isNearmeeLocal) {
     return NextResponse.next();
   }
 
-  // Extract slug: "pizza-hut.nearmee.net" → "pizza-hut"
-  const slug = hostWithoutPort.slice(0, hostWithoutPort.length - subdomainSuffix.length);
+  // Extract slug
+  let slug = '';
+  if (isNearmeeNet) {
+    slug = hostWithoutPort.slice(0, hostWithoutPort.length - BASE_DOMAIN.length - 1);
+  } else if (isNearmeeLocal) {
+    slug = hostWithoutPort.slice(0, hostWithoutPort.length - '.nearmee.local'.length);
+  }
 
   // Ignore empty or reserved subdomains
   if (!slug || RESERVED_SUBDOMAINS.has(slug)) {
@@ -59,12 +65,16 @@ export function proxy(request) {
   }
 
   // Rewrite to the business detail page
-  // pizza-hut.nearmee.net/      → /business/pizza-hut
-  // pizza-hut.nearmee.net/menu  → /business/pizza-hut/menu (future-proof)
+  // village-corner-bistro.nearmee.local/      → /business/village-corner-bistro
+  // village-corner-bistro.nearmee.local/photos → /business/village-corner-bistro/photos
   const rewritePath = pathname === '/' ? `/business/${slug}` : `/business/${slug}${pathname}`;
+  
   const url = request.nextUrl.clone();
   url.pathname = rewritePath;
   url.search = search;
 
   return NextResponse.rewrite(url);
 }
+
+// Support for both naming conventions if necessary
+export default proxy;

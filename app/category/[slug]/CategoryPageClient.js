@@ -32,7 +32,7 @@ export default function CategoryPageClient({
   initialBusinesses,
   initialTotalPages
 }) {
-  const { lat, lng } = useLocation();
+  const { lat, lng, source } = useLocation();
 
   const [businesses, setBusinesses] = useState(initialBusinesses || []);
   const [loading, setLoading] = useState(false);
@@ -85,7 +85,9 @@ export default function CategoryPageClient({
         if (lat && lng) {
           filterParams.lat = lat;
           filterParams.lng = lng;
-          filterParams.radius = 10;
+          // Use a large radius for IP-based (country-level) location,
+          // tight radius for GPS / manual location.
+          filterParams.radius = source === 'ip' ? 500 : 10;
         }
 
         const data = await getBusinessesByCategorySlug(slug, filterParams);

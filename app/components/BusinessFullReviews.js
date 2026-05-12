@@ -39,8 +39,13 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>{business.seo?.reviews_title || `${business.name} Reviews`}</h1>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+                  {business.name} - Reviews
+                </h1>
+                <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
+                  (updated May 2026)
+                </span>
               </div>
 
               <div style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '8px' }}>

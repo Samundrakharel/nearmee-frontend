@@ -13,7 +13,7 @@ export default function Header() {
   const [userName, setUserName] = useState('');
   const [greeting, setGreeting] = useState('');
 
-  const { address, loading, setManualLocation, forwardGeocode, lat, lng } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -112,7 +112,9 @@ export default function Header() {
         if (currentLat && currentLng) {
           params.lat = currentLat;
           params.lng = currentLng;
-          params.radius = 10;
+          // Use a large radius for IP-based (country-level) location,
+          // tight radius for GPS / manual location.
+          params.radius = source === 'ip' ? 500 : 10;
         }
 
         const data = await getBusinesses(params);

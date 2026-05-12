@@ -104,11 +104,11 @@ export default function Businesses({ initialCategorizedBusinesses }) {
         {!loading && !locationLoading && prioritizedCategories.map((group) => (
           <div key={group.category.id} className="category-businesses-group" style={{ marginBottom: '40px' }}>
             <div className="businesses-header" style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#1e293b' }}>
+              <h3 className="text-h3 fw-semibold">
                 {group.category.name}
               </h3>
               {group.businesses.length > 0 && (
-                <Link href={`/category/${group.category.slug}`} className="view-all-link">
+                <Link href={`/category/${group.category.slug}`} className="view-all-link text-body fw-semibold">
                   View All
                 </Link>
               )}
@@ -134,18 +134,18 @@ export default function Businesses({ initialCategorizedBusinesses }) {
                   </div>
                   <div className="business-info">
                     <Link href={getBusinessLink(biz)} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      <h3>{biz.name}</h3>
+                      <h3 className="text-h4 fw-bold">{biz.name}</h3>
                     </Link>
-                    {biz.type && <div className="business-type">{biz.type}</div>}
+                    {biz.type && <div className="business-type text-small fw-medium">{biz.type}</div>}
                     {biz.rating > 0 && (
                       <div className="business-rating">
                         <StarRating rating={biz.rating} />
-                        <span className="rating-number">{biz.rating}</span>
-                        {biz.reviews > 0 && <span className="review-count">({biz.reviews} reviews)</span>}
+                        <span className="rating-number text-small fw-semibold">{biz.rating}</span>
+                        {biz.reviews > 0 && <span className="review-count text-small">({biz.reviews} reviews)</span>}
                       </div>
                     )}
                     {biz.address && (
-                      <div className="business-address">
+                      <div className="business-address text-small">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                           <circle cx="12" cy="9" r="2.5" />
@@ -153,8 +153,8 @@ export default function Businesses({ initialCategorizedBusinesses }) {
                         {biz.address}
                       </div>
                     )}
-                    {biz.description && <p className="business-description">{biz.description.substring(0, 100)}{biz.description.length > 100 ? '...' : ''}</p>}
-                    <Link href={getBusinessLink(biz)} className="btn-view-business" id={`view-business-${biz.id}`}>
+                    {biz.description && <p className="business-description text-body">{biz.description.substring(0, 100)}{biz.description.length > 100 ? '...' : ''}</p>}
+                    <Link href={getBusinessLink(biz)} className="btn-view-business text-small fw-semibold" id={`view-business-${biz.id}`}>
                       View Business
                     </Link>
                   </div>

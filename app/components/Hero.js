@@ -7,7 +7,7 @@ import { getBusinesses, searchCategories, getBusinessSubdomainUrl } from '../lib
 
 export default function Hero() {
   const router = useRouter();
-  const { address, loading, setManualLocation, forwardGeocode, lat, lng } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -51,7 +51,9 @@ export default function Hero() {
         if (currentLat && currentLng) {
           params.lat = currentLat;
           params.lng = currentLng;
-          params.radius = 10; // 10km radius
+          // Use a large radius for IP-based (country-level) location,
+          // tight radius for GPS / manual location.
+          params.radius = source === 'ip' ? 500 : 10;
         }
 
         const data = await getBusinesses(params);
@@ -113,11 +115,11 @@ export default function Hero() {
       </div>
       <div className="hero-overlay" />
       <div className="hero-content">
-        <h1>Find the Best Local Businesses Near You</h1>
-        <p>
+        <h1 className="text-h1">Find the Best Local Businesses Near You</h1>
+        <p className="text-body-lg fw-light">
           Restaurants, plumbers, doctors, and more — discover top-rated businesses in your city.
         </p>
-        <form className="hero-search glass" onSubmit={handleSearch} style={{ padding: '8px 8px 8px 24px', maxWidth: '800px' }}>
+        <form className="hero-search glass" onSubmit={handleSearch} style={{ padding: '0 0 0 24px', maxWidth: '800px' }}>
           <div className="hero-search-input">
             <span className="search-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -131,7 +133,7 @@ export default function Hero() {
               id="hero-search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ fontSize: '1.1rem', fontWeight: 500 }}
+              className="text-body-lg fw-medium"
             />
           </div>
           <div className="hero-search-divider" />
@@ -148,15 +150,14 @@ export default function Hero() {
               id="hero-location-input" 
               value={locationValue}
               onChange={(e) => setLocationValue(e.target.value)}
-              style={{ fontSize: '1.1rem', fontWeight: 500 }}
+              className="text-body-lg fw-medium"
             />
           </div>
           <button 
             type="submit" 
-            className="btn-search" 
+            className="btn-search hero-btn-search text-body fw-bold" 
             id="hero-btn-search"
             disabled={searching}
-            style={{ borderRadius: '14px', height: '52px', padding: '0 32px', fontSize: '1rem', fontWeight: 700 }}
           >
             {searching ? '...' : 'Search'}
           </button>
