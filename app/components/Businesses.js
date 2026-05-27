@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { getTopBusinessesByCategory, getBusinessSubdomainUrl } from '../lib/api';
+import { getTopBusinessesByCategory, getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
 import { useLocation } from '../context/LocationContext';
 import { BusinessCardSkeleton } from './Skeleton';
 
@@ -28,7 +28,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
   const searchParams = useSearchParams();
   const searchKeyword = searchParams.get('search') || '';
 
-  const { lat, lng, address, loading: locationLoading } = useLocation();
+  const { lat, lng, address, loading: locationLoading, country, state, city } = useLocation();
 
   const isFirstRender = useRef(true);
 
@@ -108,7 +108,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
                 {group.category.name}
               </h3>
               {group.businesses.length > 0 && (
-                <Link href={`/category/${group.category.slug}`} className="view-all-link text-body fw-semibold">
+                <Link href={getCategoryRoute(group.category.slug, { country, state, city })} className="view-all-link text-body fw-semibold">
                   View All
                 </Link>
               )}

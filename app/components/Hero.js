@@ -3,11 +3,11 @@
 import { useLocation } from '../context/LocationContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getBusinesses, searchCategories, getBusinessSubdomainUrl } from '../lib/api';
+import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
 
 export default function Hero() {
   const router = useRouter();
-  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source, country, state, city } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -82,7 +82,8 @@ export default function Hero() {
           );
 
           if (targetCategory) {
-            router.push(`/category/${targetCategory.slug}`);
+            const route = getCategoryRoute(targetCategory.slug, { country, state, city });
+            router.push(route);
             setSearching(false);
             return;
           }

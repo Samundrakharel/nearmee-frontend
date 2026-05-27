@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { CategoryCardSkeleton } from './Skeleton';
+import { useLocation } from '../context/LocationContext';
+import { getCategoryRoute } from '../lib/api';
 
 // Custom minimal SVG icons for specific business types matching user mockups
 const defaultIcons = {
@@ -109,6 +111,7 @@ function getCategoryIcon(name) {
 }
 
 export default function Categories({ initialCategories }) {
+  const { country, state, city } = useLocation();
   const [categories, setCategories] = useState(initialCategories || []);
   const [loading, setLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -216,7 +219,7 @@ export default function Categories({ initialCategories }) {
               : 'Explore businesses';
 
             return (
-              <Link key={cat.id || cat.name} href={`/category/${slug}`} className="category-card-link" style={{ textDecoration: 'none' }}>
+              <Link key={cat.id || cat.name} href={getCategoryRoute(slug, { country, state, city })} className="category-card-link" style={{ textDecoration: 'none' }}>
                 <div 
                   className="category-card-modern" 
                   id={`cat-${slug}`}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
-import { getCategoryBySlug, getBusinessesByCategorySlug, getBusinessSubdomainUrl } from '../../lib/api';
+import { getCategoryBySlug, getBusinessesByCategorySlug, getBusinessSubdomainUrl, getCategoryRoute } from '../../lib/api';
 import { useLocation } from '../../context/LocationContext';
 import { HexagonOverlay } from '../../components/HexagonLoader';
 import { BusinessCardSkeleton } from '../../components/Skeleton';
@@ -28,6 +28,9 @@ function StarRating({ rating }) {
 
 export default function CategoryPageClient({
   slug,
+  country,
+  state,
+  city,
   initialCategoryInfo,
   initialBusinesses,
   initialTotalPages
@@ -82,7 +85,11 @@ export default function CategoryPageClient({
           neighborhood: activeFilters.neighborhood
         };
 
-        if (lat && lng) {
+        if (country) filterParams.country = country;
+        if (state) filterParams.state = state;
+        if (city) filterParams.city = city;
+
+        if (!country && !state && !city && lat && lng) {
           filterParams.lat = lat;
           filterParams.lng = lng;
           // Use a large radius for IP-based (country-level) location,
@@ -277,9 +284,9 @@ export default function CategoryPageClient({
           <div className="more-categories">
             <h2>More Categories You May Like</h2>
             <div className="more-categories-tags">
-                <Link href={`/category/bakery`} className="more-category-tag">Bakery</Link>
-                <Link href={`/category/asian-restaurant`} className="more-category-tag">Asian Restaurant</Link>
-                <Link href={`/category/breakfast-restaurant`} className="more-category-tag">Breakfast</Link>
+                <Link href={getCategoryRoute('bakery', { country, state, city })} className="more-category-tag">Bakery</Link>
+                <Link href={getCategoryRoute('asian-restaurant', { country, state, city })} className="more-category-tag">Asian Restaurant</Link>
+                <Link href={getCategoryRoute('breakfast-restaurant', { country, state, city })} className="more-category-tag">Breakfast</Link>
             </div>
           </div>
         </div>

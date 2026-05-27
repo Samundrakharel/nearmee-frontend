@@ -10,6 +10,9 @@ export function LocationProvider({ children }) {
     lat: null,
     lng: null,
     address: '',
+    city: '',
+    state: '',
+    country: '',
     loading: true,
     error: null,
     denied: false,       // true when user explicitly denies permission
@@ -25,6 +28,9 @@ export function LocationProvider({ children }) {
         lat: newState.lat,
         lng: newState.lng,
         address: newState.address || '',
+        city: newState.city || '',
+        state: newState.state || '',
+        country: newState.country || '',
         source: newState.source || 'gps',
         timestamp: Date.now()
       }));
@@ -60,6 +66,7 @@ export function LocationProvider({ children }) {
       
       const city = data.address?.city || data.address?.town || data.address?.village || data.address?.suburb || data.address?.county || '';
       const state = data.address?.state || '';
+      const country = data.address?.country || '';
       const address = data.display_name || '';
       
       let simplifiedAddress = '';
@@ -70,10 +77,15 @@ export function LocationProvider({ children }) {
         simplifiedAddress = address.split(',').slice(0, 2).join(',').trim();
       }
       
-      return simplifiedAddress;
+      return {
+        address: simplifiedAddress,
+        city: city,
+        state: state,
+        country: country
+      };
     } catch (err) {
       console.error('Reverse geocoding failed:', err);
-      return '';
+      return { address: '', city: '', state: '', country: '' };
     }
   };
 
@@ -118,12 +130,17 @@ export function LocationProvider({ children }) {
       if (data && data.latitude && data.longitude) {
         // Show only the country name for IP-based fallback
         const country = data.country_name || '';
+        const state = data.region || '';
+        const city = data.city || '';
         const address = country;
 
         const locationData = {
           lat: data.latitude,
           lng: data.longitude,
           address,
+          city,
+          state,
+          country,
           source: 'ip',
           denied: true,   // GPS was still denied; just showing fallback
           error: 'Showing results near your country. Allow location for better results.',
@@ -151,12 +168,22 @@ export function LocationProvider({ children }) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        const address = await reverseGeocode(latitude, longitude);
+        const geoData = await reverseGeocode(latitude, longitude);
         
-        const locationData = { lat: latitude, lng: longitude, address, source: 'gps', denied: false, error: null };
+        const locationData = {
+          lat: latitude,
+          lng: longitude,
+          address: geoData.address,
+          city: geoData.city,
+          state: geoData.state,
+          country: geoData.country,
+          source: 'gps',
+          denied: false,
+          error: null
+        };
         updateLocationState(locationData);
         
-        persistToBackend(latitude, longitude, address);
+        persistToBackend(latitude, longitude, geoData.address);
       },
       async (err) => {
         let errorMessage = 'Failed to get location';
@@ -194,10 +221,14 @@ export function LocationProvider({ children }) {
 
     const result = await forwardGeocode(query);
     if (result) {
+      const geoData = await reverseGeocode(result.lat, result.lng);
       const locationData = {
         lat: result.lat,
         lng: result.lng,
         address: query, // Use the user's input as the display name
+        city: geoData.city || '',
+        state: geoData.state || '',
+        country: geoData.country || '',
         source: 'manual',
         denied: false,
         error: null,
@@ -226,6 +257,9 @@ export function LocationProvider({ children }) {
             lat: parsed.lat,
             lng: parsed.lng,
             address: parsed.address,
+            city: parsed.city || '',
+            state: parsed.state || '',
+            country: parsed.country || '',
             loading: false,
             error: null,
             denied: false,

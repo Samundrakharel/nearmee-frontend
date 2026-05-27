@@ -21,6 +21,26 @@ export const API_BASE = getApiBase();
 // ─── Subdomain URL Helper ───────────────────────────────────
 
 /**
+ * Generate a route URL for a category based on location details.
+ * If country, state, and city are present, returns /[country]/[state]/[city]/[category]
+ * Otherwise, falls back to the default /category/[category]
+ */
+export function getCategoryRoute(categorySlug, locationInfo = {}) {
+  const country = locationInfo?.country || '';
+  const state = locationInfo?.state || '';
+  const city = locationInfo?.city || '';
+
+  if (country && state && city) {
+    const normCountry = country.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const normState = state.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const normCity = city.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return `/${normCountry}/${normState}/${normCity}/${categorySlug}`;
+  }
+
+  return `/category/${categorySlug}`;
+}
+
+/**
  * Generate a subdomain URL for a given business slug.
  * e.g. pizza-hut → https://pizza-hut.nearmee.net
  */
