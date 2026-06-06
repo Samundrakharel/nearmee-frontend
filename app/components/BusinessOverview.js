@@ -1,8 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { generateAboutUs } from '../lib/api';
 
-export default function BusinessOverview({ business, setActiveTab }) {
+export default function BusinessOverview({ business }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const basePath = pathname
+    .replace(/\/(menu|reviews|photos)\/?$/, '')
+    .replace(/\/$/, '') || '';
   const [aboutUsContent, setAboutUsContent] = useState(business.about || business.description || '');
   const [generatingAboutUs, setGeneratingAboutUs] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
@@ -82,11 +88,9 @@ export default function BusinessOverview({ business, setActiveTab }) {
                 </div>
               ))}
             </div>
-            {setActiveTab && (
-              <button onClick={() => setActiveTab('Menu')} className="btn-see-more">
+              <a href={`${basePath}/menu`} className="btn-see-more" style={{ textDecoration: 'none' }}>
                 See Full Menu
-              </button>
-            )}
+              </a>
           </section>
         );
       })()}
@@ -110,11 +114,9 @@ export default function BusinessOverview({ business, setActiveTab }) {
               );
             })}
           </div>
-          {setActiveTab && (
-            <button onClick={() => setActiveTab('Photos')} className="btn-see-more">
+            <a href={`${basePath}/photos`} className="btn-see-more" style={{ textDecoration: 'none' }}>
               View All Photos
-            </button>
-          )}
+            </a>
         </section>
       )}
 
@@ -186,11 +188,9 @@ export default function BusinessOverview({ business, setActiveTab }) {
       <section className="overview-section" id="top-reviews">
         <div className="section-header">
           <h2>Top Reviews</h2>
-          {setActiveTab && (
-            <button onClick={() => setActiveTab('Reviews')} className="view-all" style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: '600', cursor: 'pointer', padding: 0 }}>
+            <a href={`${basePath}/reviews`} className="view-all" style={{ color: 'var(--color-primary)', fontWeight: '600', textDecoration: 'none' }}>
               See All Reviews
-            </button>
-          )}
+            </a>
         </div>
         <div className="reviews-list">
           {(business.topReviews || []).length > 0 ? (
@@ -246,11 +246,9 @@ export default function BusinessOverview({ business, setActiveTab }) {
             <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>No reviews yet.</p>
           )}
         </div>
-        {setActiveTab && (
-          <button onClick={() => setActiveTab('Reviews')} className="btn-see-more">
+          <a href={`${basePath}/reviews`} className="btn-see-more" style={{ textDecoration: 'none' }}>
             See Full Reviews
-          </button>
-        )}
+          </a>
       </section>
     </div>
   );

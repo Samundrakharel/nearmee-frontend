@@ -1,6 +1,12 @@
 'use client';
 
-export default function BusinessMenuPreview({ business, setActiveTab }) {
+import { usePathname } from 'next/navigation';
+
+export default function BusinessMenuPreview({ business }) {
+  const pathname = usePathname();
+  const basePath = pathname
+    .replace(/\/(menu|reviews|photos)\/?$/, '')
+    .replace(/\/$/, '') || '';
   const menuItems = business.menuItems || [];
   
   // Group menu items by category
@@ -68,13 +74,13 @@ export default function BusinessMenuPreview({ business, setActiveTab }) {
         )}
 
         {(menuItems.length > 0 || business.menuImages?.length > 0) && (
-          <button 
-            onClick={() => setActiveTab('FullMenu')} 
+          <a
+            href={`${basePath}/menu`}
             className="btn-see-more"
-            style={{ marginTop: '24px' }}
+            style={{ marginTop: '24px', textDecoration: 'none' }}
           >
             See full menu
-          </button>
+          </a>
         )}
       </section>
     </div>

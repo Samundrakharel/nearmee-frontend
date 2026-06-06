@@ -1,6 +1,12 @@
 'use client';
 
-export default function BusinessReviews({ business, setActiveTab }) {
+import { usePathname } from 'next/navigation';
+
+export default function BusinessReviews({ business }) {
+  const pathname = usePathname();
+  const basePath = pathname
+    .replace(/\/(menu|reviews|photos)\/?$/, '')
+    .replace(/\/$/, '') || '';
   const reviews = business.reviews || { summary: {}, list: [] };
   const { list = [] } = reviews;
 
@@ -65,12 +71,13 @@ export default function BusinessReviews({ business, setActiveTab }) {
             ))}
             {list.length > 5 && (
               <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                <button 
-                  onClick={() => setActiveTab('FullReviews')}
+                <a
+                  href={`${basePath}/reviews`}
                   className="btn-see-more"
+                  style={{ textDecoration: 'none' }}
                 >
                   See more reviews
-                </button>
+                </a>
               </div>
             )}
           </>

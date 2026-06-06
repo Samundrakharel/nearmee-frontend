@@ -1,7 +1,23 @@
 'use client';
 
-export default function BusinessTabs({ activeTab, setActiveTab }) {
-  const tabs = ['Overview', 'Reviews', 'Menu', 'Photos'];
+import { usePathname } from 'next/navigation';
+
+const TABS = [
+  { label: 'Overview', path: '' },
+  { label: 'Reviews', path: '/reviews' },
+  { label: 'Menu', path: '/menu' },
+  { label: 'Photos', path: '/photos' },
+];
+
+export default function BusinessTabs({ activeTab }) {
+  const pathname = usePathname();
+
+  // Derive the base path (e.g. "/business/pizza-hut" or just "" for subdomain routing)
+  // If pathname is something like "/menu", "/reviews", "/photos", or "/",
+  // the base is everything before the tab segment.
+  const basePath = pathname
+    .replace(/\/(menu|reviews|photos)\/?$/, '')
+    .replace(/\/$/, '') || '';
 
   return (
     <div className="business-tabs-container" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
@@ -40,14 +56,14 @@ export default function BusinessTabs({ activeTab, setActiveTab }) {
               text-decoration-color: #1e293b;
             }
           `}</style>
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`tab-link ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+          {TABS.map((tab) => (
+            <a
+              key={tab.label}
+              href={`${basePath}${tab.path}` || '/'}
+              className={`tab-link ${activeTab === tab.label ? 'active' : ''}`}
             >
-              {tab}
-            </button>
+              {tab.label}
+            </a>
           ))}
         </div>
       </div>

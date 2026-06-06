@@ -1,6 +1,13 @@
 'use client';
 
-export default function BusinessFullReviews({ business, setActiveTab }) {
+import { useRouter, usePathname } from 'next/navigation';
+
+export default function BusinessFullReviews({ business }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const basePath = pathname
+    .replace(/\/(menu|reviews|photos)\/?$/, '')
+    .replace(/\/$/, '') || '';
   const reviews = business.reviews || { summary: {}, list: [] };
   const { summary = {}, list = [] } = reviews;
 
@@ -34,7 +41,7 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
         {/* Breadcrumb & Header Area */}
         <div className="menu-header-area" style={{ marginBottom: '32px' }}>
           <div className="breadcrumb" style={{ fontSize: '0.95rem', color: '#475569', marginBottom: '24px' }}>
-            <span style={{ cursor: 'pointer', "&:hover": { textDecoration: 'underline' } }} onClick={() => setActiveTab('Overview')}>{business.name}</span> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Reviews</span>
+            <a href={basePath || '/'} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }} onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}>{business.name}</a> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Reviews</span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -64,19 +71,9 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
                 ) : null}
               </div>
 
-              <button
-                onClick={() => {
-                  setActiveTab('Overview');
-                  setTimeout(() => {
-                    const el = document.getElementById('business-map');
-                    if (el) {
-                      const yOffset = -100;
-                      const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
-                      window.scrollTo({ top: y, behavior: 'smooth' });
-                    }
-                  }, 100);
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem', marginBottom: '8px', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent', transition: 'all 0.2s', textAlign: 'left' }}
+              <a
+                href={`${basePath || '/'}#business-map`}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', fontSize: '1.05rem', marginBottom: '8px', textDecoration: 'underline', textDecorationColor: 'transparent', transition: 'all 0.2s', textAlign: 'left' }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.color = 'var(--color-primary, #0d7377)';
                   e.currentTarget.style.textDecorationColor = 'var(--color-primary, #0d7377)';
@@ -91,7 +88,7 @@ export default function BusinessFullReviews({ business, setActiveTab }) {
                   <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{business.address}</span>
-              </button>
+              </a>
             </div>
           </div>
         </div>

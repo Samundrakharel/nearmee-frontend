@@ -1,6 +1,12 @@
 import { getBusinessBySlug } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
-
+import BusinessHero from '../../../components/BusinessHero';
+import BusinessOverview from '../../../components/BusinessOverview';
+import BusinessSidebar from '../../../components/BusinessSidebar';
+import UserSubmissionActions from '../../../components/UserSubmissionActions';
+import BusinessFullReviews from '../../../components/BusinessFullReviews';
+import BusinessMenu from '../../../components/BusinessMenu';
+import BusinessPhotos from '../../../components/BusinessPhotos';
 export async function generateMetadata(props) {
   const params = await props.params;
   const { slug, tab } = params;
@@ -47,6 +53,48 @@ export default async function BusinessTabbedPage(props) {
   // tab is an array like ['photos'] or undefined
   const activeTabPath = tab ? tab[0] : 'overview';
 
+  // Normalize active tab for rendering logic
+  const PATH_TO_TAB = {
+    'overview': 'Overview',
+    'reviews': 'Reviews',
+    'menu': 'Menu',
+    'photos': 'Photos',
+  };
+  const activeTab = PATH_TO_TAB[activeTabPath.toLowerCase()] || 'Overview';
+  const isFullPageTab = ['Reviews', 'Menu', 'Photos'].includes(activeTab);
+
+  let content = null;
+  if (activeTab === 'Reviews') {
+    content = <BusinessFullReviews business={business} />;
+  } else if (activeTab === 'Menu') {
+    content = <BusinessMenu business={business} />;
+  } else if (activeTab === 'Photos') {
+    content = (
+      <main className="business-main">
+        <div className="container">
+          <BusinessPhotos business={business} />
+        </div>
+      </main>
+    );
+  } else {
+    // Overview
+    content = (
+      <main className="business-main">
+        <div className="container">
+          <div className="business-layout">
+            <div className="business-content">
+              <BusinessOverview business={business} />
+              <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid #e2e8f0' }}>
+                <UserSubmissionActions business={business} />
+              </div>
+            </div>
+            <BusinessSidebar business={business} />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <>
       {business?.schema && (
@@ -59,7 +107,10 @@ export default async function BusinessTabbedPage(props) {
         slug={slug} 
         initialBusiness={business} 
         initialTabPath={activeTabPath} 
-      />
+        heroContent={!isFullPageTab ? <BusinessHero business={business} /> : null}
+      >
+        {content}
+      </BusinessPageClient>
     </>
   );
 }
