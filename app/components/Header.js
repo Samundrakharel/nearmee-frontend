@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { isLoggedIn, logout, getProfile, getBusinesses, searchCategories, getBusinessSubdomainUrl, isBusinessSubdomain, getMainDomainUrl, getCategoryRoute } from '../lib/api';
+import { getBusinesses, searchCategories, getBusinessSubdomainUrl, isBusinessSubdomain, getMainDomainUrl, getCategoryRoute } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const { user, isAuthenticated, logout } = useAuth();
+  const userName = user?.first_name || user?.username || '';
   const [greeting, setGreeting] = useState('');
 
   const { address, loading, setManualLocation, forwardGeocode, lat, lng, source, country, state, city } = useLocation();
@@ -42,20 +43,7 @@ export default function Header() {
     }
   }, [address]);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (isLoggedIn()) {
-        setLoggedIn(true);
-        try {
-          const profile = await getProfile();
-          setUserName(profile.first_name || profile.username || '');
-        } catch {
-          // Token might be expired
-          setUserName('');
-        }
-      }
-    };
-    checkAuth();
+    // Auth is now handled by context
 
     // Set greeting based on time
     const updateGreeting = () => {
@@ -75,9 +63,6 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
-    setLoggedIn(false);
-    setUserName('');
-    router.push('/');
   };
 
   const handleSearch = async (e) => {
@@ -256,32 +241,34 @@ export default function Header() {
               .mobile-search-toggle { display: flex !important; }
             }
           `}</style>
-          {loggedIn ? (
+          {isAuthenticated ? (
             <>
-              <span style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: 'var(--color-text-dark)',
-              }}>
+              <Link href="/account" style={{ textDecoration: 'none' }}>
                 <span style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: 'var(--color-primary)',
-                  color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
+                  gap: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text-dark)',
                 }}>
-                  {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                  <span style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'var(--color-primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                  }}>
+                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                  {userName && <span style={{ whiteSpace: 'nowrap' }}>{greeting}, {userName}</span>}
                 </span>
-                {userName && <span style={{ whiteSpace: 'nowrap' }}>{greeting}, {userName}</span>}
-              </span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="btn-login"
@@ -293,9 +280,8 @@ export default function Header() {
             </>
           ) : (
             <>
-              {/* Temporarily hidden,might need in future */}
-              {/* <Link href="/login" className="btn-login" id="btn-login">Login</Link>
-              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link> */}
+              <Link href="/login" className="btn-login" id="btn-login">Login</Link>
+              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link>
             </>
           )}
         </nav>

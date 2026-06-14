@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { HexagonOverlay } from '../components/HexagonLoader';
 
 export default function LoginPage() {
@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,7 +134,7 @@ export default function LoginPage() {
               <input type="checkbox" id="remember-me" />
               Remember me
             </label>
-            <a href="#" className="auth-forgot-link">Forgot password?</a>
+            <Link href="/forgot-password" className="auth-forgot-link">Forgot password?</Link>
           </div>
 
           {/* Submit */}

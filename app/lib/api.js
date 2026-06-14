@@ -93,7 +93,47 @@ export function getMainDomainUrl() {
 }
 
 
-async function request(endpoint, options = {}) {
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function onRefreshed(token) {
+  refreshSubscribers.forEach(cb => cb(token));
+}
+
+function addRefreshSubscriber(cb) {
+  refreshSubscribers.push(cb);
+}
+
+export async function refreshAccessToken() {
+  if (typeof window === 'undefined') return null;
+  const refreshToken = localStorage.getItem('nearmee_refresh_token');
+  if (!refreshToken) {
+    logout();
+    throw new Error('No refresh token available');
+  }
+
+  const url = `${API_BASE}/accounts/login/refresh/`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '69420' },
+    body: JSON.stringify({ refresh: refreshToken }),
+  });
+
+  if (!res.ok) {
+    logout();
+    if (typeof window !== 'undefined') window.location.href = '/login';
+    throw new Error('Refresh failed');
+  }
+
+  const data = await res.json();
+  localStorage.setItem('nearmee_token', data.access);
+  if (data.refresh) {
+    localStorage.setItem('nearmee_refresh_token', data.refresh);
+  }
+  return data.access;
+}
+
+async function request(endpoint, options = {}, isRetry = false) {
   const url = `${API_BASE}${endpoint}`;
 
   const config = {
@@ -105,7 +145,6 @@ async function request(endpoint, options = {}) {
     ...options,
   };
 
-  // Attach auth token if present
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('nearmee_token');
     if (token) {
@@ -115,11 +154,42 @@ async function request(endpoint, options = {}) {
 
   const res = await fetch(url, config);
 
+  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && localStorage.getItem('nearmee_refresh_token')) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const newToken = await refreshAccessToken();
+        isRefreshing = false;
+        onRefreshed(newToken);
+        refreshSubscribers = [];
+      } catch (err) {
+        isRefreshing = false;
+        refreshSubscribers = [];
+        throw err;
+      }
+    }
+
+    return new Promise((resolve) => {
+      addRefreshSubscriber((token) => {
+        config.headers['Authorization'] = `Bearer ${token}`;
+        resolve(fetch(url, config).then(async (retryRes) => {
+          if (!retryRes.ok) {
+            const error = await retryRes.json().catch(() => ({ detail: retryRes.statusText }));
+            throw new Error(error.detail || `API error: ${retryRes.status}`);
+          }
+          if (retryRes.status === 204) return null;
+          return retryRes.json();
+        }));
+      });
+    });
+  }
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(error.detail || `API error: ${res.status}`);
   }
 
+  if (res.status === 204) return null;
   return res.json();
 }
 
@@ -443,6 +513,30 @@ export function isLoggedIn() {
   return !!localStorage.getItem('nearmee_token');
 }
 
+/**
+ * POST /accounts/change-password/
+ */
+export async function changePassword(oldPassword, newPassword, confirmNewPassword) {
+  return request('/accounts/change-password/', {
+    method: 'POST',
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_new_password: confirmNewPassword
+    }),
+  });
+}
+
+/**
+ * POST /accounts/password-reset/
+ */
+export async function requestPasswordReset(email) {
+  return request('/accounts/password-reset/', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
 // ─── Business Types (Categories) ───────────────────────────
 
 /**
@@ -611,6 +705,7 @@ export async function uploadMenuPhoto(formData) {
   const config = {
     method: 'POST',
     headers: {},
+    body: formData,
   };
 
   // Attach auth token
@@ -643,6 +738,18 @@ export async function submitReview(reviewData) {
   });
 }
 
+export async function getMyReviews() {
+  return request('/my-reviews/');
+}
+
+export async function getMyMenuPhotos() {
+  return request('/my-menu-photos/');
+}
+
+export async function getMyBusinessSubmissions() {
+  return request('/my-business-submissions/');
+}
+
 /**
  * POST /user-business-submissions/
  * Submit a new business for listing.
@@ -654,6 +761,7 @@ export async function submitBusiness(formData) {
   const config = {
     method: 'POST',
     headers: {},
+    body: formData,
   };
 
   // Attach auth token
@@ -672,6 +780,14 @@ export async function submitBusiness(formData) {
   }
 
   return res.json();
+}
+
+/**
+ * GET /page-scripts/?url_path={path}
+ * Fetch dynamic scripts for the current page.
+ */
+export async function getPageScripts(path) {
+  return request(`/page-scripts/?url_path=${encodeURIComponent(path)}`);
 }
 
 // ─── Legacy aliases ────────────────────────────────────────

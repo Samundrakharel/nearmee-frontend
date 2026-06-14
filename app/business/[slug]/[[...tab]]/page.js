@@ -25,15 +25,17 @@ export async function generateMetadata(props) {
     else if (activeTab === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
     else if (activeTab === 'photos') seoTitle = seo.services_title || `${biz.name} Photos | Nearmee`;
 
-    const description = biz.description || `View reviews, menus, and photos for ${biz.name} on Nearmee.`;
+    const description = seo.description || biz.description || `View reviews, menus, and photos for ${biz.name} on Nearmee.`;
+    const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`;
+    const robots = seo.robots || { index: true, follow: true };
 
     return {
       title: seoTitle,
       description,
       alternates: {
-        canonical: `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`,
+        canonical,
       },
-      robots: { index: true, follow: true },
+      robots,
     };
   } catch (e) {
     console.error('generateMetadata failed:', e.message);

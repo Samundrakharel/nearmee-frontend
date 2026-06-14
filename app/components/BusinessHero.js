@@ -22,7 +22,7 @@ export default function BusinessHero({ business }) {
           <div className="business-title-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <h1 style={{ fontSize: 'clamp(1rem, 2.8vw, 1.6rem)', fontWeight: '800', lineHeight: '1.4', margin: 0, color: '#0f172a', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                {business.seo?.title || business.name}
+                {business.name}
               </h1>
             </div>
           </div>

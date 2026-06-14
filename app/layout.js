@@ -1,5 +1,7 @@
 import './globals.css';
 import { LocationProvider } from './context/LocationContext';
+import { AuthProvider } from './context/AuthContext';
+import PageScriptLoader from './components/PageScriptLoader';
 
 export const metadata = {
   title: 'Nearmee - Find the Best Local Businesses Near You',
@@ -178,9 +180,13 @@ export default function RootLayout({ children }) {
           <span className="loader-label">Almost there…</span>
         </div>
 
-        <LocationProvider>
-          {children}
-        </LocationProvider>
+        <PageScriptLoader />
+
+        <AuthProvider>
+          <LocationProvider>
+            {children}
+          </LocationProvider>
+        </AuthProvider>
       </body>
     </html>
   );
