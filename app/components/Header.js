@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { getBusinesses, searchCategories, getBusinessSubdomainUrl, isBusinessSubdomain, getMainDomainUrl, getCategoryRoute } from '../lib/api';
+import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 
@@ -12,7 +12,13 @@ export default function Header() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const userName = user?.first_name || user?.username || '';
-  const [greeting, setGreeting] = useState('');
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+  const [greeting, setGreeting] = useState(getGreeting);
 
   const { address, loading, setManualLocation, forwardGeocode, lat, lng, source, country, state, city } = useLocation();
   const [locationValue, setLocationValue] = useState('');
@@ -43,26 +49,14 @@ export default function Header() {
     }
   }, [address]);
 
-    // Auth is now handled by context
-
-    // Set greeting based on time
-    const updateGreeting = () => {
-      const hour = new Date().getHours();
-      if (hour >= 5 && hour < 12) {
-        setGreeting('Good morning');
-      } else if (hour >= 12 && hour < 18) {
-        setGreeting('Good afternoon');
-      } else {
-        setGreeting('Good evening');
-      }
-    };
-    updateGreeting();
-    const interval = setInterval(updateGreeting, 60000);
+  useEffect(() => {
+    const interval = setInterval(() => setGreeting(getGreeting()), 60000);
     return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {
     logout();
+    router.push('/');
   };
 
   const handleSearch = async (e) => {
@@ -84,6 +78,10 @@ export default function Header() {
           currentLat = result.lat;
           currentLng = result.lng;
           await setManualLocation(locationValue);
+        } else {
+          alert(`Could not find location "${locationValue}". Please try a different address.`);
+          setSearching(false);
+          return;
         }
       }
 
@@ -114,13 +112,13 @@ export default function Header() {
 
         if (targetBusiness) {
           window.location.href = getBusinessSubdomainUrl(targetBusiness.slug || targetBusiness.id);
-          setSearching(false);
           return;
         }
       }
 
         // 3. Fallback check: Is there an exact category name match?
         try {
+          if (!searchQuery.trim()) throw new Error('empty');
           const catData = await searchCategories(searchQuery.trim());
           const catResults = catData.results || [];
           const targetCategory = catResults.find(
@@ -130,7 +128,6 @@ export default function Header() {
           if (targetCategory) {
             const route = getCategoryRoute(targetCategory.slug, { country, state, city });
             router.push(route);
-            setSearching(false);
             return;
           }
         } catch (err) {
