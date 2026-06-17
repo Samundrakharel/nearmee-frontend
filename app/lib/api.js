@@ -174,8 +174,11 @@ async function request(endpoint, options = {}, isRetry = false) {
         config.headers['Authorization'] = `Bearer ${token}`;
         resolve(fetch(url, config).then(async (retryRes) => {
           if (!retryRes.ok) {
-            const error = await retryRes.json().catch(() => ({ detail: retryRes.statusText }));
-            throw new Error(error.detail || `API error: ${retryRes.status}`);
+            const errData = await retryRes.json().catch(() => ({ detail: retryRes.statusText }));
+            const err = new Error(errData.detail || `API error: ${retryRes.status}`);
+            err.fieldErrors = _extractFieldErrors(errData);
+            err.status = retryRes.status;
+            throw err;
           }
           if (retryRes.status === 204) return null;
           return retryRes.json();
@@ -185,8 +188,101 @@ async function request(endpoint, options = {}, isRetry = false) {
   }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(error.detail || `API error: ${res.status}`);
+    const errData = await res.json().catch(() => ({ detail: res.statusText }));
+    const err = new Error(
+      errData.detail ||
+      (errData.non_field_errors ? (Array.isArray(errData.non_field_errors) ? errData.non_field_errors.join(' ') : errData.non_field_errors) : null) ||
+      `API error: ${res.status}`
+    );
+    err.fieldErrors = _extractFieldErrors(errData);
+    err.status = res.status;
+    throw err;
+  }
+
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+/**
+ * Internal: extract field-level errors from a DRF error response body.
+ */
+function _extractFieldErrors(data) {
+  if (!data || typeof data !== 'object') return {};
+  const errors = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (key === 'detail') return;
+    errors[key] = Array.isArray(value) ? value.join(' ') : String(value);
+  });
+  return errors;
+}
+
+/**
+ * Internal helper for multipart/form-data requests (file uploads).
+ * Mirrors request() but does NOT set Content-Type (browser sets it with boundary).
+ * Handles 401 → token refresh automatically.
+ */
+async function requestFormData(endpoint, options = {}, isRetry = false) {
+  const url = `${API_BASE}${endpoint}`;
+
+  const config = {
+    headers: {
+      'ngrok-skip-browser-warning': '69420',
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('nearmee_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const res = await fetch(url, config);
+
+  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && localStorage.getItem('nearmee_refresh_token')) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const newToken = await refreshAccessToken();
+        isRefreshing = false;
+        onRefreshed(newToken);
+        refreshSubscribers = [];
+      } catch (err) {
+        isRefreshing = false;
+        refreshSubscribers = [];
+        throw err;
+      }
+    }
+    return new Promise((resolve, reject) => {
+      addRefreshSubscriber((token) => {
+        config.headers['Authorization'] = `Bearer ${token}`;
+        fetch(url, config).then(async (retryRes) => {
+          if (!retryRes.ok) {
+            const errData = await retryRes.json().catch(() => ({ detail: retryRes.statusText }));
+            const err = new Error(errData.detail || `Upload error: ${retryRes.status}`);
+            err.fieldErrors = _extractFieldErrors(errData);
+            err.status = retryRes.status;
+            reject(err);
+          } else {
+            resolve(retryRes.status === 204 ? null : retryRes.json());
+          }
+        }).catch(reject);
+      });
+    });
+  }
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ detail: res.statusText }));
+    const err = new Error(
+      errData.detail ||
+      (errData.non_field_errors ? (Array.isArray(errData.non_field_errors) ? errData.non_field_errors.join(' ') : errData.non_field_errors) : null) ||
+      `Upload error: ${res.status}`
+    );
+    err.fieldErrors = _extractFieldErrors(errData);
+    err.status = res.status;
+    throw err;
   }
 
   if (res.status === 204) return null;
@@ -695,40 +791,40 @@ export async function searchBusinesses(query, location, page = 1) {
 // ─── User Submissions ─────────────────────────────────────
 
 /**
+ * Normalize a list response from the API.
+ * DRF may return { results: [] } (paginated) or a plain array.
+ * Always returns an array.
+ */
+function normalizeList(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+/**
  * POST /user-menu-photos/
- * Upload a menu photo for a business.
- * Requires authentication.
+ * Upload a single menu photo for a business.
+ * Requires authentication. Uses multipart/form-data.
  */
 export async function uploadMenuPhoto(formData) {
-  const url = `${API_BASE}/user-menu-photos/`;
-
-  const config = {
+  return requestFormData('/user-menu-photos/', {
     method: 'POST',
-    headers: {},
     body: formData,
-  };
+  });
+}
 
-  // Attach auth token
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nearmee_token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
-  const res = await fetch(url, config);
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(error.detail || `Upload failed: ${res.status}`);
-  }
-
-  return res.json();
+/**
+ * DELETE /user-menu-photos/{id}/
+ * Delete own uploaded menu photo.
+ * Requires authentication.
+ */
+export async function deleteMenuPhoto(id) {
+  return request(`/user-menu-photos/${id}/`, { method: 'DELETE' });
 }
 
 /**
  * POST /user-reviews/
- * Submit a review for a business.
+ * Submit a review for a business (JSON, no photos).
  * Requires authentication.
  */
 export async function submitReview(reviewData) {
@@ -738,48 +834,111 @@ export async function submitReview(reviewData) {
   });
 }
 
+/**
+ * POST /user-reviews/
+ * Submit a review WITH photos using multipart/form-data.
+ * formData must contain business, rating, content, and optional photos[N]photo / photos[N]caption.
+ * Requires authentication.
+ */
+export async function submitReviewWithPhotos(formData) {
+  return requestFormData('/user-reviews/', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+/**
+ * PATCH /user-reviews/{id}/
+ * Update own review.
+ * Requires authentication.
+ */
+export async function updateReview(id, reviewData) {
+  return request(`/user-reviews/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(reviewData),
+  });
+}
+
+/**
+ * DELETE /user-reviews/{id}/
+ * Delete own review.
+ * Requires authentication.
+ */
+export async function deleteReview(id) {
+  return request(`/user-reviews/${id}/`, { method: 'DELETE' });
+}
+
+/**
+ * GET /my-reviews/
+ * Get current user's own reviews.
+ * Always returns an array.
+ */
 export async function getMyReviews() {
-  return request('/my-reviews/');
+  const data = await request('/my-reviews/');
+  return normalizeList(data);
 }
 
+/**
+ * GET /my-menu-photos/
+ * Get current user's own uploaded menu photos.
+ * Always returns an array.
+ */
 export async function getMyMenuPhotos() {
-  return request('/my-menu-photos/');
+  const data = await request('/my-menu-photos/');
+  return normalizeList(data);
 }
 
+/**
+ * GET /my-business-submissions/
+ * Get current user's own business submissions.
+ * Always returns an array.
+ */
 export async function getMyBusinessSubmissions() {
-  return request('/my-business-submissions/');
+  const data = await request('/my-business-submissions/');
+  return normalizeList(data);
+}
+
+/**
+ * GET /user-business-submissions/{id}/
+ * Get a single business submission.
+ */
+export async function getBusinessSubmission(id) {
+  return request(`/user-business-submissions/${id}/`);
 }
 
 /**
  * POST /user-business-submissions/
  * Submit a new business for listing.
+ * Uses multipart/form-data (required for logo/cover_photo uploads).
  * Requires authentication.
  */
 export async function submitBusiness(formData) {
-  const url = `${API_BASE}/user-business-submissions/`;
-
-  const config = {
+  return requestFormData('/user-business-submissions/', {
     method: 'POST',
-    headers: {},
     body: formData,
-  };
+  });
+}
 
-  // Attach auth token
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nearmee_token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
+/**
+ * PATCH /user-business-submissions/{id}/
+ * Update an existing business submission.
+ * Uses multipart/form-data.
+ * Requires authentication.
+ */
+export async function updateBusinessSubmission(id, formData) {
+  return requestFormData(`/user-business-submissions/${id}/`, {
+    method: 'PATCH',
+    body: formData,
+  });
+}
 
-  const res = await fetch(url, config);
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(error.detail || `Submission failed: ${res.status}`);
-  }
-
-  return res.json();
+/**
+ * GET /categories/
+ * Fetch all categories (for category picker in forms).
+ */
+export async function getAllCategories() {
+  const data = await request('/categories/?page_size=200');
+  return normalizeList(data);
 }
 
 /**

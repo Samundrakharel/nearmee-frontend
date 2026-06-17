@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
-import { updateProfile, changePassword, getMyReviews, getMyMenuPhotos, getMyBusinessSubmissions } from '../lib/api';
+import { updateProfile, changePassword, getMyReviews, getMyMenuPhotos, getMyBusinessSubmissions, deleteReview, deleteMenuPhoto } from '../lib/api';
 
 export default function AccountPage() {
   const { user, isAuthenticated, loading, refreshUser } = useAuth();
@@ -59,14 +59,15 @@ export default function AccountPage() {
       setDataLoading(true);
       try {
         if (activeTab === 'reviews') {
-          const res = await getMyReviews();
-          setReviews(res.results || []);
+          // getMyReviews now always returns an array
+          const data = await getMyReviews();
+          setReviews(Array.isArray(data) ? data : []);
         } else if (activeTab === 'photos') {
-          const res = await getMyMenuPhotos();
-          setPhotos(res.results || []);
+          const data = await getMyMenuPhotos();
+          setPhotos(Array.isArray(data) ? data : []);
         } else if (activeTab === 'submissions') {
-          const res = await getMyBusinessSubmissions();
-          setSubmissions(res.results || []);
+          const data = await getMyBusinessSubmissions();
+          setSubmissions(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error('Failed to fetch data', err);
@@ -106,6 +107,44 @@ export default function AccountPage() {
     } catch (err) {
       setPwdMsg({ type: 'error', text: err.message || 'Failed to change password.' });
     }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+    try {
+      await deleteReview(id);
+      setReviews(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+      alert(err.message || 'Failed to delete review.');
+    }
+  };
+
+  const handleDeletePhoto = async (id) => {
+    if (!confirm('Are you sure you want to delete this photo?')) return;
+    try {
+      await deleteMenuPhoto(id);
+      setPhotos(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      alert(err.message || 'Failed to delete photo.');
+    }
+  };
+
+  const statusBadge = (status) => {
+    const map = {
+      approved:   { bg: '#dcfce7', color: '#166534', label: 'Approved' },
+      rejected:   { bg: '#fee2e2', color: '#991b1b', label: 'Rejected' },
+      pending:    { bg: '#fef3c7', color: '#92400e', label: 'Pending Review' },
+      needs_info: { bg: '#fff7ed', color: '#9a3412', label: 'Needs Info' },
+    };
+    const s = map[status?.toLowerCase()] || map.pending;
+    return (
+      <span style={{
+        padding: '4px 12px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: '600',
+        background: s.bg, color: s.color,
+      }}>
+        {s.label}
+      </span>
+    );
   };
 
   if (loading) {
@@ -220,15 +259,42 @@ export default function AccountPage() {
                   {dataLoading ? <p>Loading reviews...</p> : reviews.length === 0 ? <p style={{ color: '#64748b' }}>You haven't written any reviews yet.</p> : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {reviews.map(review => (
-                        <div key={review.id} style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <strong style={{ fontSize: '1.1rem' }}>{review.business_name || 'Business'}</strong>
-                            <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{'⭐'.repeat(review.rating)}</span>
+                        <div key={review.id} style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                            <div>
+                              <strong style={{ fontSize: '1.05rem' }}>{review.business_name || 'Business'}</strong>
+                              <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
+                                {[1,2,3,4,5].map(s => (
+                                  <span key={s} style={{ color: s <= review.rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>★</span>
+                                ))}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              style={{ padding: '6px 12px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '600' }}
+                            >
+                              Delete
+                            </button>
                           </div>
-                          {review.title && <h4 style={{ margin: '0 0 8px 0', fontWeight: '600' }}>{review.title}</h4>}
-                          <p style={{ margin: 0, color: '#475569' }}>{review.content}</p>
-                          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#94a3b8' }}>
-                            {new Date(review.created_at).toLocaleDateString()}
+                          {review.title && <h4 style={{ margin: '0 0 6px 0', fontWeight: '600', fontSize: '0.95rem' }}>{review.title}</h4>}
+                          <p style={{ margin: '0 0 10px 0', color: '#475569', fontSize: '0.95rem', lineHeight: 1.5 }}>{review.content}</p>
+                          {review.photos && review.photos.length > 0 && (
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                              {review.photos.map(photo => (
+                                <img key={photo.id} src={photo.photo} alt={photo.caption || ''}
+                                  style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.82rem', color: '#94a3b8' }}>
+                            <span>{new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            <span style={{
+                              padding: '2px 8px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: '600',
+                              background: review.status === 'approved' ? '#dcfce7' : '#fef3c7',
+                              color: review.status === 'approved' ? '#166534' : '#92400e',
+                            }}>
+                              {review.status === 'approved' ? 'Approved' : 'Pending'}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -241,13 +307,30 @@ export default function AccountPage() {
                 <div>
                   <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '24px' }}>My Photos</h2>
                   {dataLoading ? <p>Loading photos...</p> : photos.length === 0 ? <p style={{ color: '#64748b' }}>You haven't uploaded any photos yet.</p> : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                       {photos.map(photo => (
-                        <div key={photo.id} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                          <div style={{ width: '100%', height: '150px', background: '#f1f5f9', position: 'relative' }}>
-                            <img src={photo.photo} alt={photo.caption || 'Menu photo'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div key={photo.id} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
+                          <div style={{ width: '100%', height: '140px', position: 'relative', background: '#f1f5f9' }}>
+                            <img src={photo.photo} alt={photo.caption || 'Menu photo'}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <span style={{
+                              position: 'absolute', top: '8px', right: '8px',
+                              padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: '600',
+                              background: photo.status === 'approved' ? '#dcfce7' : '#fef3c7',
+                              color: photo.status === 'approved' ? '#166534' : '#92400e',
+                            }}>
+                              {photo.status === 'approved' ? 'Live' : 'Pending'}
+                            </span>
                           </div>
-                          {photo.caption && <div style={{ padding: '12px', fontSize: '0.9rem', color: '#475569' }}>{photo.caption}</div>}
+                          <div style={{ padding: '10px 12px' }}>
+                            {photo.caption && <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#475569' }}>{photo.caption}</p>}
+                            <button
+                              onClick={() => handleDeletePhoto(photo.id)}
+                              style={{ width: '100%', padding: '6px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '600' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -261,18 +344,32 @@ export default function AccountPage() {
                   {dataLoading ? <p>Loading submissions...</p> : submissions.length === 0 ? <p style={{ color: '#64748b' }}>You haven't submitted any businesses yet.</p> : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {submissions.map(sub => (
-                        <div key={sub.id} style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: '600' }}>{sub.business_name}</h4>
-                            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>{sub.address}, {sub.city}</p>
+                        <div key={sub.id} style={{ padding: '18px 20px', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                            <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '600' }}>{sub.business_name}</h4>
+                            {statusBadge(sub.status)}
                           </div>
-                          <span style={{
-                            padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600',
-                            background: sub.status === 'APPROVED' ? '#dcfce7' : sub.status === 'REJECTED' ? '#fee2e2' : '#fef3c7',
-                            color: sub.status === 'APPROVED' ? '#166534' : sub.status === 'REJECTED' ? '#991b1b' : '#92400e'
-                          }}>
-                            {sub.status || 'PENDING'}
-                          </span>
+                          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
+                            {sub.address && `${sub.address}, `}{sub.city}{sub.state && `, ${sub.state}`}
+                          </p>
+                          <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>
+                            Submitted {new Date(sub.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </p>
+                          {(sub.status === 'rejected' || sub.status === 'needs_info') && sub.rejection_reason && (
+                            <div style={{ marginTop: '12px', padding: '10px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '0.88rem', color: '#dc2626' }}>
+                              <strong>Admin note:</strong> {sub.rejection_reason}
+                            </div>
+                          )}
+                          {sub.admin_notes && sub.status !== 'rejected' && (
+                            <div style={{ marginTop: '12px', padding: '10px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', fontSize: '0.88rem', color: '#92400e' }}>
+                              <strong>Note:</strong> {sub.admin_notes}
+                            </div>
+                          )}
+                          {sub.status === 'approved' && sub.approved_business && (
+                            <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#059669', fontWeight: '500' }}>
+                              ✓ Business is now live on the directory
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
