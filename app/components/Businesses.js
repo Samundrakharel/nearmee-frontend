@@ -28,7 +28,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
   const searchParams = useSearchParams();
   const searchKeyword = searchParams.get('search') || '';
 
-  const { lat, lng, address, loading: locationLoading, country, state, city } = useLocation();
+  const { lat, lng, address, loading: locationLoading, citySlug, stateSlug, countrySlug } = useLocation();
 
   const isFirstRender = useRef(true);
 
@@ -50,13 +50,16 @@ export default function Businesses({ initialCategorizedBusinesses }) {
       }
       try {
         const params = {};
-        if (searchKeyword) {
-          params.search = searchKeyword;
-        }
-        if (lat && lng) {
-          params.lat = lat;
-          params.long = lng; // API expects 'long'
-        }
+        if (searchKeyword) params.search = searchKeyword;
+
+        // Prefer explicit city/state/country slug over coordinate proximity.
+        // This ensures a Sydney visitor sees only Sydney businesses, not all
+        // businesses within 500 km of Sydney's coordinates.
+        if (citySlug)         params.city_slug    = citySlug;
+        else if (stateSlug)   params.state_slug   = stateSlug;
+        else if (countrySlug) params.country_slug = countrySlug;
+        else if (lat && lng)  { params.lat = lat; params.lng = lng; }
+
         const data = await getTopBusinessesByCategory(params);
         setCategorizedBusinesses(data);
       } catch (err) {
@@ -66,7 +69,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
       }
     }
     fetchBusinesses();
-  }, [lat, lng, locationLoading, searchKeyword]);
+  }, [citySlug, stateSlug, countrySlug, lat, lng, locationLoading, searchKeyword]);
 
   const getBusinessLink = (biz) => {
     return getBusinessSubdomainUrl(biz.slug || biz.id);
@@ -108,7 +111,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
                 {group.category.name}
               </h3>
               {group.businesses.length > 0 && (
-                <Link href={getCategoryRoute(group.category.slug, { country, state, city })} className="view-all-link text-body fw-semibold">
+                <Link href={getCategoryRoute(group.category.slug)} className="view-all-link text-body fw-semibold">
                   View All
                 </Link>
               )}
