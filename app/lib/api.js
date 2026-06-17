@@ -639,8 +639,10 @@ export async function requestPasswordReset(email) {
  * GET /business-types/
  * Returns: { count, next, previous, results: [{ id, name, slug, icon, description, is_active }] }
  */
-export async function getBusinessTypes(page = 1) {
-  return request(`/business-types/?page=${page}`);
+export async function getBusinessTypes() {
+  const data = await request(`/business-types/`);
+  if (Array.isArray(data)) return { results: data, count: data.length };
+  return data;
 }
 
 /**
@@ -655,8 +657,10 @@ export async function getBusinessTypeBySlug(slug) {
  * GET /categories/
  * Fetch restaurant categories
  */
-export async function getRestaurantCategories(page = 1) {
-  return request(`/categories/?page=${page}`);
+export async function getRestaurantCategories() {
+  const data = await request(`/categories/`);
+  if (Array.isArray(data)) return { results: data, count: data.length };
+  return data;
 }
 
 /**
@@ -697,7 +701,9 @@ export async function getBusinessesByCategorySlug(slug, params = {}) {
  * GET /categories/?search=query
  */
 export async function searchCategories(query) {
-  return request(`/categories/?search=${encodeURIComponent(query)}`);
+  const data = await request(`/categories/?search=${encodeURIComponent(query)}`);
+  if (Array.isArray(data)) return { results: data, count: data.length };
+  return data;
 }
 
 /**

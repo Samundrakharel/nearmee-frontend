@@ -3,6 +3,11 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { isLoggedIn, updateProfile, isBusinessSubdomain } from '../lib/api';
 
+function toSlug(str) {
+  if (!str) return '';
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 const LocationContext = createContext();
 
 export function LocationProvider({ children }) {
@@ -41,9 +46,9 @@ export function LocationProvider({ children }) {
     if (isLoggedIn()) {
       try {
         await updateProfile({
-          lat: lat,
-          lng: lng,
-          location_name: address
+          lat: parseFloat(lat.toFixed(6)),
+          lng: parseFloat(lng.toFixed(6)),
+          location: address
         });
         console.log('Location persisted to backend');
       } catch (err) {
@@ -289,6 +294,9 @@ export function LocationProvider({ children }) {
 
   const contextValue = {
     ...locationState,
+    citySlug:    toSlug(locationState.city),
+    stateSlug:   toSlug(locationState.state),
+    countrySlug: toSlug(locationState.country),
     requestLocation,
     setManualLocation,
     forwardGeocode,

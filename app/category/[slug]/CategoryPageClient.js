@@ -35,7 +35,7 @@ export default function CategoryPageClient({
   initialBusinesses,
   initialTotalPages
 }) {
-  const { lat, lng, source } = useLocation();
+  const { citySlug, stateSlug, countrySlug } = useLocation();
 
   const [businesses, setBusinesses] = useState(initialBusinesses || []);
   const [loading, setLoading] = useState(false);
@@ -79,23 +79,16 @@ export default function CategoryPageClient({
           setCategoryName(catData.name);
         }
 
-        const filterParams = { 
-          page: currentPage, 
+        const filterParams = {
+          page: currentPage,
           rating: activeFilters.rating,
-          neighborhood: activeFilters.neighborhood
+          neighborhood: activeFilters.neighborhood,
         };
 
-        if (country) filterParams.country = country;
-        if (state) filterParams.state = state;
-        if (city) filterParams.city = city;
-
-        if (!country && !state && !city && lat && lng) {
-          filterParams.lat = lat;
-          filterParams.lng = lng;
-          // Use a large radius for IP-based (country-level) location,
-          // tight radius for GPS / manual location.
-          filterParams.radius = source === 'ip' ? 500 : 10;
-        }
+        // Scope results to the user's detected location — most specific wins.
+        if (citySlug)         filterParams.city_slug    = citySlug;
+        else if (stateSlug)   filterParams.state_slug   = stateSlug;
+        else if (countrySlug) filterParams.country_slug = countrySlug;
 
         const data = await getBusinessesByCategorySlug(slug, filterParams);
         setBusinesses(data.results || []);
@@ -108,7 +101,7 @@ export default function CategoryPageClient({
       }
     }
     fetchCategoryData();
-  }, [slug, currentPage, activeFilters, lat, lng]);
+  }, [slug, currentPage, activeFilters, citySlug, stateSlug, countrySlug]);
 
   const handleApplyFilters = () => {
     setActiveFilters({

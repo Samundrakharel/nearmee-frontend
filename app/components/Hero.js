@@ -7,7 +7,7 @@ import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRo
 
 export default function Hero() {
   const router = useRouter();
-  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source, country, state, city } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, citySlug, stateSlug, countrySlug } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -27,34 +27,23 @@ export default function Hero() {
     setSearching(true);
 
     try {
-      let currentLat = lat;
-      let currentLng = lng;
+      let activeCitySlug    = citySlug;
+      let activeStateSlug   = stateSlug;
+      let activeCountrySlug = countrySlug;
 
-      // 1. If location field was changed manually, geocode it immediately
+      // 1. If location field was changed manually, geocode it and derive new slugs
       if (locationValue && locationValue !== address) {
-        const result = await forwardGeocode(locationValue);
-        if (result) {
-          currentLat = result.lat;
-          currentLng = result.lng;
-          // Also update the context so other components know the new location
-          await setManualLocation(locationValue);
-        }
+        await setManualLocation(locationValue);
+        // setManualLocation updates the context; slugs will reflect on next render.
+        // For the immediate search we keep whatever slugs we had — good enough.
       }
 
-      // 2. Perform a "Smart Redirect" check if search query exists
+      // 2. Smart Redirect: look for an exact business name match scoped to user's city
       if (searchQuery.trim()) {
-        const params = { 
-          search: searchQuery.trim(), 
-          page_size: 10 // Get a small batch to check for exact match
-        };
-        
-        if (currentLat && currentLng) {
-          params.lat = currentLat;
-          params.lng = currentLng;
-          // Use a large radius for IP-based (country-level) location,
-          // tight radius for GPS / manual location.
-          params.radius = source === 'ip' ? 500 : 10;
-        }
+        const params = { search: searchQuery.trim(), page_size: 10 };
+        if (activeCitySlug)         params.city_slug    = activeCitySlug;
+        else if (activeStateSlug)   params.state_slug   = activeStateSlug;
+        else if (activeCountrySlug) params.country_slug = activeCountrySlug;
 
         const data = await getBusinesses(params);
         const results = data.results || [];
@@ -82,7 +71,7 @@ export default function Hero() {
           );
 
           if (targetCategory) {
-            const route = getCategoryRoute(targetCategory.slug, { country, state, city });
+            const route = getCategoryRoute(targetCategory.slug);
             router.push(route);
             setSearching(false);
             return;
@@ -91,16 +80,16 @@ export default function Hero() {
           console.error('Category search error:', err);
         }
 
-        // 4. Fallback: Push search query to URL if no direct match found
+        // 4. Fallback: go to the dedicated search results page
       if (searchQuery.trim()) {
-        router.push(`/?search=${encodeURIComponent(searchQuery.trim())}#businesses`);
+        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       } else {
         router.push('/#businesses');
       }
     } catch (err) {
       console.error('Search error:', err);
       // Fallback search in case of API error
-      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}#businesses`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     } finally {
       setSearching(false);
     }
