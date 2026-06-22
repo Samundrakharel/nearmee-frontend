@@ -18,6 +18,35 @@ const getApiBase = () => {
 
 export const API_BASE = getApiBase();
 
+// ─── Token Storage — delegates to auth-cookies.js ─────────────
+// auth-cookies.js manages access_token + refresh_token cookies
+// scoped to the shared domain (.nearmee.net / .nearmee.local).
+import { setTokens, getAccessToken, getRefreshToken, clearTokens } from './auth-cookies';
+
+// Thin shims so all existing call-sites (getToken/setToken/removeToken)
+// continue to work without modification.
+function setToken(name, value) {
+  if (name === 'nearmee_token') {
+    setTokens(value, getRefreshToken());
+  } else if (name === 'nearmee_refresh_token') {
+    setTokens(getAccessToken(), value);
+  }
+}
+
+function getToken(name) {
+  if (name === 'nearmee_token') return getAccessToken();
+  if (name === 'nearmee_refresh_token') return getRefreshToken();
+  return null;
+}
+
+function removeToken(name) {
+  // clearTokens wipes both; calling it on either key is safe
+  if (name === 'nearmee_token' || name === 'nearmee_refresh_token') {
+    clearTokens();
+  }
+}
+
+
 // ─── Subdomain URL Helper ───────────────────────────────────
 
 /**
@@ -106,7 +135,7 @@ function addRefreshSubscriber(cb) {
 
 export async function refreshAccessToken() {
   if (typeof window === 'undefined') return null;
-  const refreshToken = localStorage.getItem('nearmee_refresh_token');
+  const refreshToken = getToken('nearmee_refresh_token');
   if (!refreshToken) {
     logout();
     throw new Error('No refresh token available');
@@ -126,9 +155,9 @@ export async function refreshAccessToken() {
   }
 
   const data = await res.json();
-  localStorage.setItem('nearmee_token', data.access);
+  setToken('nearmee_token', data.access);
   if (data.refresh) {
-    localStorage.setItem('nearmee_refresh_token', data.refresh);
+    setToken('nearmee_refresh_token', data.refresh);
   }
   return data.access;
 }
@@ -146,7 +175,7 @@ async function request(endpoint, options = {}, isRetry = false) {
   };
 
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nearmee_token');
+    const token = getToken('nearmee_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -154,7 +183,7 @@ async function request(endpoint, options = {}, isRetry = false) {
 
   const res = await fetch(url, config);
 
-  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && localStorage.getItem('nearmee_refresh_token')) {
+  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && getToken('nearmee_refresh_token')) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
@@ -233,7 +262,7 @@ async function requestFormData(endpoint, options = {}, isRetry = false) {
   };
 
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nearmee_token');
+    const token = getToken('nearmee_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -241,7 +270,7 @@ async function requestFormData(endpoint, options = {}, isRetry = false) {
 
   const res = await fetch(url, config);
 
-  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && localStorage.getItem('nearmee_refresh_token')) {
+  if (res.status === 401 && !isRetry && typeof window !== 'undefined' && getToken('nearmee_refresh_token')) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
@@ -565,8 +594,8 @@ export async function login(username, password) {
 
   // Store tokens
   if (typeof window !== 'undefined') {
-    localStorage.setItem('nearmee_token', data.access);
-    localStorage.setItem('nearmee_refresh_token', data.refresh);
+    setToken('nearmee_token', data.access);
+    setToken('nearmee_refresh_token', data.refresh);
   }
 
   return data;
@@ -592,12 +621,35 @@ export async function updateProfile(profileData) {
 }
 
 /**
- * Logout — clear stored tokens.
+ * Logout — clear stored tokens and blacklist the refresh token on the backend.
  */
-export function logout() {
+export async function logout() {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('nearmee_token');
-    localStorage.removeItem('nearmee_refresh_token');
+    const token = getToken('nearmee_token');
+    const refreshToken = getToken('nearmee_refresh_token');
+
+    // Clear tokens immediately for a responsive UI
+    removeToken('nearmee_token');
+    removeToken('nearmee_refresh_token');
+
+    if (refreshToken) {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        await fetch(`${API_BASE}/accounts/logout/`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+      } catch (err) {
+        console.error('Failed to blacklist token during logout:', err);
+      }
+    }
   }
 }
 
@@ -606,7 +658,7 @@ export function logout() {
  */
 export function isLoggedIn() {
   if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('nearmee_token');
+  return !!getToken('nearmee_token');
 }
 
 /**
