@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { isLoggedIn, getMyMenuPhotos } from '../lib/api';
 
 export default function BusinessMenu({ business }) {
   const router = useRouter();
@@ -9,19 +10,48 @@ export default function BusinessMenu({ business }) {
   const basePath = pathname
     .replace(/\/(menu|reviews|photos)\/?$/, '')
     .replace(/\/$/, '') || '';
-  const menuImages = business.menuImages || [];
-  const menuItems = business.menuItems || [];
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const fileInputRef = useRef(null);
 
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files.length > 0) {
-      console.log('Selected files:', files);
-      // Logic to actually upload the photo to your API goes here
-      // e.g. uploadMenuPhoto(business.id, files[0])
+  const [userPhotos, setUserPhotos] = useState([]);
+
+  const fetchUserPhotos = async () => {
+    if (!isLoggedIn()) return;
+    try {
+      const data = await getMyMenuPhotos();
+      const filtered = (data || [])
+        .filter(p => p.business === business.id)
+        .map(p => ({
+          id: p.id,
+          image: p.photo, // Map photo URL to image property so slideshow renders it
+          status: p.status,
+          caption: p.caption,
+        }));
+      setUserPhotos(filtered);
+    } catch (err) {
+      console.error('Failed to fetch user menu photos:', err);
     }
   };
+
+  useEffect(() => {
+    fetchUserPhotos();
+    window.addEventListener('nearmee-photo-added', fetchUserPhotos);
+    return () => window.removeEventListener('nearmee-photo-added', fetchUserPhotos);
+  }, [business.id]);
+
+  const rawMenuImages = business.menuImages || [];
+  const mergedMenuImages = [...rawMenuImages];
+  userPhotos.forEach(up => {
+    const exists = rawMenuImages.some(img => {
+      const imgUrl = typeof img === 'string' ? img : img?.image;
+      return imgUrl === up.image;
+    });
+    if (!exists) {
+      mergedMenuImages.push(up);
+    }
+  });
+
+  const menuImages = mergedMenuImages;
+  const menuItems = business.menuItems || [];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % menuImages.length);
@@ -163,17 +193,9 @@ export default function BusinessMenu({ business }) {
             </div>
 
             <div style={{ textAlign: 'center', marginTop: '24px' }}>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-                accept="image/*"
-                multiple
-              />
               <button
                 className="btn-login"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => window.dispatchEvent(new CustomEvent('nearmee-open-add-photo', { detail: { businessId: business.id } }))}
                 style={{ padding: '8px 24px', fontSize: '0.95rem' }}
               >
                 Add menu photos
@@ -190,6 +212,19 @@ export default function BusinessMenu({ business }) {
                   alt={`Menu page ${currentImageIndex + 1}`}
                   style={{ maxWidth: '100%', maxHeight: '750px', objectFit: 'contain' }}
                 />
+
+                {menuImages[currentImageIndex]?.status && menuImages[currentImageIndex]?.status !== 'approved' && (
+                  <div style={{
+                    position: 'absolute', top: '24px', left: '24px',
+                    background: '#fef3c7', color: '#92400e',
+                    padding: '6px 14px', borderRadius: '16px',
+                    fontSize: '0.95rem', fontWeight: '600',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                    zIndex: 10
+                  }}>
+                    Pending Approval
+                  </div>
+                )}
 
                 {/* Navigation Controls */}
                 <button onClick={prevImage} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.95)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>

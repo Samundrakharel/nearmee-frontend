@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import { isLoggedIn, submitReview, submitReviewWithPhotos } from '../lib/api';
 import Modal from './Modal';
+import LoginPromptModal from './LoginPromptModal';
 
 export default function AddReviewButton({ businessId, businessSlug, onReviewAdded }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
@@ -20,7 +22,7 @@ export default function AddReviewButton({ businessId, businessSlug, onReviewAdde
 
     const handleOpen = () => {
         if (!isLoggedIn()) {
-            router.push('/login');
+            setShowLoginPrompt(true);
             return;
         }
         setIsModalOpen(true);
@@ -92,6 +94,7 @@ export default function AddReviewButton({ businessId, businessSlug, onReviewAdde
 
             setSuccess(true);
             if (onReviewAdded) onReviewAdded();
+            window.dispatchEvent(new CustomEvent('nearmee-review-added', { detail: { businessId } }));
             setTimeout(() => handleClose(), 2500);
         } catch (err) {
             setError(err.message || 'Failed to submit review');
@@ -116,6 +119,11 @@ export default function AddReviewButton({ businessId, businessSlug, onReviewAdde
 
     return (
         <>
+            <LoginPromptModal
+                isOpen={showLoginPrompt}
+                onClose={() => setShowLoginPrompt(false)}
+                action="write a review"
+            />
             <button
                 onClick={handleOpen}
                 id="btn-write-review"

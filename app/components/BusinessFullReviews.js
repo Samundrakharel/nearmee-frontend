@@ -1,6 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { isLoggedIn, getMyReviews } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function BusinessFullReviews({ business }) {
   const router = useRouter();
@@ -8,8 +11,51 @@ export default function BusinessFullReviews({ business }) {
   const basePath = pathname
     .replace(/\/(menu|reviews|photos)\/?$/, '')
     .replace(/\/$/, '') || '';
+
+  const { user } = useAuth();
+  const [userReviews, setUserReviews] = useState([]);
+
+  const fetchUserReviews = async () => {
+    if (!isLoggedIn()) return;
+    try {
+      const data = await getMyReviews();
+      const filtered = (data || [])
+        .filter(r => r.business === business.id)
+        .map(r => ({
+          id: r.id,
+          user: `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.username || 'You',
+          initials: ((user?.first_name || user?.username || 'Y').charAt(0)).toUpperCase(),
+          avatar: null,
+          rating: r.rating || 0,
+          comment: r.content || '',
+          title: r.title || '',
+          date: r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
+          status: r.status,
+          photos: r.photos,
+        }));
+      setUserReviews(filtered);
+    } catch (err) {
+      console.error('Failed to fetch user reviews:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserReviews();
+    window.addEventListener('nearmee-review-added', fetchUserReviews);
+    return () => window.removeEventListener('nearmee-review-added', fetchUserReviews);
+  }, [business.id, user]);
+
   const reviews = business.reviews || { summary: {}, list: [] };
   const { summary = {}, list = [] } = reviews;
+
+  // Merge user reviews (pending or approved), de-duplicating by ID
+  const mergedList = [...list];
+  userReviews.forEach(ur => {
+    const exists = list.some(r => r.id === ur.id || (r.comment === ur.comment && r.rating === ur.rating));
+    if (!exists) {
+      mergedList.unshift(ur);
+    }
+  });
 
   const totalReviews = summary.total || 0;
   const avgRating = summary.average || 0;
@@ -143,7 +189,7 @@ export default function BusinessFullReviews({ business }) {
           <div style={{ flex: '1', minWidth: 0 }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>All Reviews</h2>
             <div className="reviews-list">
-              {list.length > 0 ? list.map((review, index) => (
+              {mergedList.length > 0 ? mergedList.map((review, index) => (
                 <div key={index} className="review-card" style={{
                   background: '#fff',
                   padding: '24px',
@@ -173,13 +219,32 @@ export default function BusinessFullReviews({ business }) {
                         )}
                       </div>
                       <div>
-                        <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-text-dark, #0f172a)', margin: 0 }}>{review.user}</h4>
+                        <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-text-dark, #0f172a)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {review.user}
+                          {review.status && review.status !== 'approved' && (
+                            <span style={{
+                              padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: '600',
+                              background: '#fef3c7', color: '#92400e', display: 'inline-block'
+                            }}>
+                              Pending Approval
+                            </span>
+                          )}
+                        </h4>
                         <span style={{ fontSize: '0.85rem', color: 'var(--color-text-light, #94a3b8)' }}>{review.date}</span>
                       </div>
                     </div>
                     <StarRating rating={review.rating} />
                   </div>
+                  {review.title && <h4 style={{ margin: '0 0 6px 0', fontWeight: '600', fontSize: '0.95rem' }}>{review.title}</h4>}
                   <p style={{ fontSize: '0.95rem', color: 'var(--color-text-medium, #475569)', lineHeight: '1.6', margin: 0 }}>{review.comment}</p>
+                  {review.photos && review.photos.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+                      {review.photos.map(p => (
+                        <img key={p.id} src={typeof p === 'string' ? p : p.photo} alt={p.caption || ''}
+                          style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )) : (
                 <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px', border: '1px solid #e2e8f0', borderRadius: '12px' }}>No reviews yet.</p>

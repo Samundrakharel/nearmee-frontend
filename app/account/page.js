@@ -37,7 +37,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      router.push('/login?next=/account');
     }
   }, [loading, isAuthenticated, router]);
 

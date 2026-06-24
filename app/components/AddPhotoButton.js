@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { isLoggedIn, uploadMenuPhoto } from '../lib/api';
 import Modal from './Modal';
+import LoginPromptModal from './LoginPromptModal';
 
 export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -17,9 +19,19 @@ export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded 
     const fileInputRef = useRef(null);
     const router = useRouter();
 
+    useEffect(() => {
+        const handleOpenEvent = (e) => {
+            if (e.detail?.businessId === businessId) {
+                handleOpen();
+            }
+        };
+        window.addEventListener('nearmee-open-add-photo', handleOpenEvent);
+        return () => window.removeEventListener('nearmee-open-add-photo', handleOpenEvent);
+    }, [businessId]);
+
     const handleOpen = () => {
         if (!isLoggedIn()) {
-            router.push('/login');
+            setShowLoginPrompt(true);
             return;
         }
         setIsModalOpen(true);
@@ -100,6 +112,7 @@ export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded 
         if (succeeded > 0) {
             setSuccess(true);
             if (onPhotoAdded) onPhotoAdded();
+            window.dispatchEvent(new CustomEvent('nearmee-photo-added', { detail: { businessId } }));
             if (failed.length === 0) {
                 setTimeout(() => handleClose(), 2500);
             }
@@ -121,6 +134,11 @@ export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded 
 
     return (
         <>
+            <LoginPromptModal
+                isOpen={showLoginPrompt}
+                onClose={() => setShowLoginPrompt(false)}
+                action="add a photo"
+            />
             <button
                 onClick={handleOpen}
                 id="btn-add-photo"

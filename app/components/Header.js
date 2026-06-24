@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
+import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute, isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 
@@ -25,6 +25,33 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [currentPath, setCurrentPath] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentPath(window.location.pathname + window.location.search);
+    }
+  }, [pathname]);
+
+  const getLoginHref = () => {
+    if (typeof window === 'undefined') return '/login';
+    const isSub = isBusinessSubdomain();
+    if (isSub) {
+      return `${getMainDomainUrl()}/login?next=${encodeURIComponent(window.location.href)}`;
+    }
+    if (pathname === '/login' || pathname === '/signup') return '/login';
+    return `/login?next=${encodeURIComponent(currentPath)}`;
+  };
+
+  const getSignupHref = () => {
+    if (typeof window === 'undefined') return '/signup';
+    const isSub = isBusinessSubdomain();
+    if (isSub) {
+      return `${getMainDomainUrl()}/signup?next=${encodeURIComponent(window.location.href)}`;
+    }
+    if (pathname === '/login' || pathname === '/signup') return '/signup';
+    return `/signup?next=${encodeURIComponent(currentPath)}`;
+  };
 
   // Compute home URL once — avoids hydration race conditions
   const getHomeUrl = () => {
@@ -277,8 +304,17 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-login" id="btn-login">Login</Link>
-              <Link href="/signup" className="btn-signup" id="btn-signup">Sign Up</Link>
+              {typeof window !== 'undefined' && isBusinessSubdomain() ? (
+                <>
+                  <a href={getLoginHref()} className="btn-login" id="btn-login">Login</a>
+                  <a href={getSignupHref()} className="btn-signup" id="btn-signup">Sign Up</a>
+                </>
+              ) : (
+                <>
+                  <Link href={getLoginHref()} className="btn-login" id="btn-login">Login</Link>
+                  <Link href={getSignupHref()} className="btn-signup" id="btn-signup">Sign Up</Link>
+                </>
+              )}
             </>
           )}
         </nav>

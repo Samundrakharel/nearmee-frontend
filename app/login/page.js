@@ -1,13 +1,38 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { HexagonOverlay } from '../components/HexagonLoader';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawNext = searchParams.get('next') || '/';
+
+  const getSafeRedirectUrl = (urlStr) => {
+    if (!urlStr) return '/';
+    // Relative URLs
+    if (urlStr.startsWith('/') && !urlStr.startsWith('//')) {
+      return urlStr;
+    }
+    // Absolute URLs
+    try {
+      const parsed = new URL(urlStr);
+      const hostname = parsed.hostname.toLowerCase();
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isNearmeeDomain = hostname === baseDomain || hostname.endsWith(`.${baseDomain}`) || hostname === 'nearmee.local' || hostname.endsWith('.nearmee.local');
+      if (isLocalhost || isNearmeeDomain) {
+        return urlStr;
+      }
+    } catch (_) {}
+    return '/';
+  };
+
+  const nextParam = getSafeRedirectUrl(rawNext);
+
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +52,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(username.trim(), password);
-      router.push('/');
+      if (nextParam.startsWith('http://') || nextParam.startsWith('https://')) {
+        window.location.href = nextParam;
+      } else {
+        router.push(nextParam);
+      }
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
@@ -151,9 +180,23 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="auth-footer">
-          Don&apos;t have an account? <Link href="/signup">Sign Up</Link>
+          Don&apos;t have an account? <Link href={nextParam && nextParam !== '/' ? `/signup?next=${encodeURIComponent(nextParam)}` : "/signup"}>Sign Up</Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="auth-page">
+        <div className="auth-card" style={{ textAlign: 'center', padding: '48px 40px' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#64748b' }}>Loading...</div>
+        </div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

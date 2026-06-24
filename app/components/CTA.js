@@ -8,7 +8,7 @@ export default function CTA() {
         <p>
           Join thousands of businesses on nearmee and reach more customers in your area.
         </p>
-        <Link href="/signup">
+        <Link href="/signup?next=/submit-business">
           <button className="btn-cta" id="btn-create-account">Create Free Account</button>
         </Link>
       </div>

@@ -366,6 +366,7 @@ export function transformBusiness(biz) {
   // Normalize local_reviews into the shape components expect
   const localReviews = Array.isArray(biz.local_reviews) ? biz.local_reviews : [];
   const localReviewsList = localReviews.map(r => ({
+    id: r.id,
     user: r.author || 'Anonymous',
     initials: (r.author || 'A').substring(0, 2).toUpperCase(),
     avatar: null,

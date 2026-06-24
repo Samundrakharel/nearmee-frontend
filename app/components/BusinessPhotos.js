@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { isLoggedIn, getMyMenuPhotos } from '../lib/api';
 
 export default function BusinessPhotos({ business }) {
   const pathname = usePathname();
@@ -9,17 +10,50 @@ export default function BusinessPhotos({ business }) {
     .replace(/\/(menu|reviews|photos)\/?$/, '')
     .replace(/\/$/, '') || '';
 
-  const rawPhotos = business.photos || [];
-  const photos = rawPhotos.filter(Boolean).map(p => typeof p === 'string' ? p : p?.image || p?.google_photo_reference).filter(Boolean);
+  const [userPhotos, setUserPhotos] = useState([]);
 
-  const fileInputRef = useRef(null);
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files.length > 0) {
-      console.log('Selected photos:', files);
-      // Logic to actually upload the photo to your API goes here
+  const fetchUserPhotos = async () => {
+    if (!isLoggedIn()) return;
+    try {
+      const data = await getMyMenuPhotos();
+      const filtered = (data || [])
+        .filter(p => p.business === business.id)
+        .map(p => ({
+          id: p.id,
+          image: p.photo,
+          status: p.status,
+          caption: p.caption
+        }));
+      setUserPhotos(filtered);
+    } catch (err) {
+      console.error('Failed to fetch user menu photos:', err);
     }
   };
+
+  useEffect(() => {
+    fetchUserPhotos();
+    window.addEventListener('nearmee-photo-added', fetchUserPhotos);
+    return () => window.removeEventListener('nearmee-photo-added', fetchUserPhotos);
+  }, [business.id]);
+
+  const rawPhotos = business.photos || [];
+  const publicPhotos = rawPhotos.filter(Boolean).map(p => {
+    if (typeof p === 'string') {
+      return { image: p, status: 'approved' };
+    }
+    return {
+      image: p?.image || p?.google_photo_reference,
+      status: 'approved'
+    };
+  }).filter(p => p.image);
+
+  const mergedPhotos = [...publicPhotos];
+  userPhotos.forEach(up => {
+    const exists = publicPhotos.some(p => p.image === up.image);
+    if (!exists) {
+      mergedPhotos.unshift(up); // Prepend so it is at the start!
+    }
+  });
 
   const categories = business.categories || [];
 
@@ -80,35 +114,36 @@ export default function BusinessPhotos({ business }) {
         gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
         gap: '20px'
       }}>
-        {photos.map((photo, index) => (
+        {mergedPhotos.map((photo, index) => (
           <div key={index} className="photo-item" style={{
             borderRadius: 'var(--radius-md)',
             overflow: 'hidden',
             aspectRatio: '1/1',
             border: '1px solid var(--color-border)',
             cursor: 'pointer',
-            transition: 'transform 0.2s'
+            transition: 'transform 0.2s',
+            position: 'relative',
           }}>
             <img
-              src={photo}
+              src={photo.image}
               alt={`Photo ${index + 1}`}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onMouseOver={(e) => e.currentTarget.parentElement.style.transform = 'scale(1.02)'}
               onMouseOut={(e) => e.currentTarget.parentElement.style.transform = 'scale(1)'}
             />
+            {photo.status && photo.status !== 'approved' && (
+              <span style={{
+                position: 'absolute', bottom: '12px', left: '12px', right: '12px',
+                padding: '4px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '600',
+                background: '#fef3c7', color: '#92400e', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                Pending Approval
+              </span>
+            )}
           </div>
         ))}
-        {/* Add Photos Field */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileChange} 
-          style={{ display: 'none' }} 
-          accept="image/*" 
-          multiple
-        />
         <div className="photo-item add-photo-btn" 
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => window.dispatchEvent(new CustomEvent('nearmee-open-add-photo', { detail: { businessId: business.id } }))}
           style={{
             borderRadius: 'var(--radius-md)',
             overflow: 'hidden',

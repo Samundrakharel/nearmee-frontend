@@ -39,7 +39,7 @@ export default function SubmitBusinessPage() {
 
     useEffect(() => {
         if (!isLoggedIn()) {
-            router.push('/login');
+            router.push('/login?next=/submit-business');
             return;
         }
         getAllCategories().then(cats => setCategories(cats)).catch(() => {});

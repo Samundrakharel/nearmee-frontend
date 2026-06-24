@@ -1,13 +1,38 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../lib/api';
 import { HexagonOverlay } from '../components/HexagonLoader';
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawNext = searchParams.get('next') || '/';
+
+  const getSafeRedirectUrl = (urlStr) => {
+    if (!urlStr) return '/';
+    // Relative URLs
+    if (urlStr.startsWith('/') && !urlStr.startsWith('//')) {
+      return urlStr;
+    }
+    // Absolute URLs
+    try {
+      const parsed = new URL(urlStr);
+      const hostname = parsed.hostname.toLowerCase();
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isNearmeeDomain = hostname === baseDomain || hostname.endsWith(`.${baseDomain}`) || hostname === 'nearmee.local' || hostname.endsWith('.nearmee.local');
+      if (isLocalhost || isNearmeeDomain) {
+        return urlStr;
+      }
+    } catch (_) {}
+    return '/';
+  };
+
+  const nextParam = getSafeRedirectUrl(rawNext);
+
   const [role, setRole] = useState('customer');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -79,7 +104,12 @@ export default function SignUpPage() {
     try {
       await registerUser(userData);
       setSuccess(true);
-      setTimeout(() => router.push('/login'), 2000);
+      setTimeout(() => {
+        const loginUrl = nextParam && nextParam !== '/'
+          ? `/login?next=${encodeURIComponent(nextParam)}`
+          : '/login';
+        router.push(loginUrl);
+      }, 2000);
     } catch (err) {
       if (err.fieldErrors) {
         const apiErrors = { ...err.fieldErrors };
@@ -122,7 +152,7 @@ export default function SignUpPage() {
           <p style={{ color: '#475569', marginBottom: '24px' }}>
             Your account has been created successfully. Redirecting to login...
           </p>
-          <Link href="/login" className="auth-submit-btn" style={{ display: 'inline-block', textDecoration: 'none', textAlign: 'center' }}>
+          <Link href={nextParam && nextParam !== '/' ? `/login?next=${encodeURIComponent(nextParam)}` : "/login"} className="auth-submit-btn" style={{ display: 'inline-block', textDecoration: 'none', textAlign: 'center' }}>
             Go to Login
           </Link>
         </div>
@@ -382,9 +412,23 @@ export default function SignUpPage() {
 
         {/* Footer */}
         <div className="auth-footer">
-          Already have an account? <Link href="/login">Sign In</Link>
+          Already have an account? <Link href={nextParam && nextParam !== '/' ? `/login?next=${encodeURIComponent(nextParam)}` : "/login"}>Sign In</Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="auth-page">
+        <div className="auth-card" style={{ textAlign: 'center', padding: '48px 40px' }}>
+          <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#64748b' }}>Loading...</div>
+        </div>
+      </div>
+    }>
+      <SignUpPageContent />
+    </Suspense>
   );
 }
