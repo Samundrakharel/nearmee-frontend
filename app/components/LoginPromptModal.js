@@ -13,28 +13,42 @@ import { isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
  *   isOpen     - boolean  – whether the modal is visible
  *   onClose    - function – called when the user dismisses the modal
  *   action     - string   – short description, e.g. "write a review", "add a photo"
+ *   redirectPath - string – optional custom route to redirect to after authentication
  */
-export default function LoginPromptModal({ isOpen, onClose, action = 'continue' }) {
+export default function LoginPromptModal({ isOpen, onClose, action = 'continue', redirectPath }) {
     const router = useRouter();
     const pathname = usePathname();
 
     if (!isOpen) return null;
 
+    const getRedirectTarget = () => {
+        if (isBusinessSubdomain()) {
+            if (redirectPath) {
+                return `${getMainDomainUrl()}${redirectPath}`;
+            }
+            return window.location.href;
+        } else {
+            return redirectPath || pathname;
+        }
+    };
+
     const handleLogin = () => {
         onClose();
+        const target = getRedirectTarget();
         if (isBusinessSubdomain()) {
-            window.location.href = `${getMainDomainUrl()}/login?next=${encodeURIComponent(window.location.href)}`;
+            window.location.href = `${getMainDomainUrl()}/login?next=${encodeURIComponent(target)}`;
         } else {
-            router.push(`/login?next=${encodeURIComponent(pathname)}`);
+            router.push(`/login?next=${encodeURIComponent(target)}`);
         }
     };
 
     const handleSignup = () => {
         onClose();
+        const target = getRedirectTarget();
         if (isBusinessSubdomain()) {
-            window.location.href = `${getMainDomainUrl()}/signup?next=${encodeURIComponent(window.location.href)}`;
+            window.location.href = `${getMainDomainUrl()}/signup?next=${encodeURIComponent(target)}`;
         } else {
-            router.push(`/signup?next=${encodeURIComponent(pathname)}`);
+            router.push(`/signup?next=${encodeURIComponent(target)}`);
         }
     };
 

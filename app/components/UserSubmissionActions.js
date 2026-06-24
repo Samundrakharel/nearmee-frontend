@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isLoggedIn } from '../lib/api';
+import { isLoggedIn, isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
 import AddPhotoButton from './AddPhotoButton';
 import AddReviewButton from './AddReviewButton';
 import LoginPromptModal from './LoginPromptModal';
@@ -16,7 +16,11 @@ export default function UserSubmissionActions({ business }) {
             setShowLoginPrompt(true);
             return;
         }
-        router.push('/submit-business');
+        if (isBusinessSubdomain()) {
+            window.location.href = `${getMainDomainUrl()}/submit-business`;
+        } else {
+            router.push('/submit-business');
+        }
     };
 
     return (
@@ -25,6 +29,7 @@ export default function UserSubmissionActions({ business }) {
                 isOpen={showLoginPrompt}
                 onClose={() => setShowLoginPrompt(false)}
                 action="submit a business listing"
+                redirectPath="/submit-business"
             />
 
             <div className="user-submission-actions" style={{
