@@ -125,12 +125,14 @@ export function LocationProvider({ children }) {
   };
 
   /**
-   * IP-based geolocation fallback using ipapi.co.
+   * IP-based geolocation fallback using ipapi.co, routed through our own
+   * /api/ip-location so the browser never calls ipapi.co directly (it
+   * doesn't reliably send CORS headers, especially from localhost).
    * Returns country/region-level lat & lng — no API key needed.
    */
   const ipGeolocate = useCallback(async () => {
     try {
-      const res = await fetch('https://ipapi.co/json/');
+      const res = await fetch('/api/ip-location');
       const data = await res.json();
       if (data && data.latitude && data.longitude) {
         // Show only the country name for IP-based fallback
