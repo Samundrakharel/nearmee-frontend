@@ -5,6 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../lib/api';
 import { HexagonOverlay } from '../components/HexagonLoader';
+import { useLocation } from '../context/LocationContext';
+
+// Maps a detected country name (as returned by reverse geocoding) to the
+// matching dial code option below. Falls back to +977 when the user's
+// country isn't detected or isn't in this list.
+const COUNTRY_DIAL_CODES = {
+  'united states': '+1',
+  'united states of america': '+1',
+  'canada': '+1',
+  'united kingdom': '+44',
+  'australia': '+61',
+  'india': '+91',
+  'nepal': '+977',
+};
 
 function SignUpPageContent() {
   const router = useRouter();
@@ -49,7 +63,17 @@ function SignUpPageContent() {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+977');
+  const [countryCodeTouched, setCountryCodeTouched] = useState(false);
   const [location, setLocation] = useState('');
+  const { country } = useLocation();
+
+  // Default the phone dial code to the user's detected location, unless
+  // they've already picked one manually.
+  useEffect(() => {
+    if (countryCodeTouched || !country) return;
+    const detectedCode = COUNTRY_DIAL_CODES[country.trim().toLowerCase()];
+    if (detectedCode) setCountryCode(detectedCode);
+  }, [country, countryCodeTouched]);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -269,7 +293,10 @@ function SignUpPageContent() {
               <div className="auth-input-wrapper" style={{ padding: '0 12px', position: 'relative', ...(fieldErrors.phone_number ? { borderColor: '#dc2626' } : {}) }}>
                 <select
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
+                  onChange={(e) => {
+                    setCountryCode(e.target.value);
+                    setCountryCodeTouched(true);
+                  }}
                   style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'inherit', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
                 >
                   <option value="+1">+1 (US/CA)</option>
@@ -311,7 +338,7 @@ function SignUpPageContent() {
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <input type="text" id="signup-location" placeholder="City, State" value={location} onChange={(e) => setLocation(e.target.value)} />
+              <input type="text" id="signup-location" placeholder="City, State" autoComplete="off" value={location} onChange={(e) => setLocation(e.target.value)} />
             </div>
             <FieldError field="location" />
           </div>
@@ -328,6 +355,7 @@ function SignUpPageContent() {
                 type={showPassword ? 'text' : 'password'}
                 id="signup-password"
                 placeholder="Create a password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -365,6 +393,7 @@ function SignUpPageContent() {
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="signup-confirm-password"
                 placeholder="Confirm your password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />

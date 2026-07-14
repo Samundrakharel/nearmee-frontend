@@ -24,11 +24,14 @@ export function LocationProvider({ children }) {
     source: null,        // 'gps' | 'manual' | 'saved' | 'ip'
   });
 
-  const updateLocationState = useCallback((newState) => {
+  const updateLocationState = useCallback((newState, options = {}) => {
+    const { persist = true } = options;
     setLocation(prev => ({ ...prev, ...newState, loading: false }));
-    
-    // Save to localStorage for persistence for guest users
-    if (newState.lat && newState.lng) {
+
+    // Save to localStorage for persistence for guest users.
+    // Skipped for one-off manual searches so they don't overwrite the
+    // user's actual (GPS/IP-based) home location.
+    if (persist && newState.lat && newState.lng) {
       localStorage.setItem('nearmee_user_location', JSON.stringify({
         lat: newState.lat,
         lng: newState.lng,
@@ -218,7 +221,10 @@ export function LocationProvider({ children }) {
 
   /**
    * Set location manually by searching a place name.
-   * Geocodes the query and updates context + localStorage.
+   * This is a one-off "look at this place" query, not the user's home
+   * location — it updates in-memory context only, and deliberately does
+   * NOT persist to localStorage or the backend profile, so it doesn't
+   * clobber the user's real (GPS/IP-based) saved location.
    * Returns true if successful, false otherwise.
    */
   const setManualLocation = useCallback(async (query) => {
@@ -240,8 +246,7 @@ export function LocationProvider({ children }) {
         denied: false,
         error: null,
       };
-      updateLocationState(locationData);
-      persistToBackend(result.lat, result.lng, query);
+      updateLocationState(locationData, { persist: false });
       return true;
     } else {
       updateLocationState({
