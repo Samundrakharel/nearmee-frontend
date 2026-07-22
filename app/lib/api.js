@@ -54,19 +54,52 @@ function removeToken(name) {
  * If country, state, and city are present, returns /[country]/[state]/[city]/[category]
  * Otherwise, falls back to the default /category/[category]
  */
+function normalizeUrlSegment(str) {
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 export function getCategoryRoute(categorySlug, locationInfo = {}) {
-  const country = locationInfo?.country || '';
-  const state = locationInfo?.state || '';
+  // Prefer short codes (country ISO code, state abbreviation) for a
+  // cleaner URL — e.g. /us/ny/new-york/chinese-restaurants — falling
+  // back to the full slugified name when a code isn't available.
+  const country = locationInfo?.countryCode || locationInfo?.country || '';
+  const state = locationInfo?.stateCode || locationInfo?.state || '';
   const city = locationInfo?.city || '';
 
   if (country && state && city) {
-    const normCountry = country.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const normState = state.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const normCity = city.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    return `/${normCountry}/${normState}/${normCity}/${categorySlug}`;
+    return `/${normalizeUrlSegment(country)}/${normalizeUrlSegment(state)}/${normalizeUrlSegment(city)}/${categorySlug}`;
   }
 
   return `/category/${categorySlug}`;
+}
+
+// ─── Locations ──────────────────────────────────────────────
+
+/**
+ * GET /locations/countries/?code=us
+ * Resolve a country by its ISO code (case-insensitive). Used to turn a
+ * short URL segment (e.g. "us") back into the full country record.
+ */
+export async function getCountryByCode(code) {
+  if (!code) return null;
+  const data = await request(`/locations/countries/?code=${encodeURIComponent(code)}`);
+  const results = data.results || (Array.isArray(data) ? data : []);
+  return results[0] || null;
+}
+
+/**
+ * GET /locations/states/?code=ny&country__code=us
+ * Resolve a state by its short code (case-insensitive), optionally
+ * scoped to a country code. Used to turn a short URL segment (e.g. "ny")
+ * back into the full state record.
+ */
+export async function getStateByCode(code, countryCode) {
+  if (!code) return null;
+  const params = new URLSearchParams({ code });
+  if (countryCode) params.append('country__code', countryCode);
+  const data = await request(`/locations/states/?${params.toString()}`);
+  const results = data.results || (Array.isArray(data) ? data : []);
+  return results[0] || null;
 }
 
 /**

@@ -111,7 +111,7 @@ function getCategoryIcon(name) {
 }
 
 export default function Categories({ initialCategories }) {
-  const { country, state, city } = useLocation();
+  const { country, state, city, stateCode, countryCode } = useLocation();
   const [categories, setCategories] = useState(initialCategories || []);
   const [loading, setLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -219,7 +219,7 @@ export default function Categories({ initialCategories }) {
               : 'Explore businesses';
 
             return (
-              <Link key={cat.id || cat.name} href={getCategoryRoute(slug, { country, state, city })} className="category-card-link" style={{ textDecoration: 'none' }}>
+              <Link key={cat.id || cat.name} href={getCategoryRoute(slug, { country, state, city, countryCode, stateCode })} className="category-card-link" style={{ textDecoration: 'none' }}>
                 <div 
                   className="category-card-modern" 
                   id={`cat-${slug}`}

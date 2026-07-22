@@ -5,9 +5,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
 
+function toSlug(str) {
+  if (!str) return '';
+  return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 export default function Hero() {
   const router = useRouter();
-  const { address, loading, setManualLocation, forwardGeocode, citySlug, stateSlug, countrySlug } = useLocation();
+  const { address, loading, setManualLocation, forwardGeocode, citySlug, stateSlug, countrySlug, country, state, city, stateCode, countryCode } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -30,12 +35,28 @@ export default function Hero() {
       let activeCitySlug    = citySlug;
       let activeStateSlug   = stateSlug;
       let activeCountrySlug = countrySlug;
+      let activeCountry     = country;
+      let activeState       = state;
+      let activeCity        = city;
+      let activeCountryCode = countryCode;
+      let activeStateCode   = stateCode;
 
-      // 1. If location field was changed manually, geocode it and derive new slugs
+      // 1. If location field was changed manually, geocode it and use the
+      // freshly resolved location for this search — searching a place is
+      // not the same as "where the user currently is", so we must not fall
+      // back to stale context values that haven't re-rendered yet.
       if (locationValue && locationValue !== address) {
-        await setManualLocation(locationValue);
-        // setManualLocation updates the context; slugs will reflect on next render.
-        // For the immediate search we keep whatever slugs we had — good enough.
+        const resolved = await setManualLocation(locationValue);
+        if (resolved) {
+          activeCitySlug    = toSlug(resolved.city);
+          activeStateSlug   = toSlug(resolved.state);
+          activeCountrySlug = toSlug(resolved.country);
+          activeCountry     = resolved.country;
+          activeState       = resolved.state;
+          activeCity        = resolved.city;
+          activeCountryCode = resolved.countryCode;
+          activeStateCode   = resolved.stateCode;
+        }
       }
 
       // 2. Smart Redirect: look for an exact business name match scoped to user's city
@@ -71,7 +92,7 @@ export default function Hero() {
           );
 
           if (targetCategory) {
-            const route = getCategoryRoute(targetCategory.slug);
+            const route = getCategoryRoute(targetCategory.slug, { country: activeCountry, state: activeState, city: activeCity, countryCode: activeCountryCode, stateCode: activeStateCode });
             router.push(route);
             setSearching(false);
             return;

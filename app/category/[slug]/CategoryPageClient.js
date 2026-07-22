@@ -85,10 +85,18 @@ export default function CategoryPageClient({
           neighborhood: activeFilters.neighborhood,
         };
 
-        // Scope results to the user's detected location — most specific wins.
-        if (citySlug)         filterParams.city_slug    = citySlug;
-        else if (stateSlug)   filterParams.state_slug   = stateSlug;
-        else if (countrySlug) filterParams.country_slug = countrySlug;
+        // If this page was reached via a location-scoped URL (city/state/
+        // country props from the route), that location is authoritative —
+        // it must win over the browser's live-detected location, otherwise
+        // paginating on /us/ny/new-york/... would silently refetch results
+        // for wherever the visitor currently is instead of New York.
+        if (city) {
+          filterParams.city_slug = city;
+          if (state)   filterParams.state_slug   = state;
+          if (country) filterParams.country_slug = country;
+        } else if (citySlug)   filterParams.city_slug    = citySlug;
+        else if (stateSlug)    filterParams.state_slug   = stateSlug;
+        else if (countrySlug)  filterParams.country_slug = countrySlug;
 
         const data = await getBusinessesByCategorySlug(slug, filterParams);
         setBusinesses(data.results || []);
@@ -101,7 +109,7 @@ export default function CategoryPageClient({
       }
     }
     fetchCategoryData();
-  }, [slug, currentPage, activeFilters, citySlug, stateSlug, countrySlug]);
+  }, [slug, currentPage, activeFilters, city, state, country, citySlug, stateSlug, countrySlug]);
 
   const handleApplyFilters = () => {
     setActiveFilters({

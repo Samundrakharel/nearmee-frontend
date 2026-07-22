@@ -18,6 +18,8 @@ export function LocationProvider({ children }) {
     city: '',
     state: '',
     country: '',
+    stateCode: '',       // e.g. 'NY' — short state/region code, when known
+    countryCode: '',     // e.g. 'US' — ISO country code, when known
     loading: true,
     error: null,
     denied: false,       // true when user explicitly denies permission
@@ -39,6 +41,8 @@ export function LocationProvider({ children }) {
         city: newState.city || '',
         state: newState.state || '',
         country: newState.country || '',
+        stateCode: newState.stateCode || '',
+        countryCode: newState.countryCode || '',
         source: newState.source || 'gps',
         timestamp: Date.now()
       }));
@@ -76,7 +80,14 @@ export function LocationProvider({ children }) {
       const state = data.address?.state || '';
       const country = data.address?.country || '';
       const address = data.display_name || '';
-      
+
+      // ISO codes, when Nominatim provides them: country_code is always
+      // lowercase ISO 3166-1 alpha-2; ISO3166-2-lvl4 is "US-NY" style for
+      // countries with region-level ISO codes (mainly US/CA/AU).
+      const countryCode = (data.address?.country_code || '').toUpperCase();
+      const isoRegion = data.address?.['ISO3166-2-lvl4'] || '';
+      const stateCode = isoRegion.includes('-') ? isoRegion.split('-')[1] : '';
+
       let simplifiedAddress = '';
       if (city) {
         simplifiedAddress = `${city}${state ? ', ' + state : ''}`;
@@ -84,16 +95,18 @@ export function LocationProvider({ children }) {
         // Fallback to first two parts of display_name
         simplifiedAddress = address.split(',').slice(0, 2).join(',').trim();
       }
-      
+
       return {
         address: simplifiedAddress,
         city: city,
         state: state,
-        country: country
+        country: country,
+        stateCode,
+        countryCode,
       };
     } catch (err) {
       console.error('Reverse geocoding failed:', err);
-      return { address: '', city: '', state: '', country: '' };
+      return { address: '', city: '', state: '', country: '', stateCode: '', countryCode: '' };
     }
   };
 
@@ -151,6 +164,8 @@ export function LocationProvider({ children }) {
           city,
           state,
           country,
+          stateCode: data.region_code || '',
+          countryCode: data.country_code || data.country || '',
           source: 'ip',
           denied: true,   // GPS was still denied; just showing fallback
           error: 'Showing results near your country. Allow location for better results.',
@@ -187,6 +202,8 @@ export function LocationProvider({ children }) {
           city: geoData.city,
           state: geoData.state,
           country: geoData.country,
+          stateCode: geoData.stateCode,
+          countryCode: geoData.countryCode,
           source: 'gps',
           denied: false,
           error: null
@@ -225,10 +242,12 @@ export function LocationProvider({ children }) {
    * location — it updates in-memory context only, and deliberately does
    * NOT persist to localStorage or the backend profile, so it doesn't
    * clobber the user's real (GPS/IP-based) saved location.
-   * Returns true if successful, false otherwise.
+   * Returns the resolved { lat, lng, address, city, state, country,
+   * stateCode, countryCode } on success (so callers can use it immediately
+   * without waiting for a re-render), or null on failure.
    */
   const setManualLocation = useCallback(async (query) => {
-    if (!query || !query.trim()) return false;
+    if (!query || !query.trim()) return null;
 
     setLocation(prev => ({ ...prev, loading: true }));
 
@@ -242,18 +261,20 @@ export function LocationProvider({ children }) {
         city: geoData.city || '',
         state: geoData.state || '',
         country: geoData.country || '',
+        stateCode: geoData.stateCode || '',
+        countryCode: geoData.countryCode || '',
         source: 'manual',
         denied: false,
         error: null,
       };
       updateLocationState(locationData, { persist: false });
-      return true;
+      return locationData;
     } else {
       updateLocationState({
         error: `Could not find "${query}". Try a different city or area.`,
         loading: false,
       });
-      return false;
+      return null;
     }
   }, [updateLocationState]);
 
@@ -272,6 +293,8 @@ export function LocationProvider({ children }) {
             city: parsed.city || '',
             state: parsed.state || '',
             country: parsed.country || '',
+            stateCode: parsed.stateCode || '',
+            countryCode: parsed.countryCode || '',
             loading: false,
             error: null,
             denied: false,

@@ -28,7 +28,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
   const searchParams = useSearchParams();
   const searchKeyword = searchParams.get('search') || '';
 
-  const { lat, lng, address, loading: locationLoading, citySlug, stateSlug, countrySlug } = useLocation();
+  const { lat, lng, address, loading: locationLoading, citySlug, stateSlug, countrySlug, country, state, city, stateCode, countryCode } = useLocation();
 
   const isFirstRender = useRef(true);
 
@@ -111,7 +111,7 @@ export default function Businesses({ initialCategorizedBusinesses }) {
                 {group.category.name}
               </h3>
               {group.businesses.length > 0 && (
-                <Link href={getCategoryRoute(group.category.slug)} className="view-all-link text-body fw-semibold">
+                <Link href={getCategoryRoute(group.category.slug, { country, state, city, countryCode, stateCode })} className="view-all-link text-body fw-semibold">
                   View All
                 </Link>
               )}

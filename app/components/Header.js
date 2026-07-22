@@ -20,7 +20,7 @@ export default function Header() {
   };
   const [greeting, setGreeting] = useState(getGreeting);
 
-  const { address, loading, setManualLocation, forwardGeocode, lat, lng, source, country, state, city } = useLocation();
+  const { address, loading, setManualLocation, lat, lng, source, country, state, city, stateCode, countryCode } = useLocation();
   const [locationValue, setLocationValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -97,14 +97,26 @@ export default function Header() {
     try {
       let currentLat = lat;
       let currentLng = lng;
+      let activeCountry = country;
+      let activeState = state;
+      let activeCity = city;
+      let activeCountryCode = countryCode;
+      let activeStateCode = stateCode;
 
-      // 1. If location field was manually changed, geocode it
+      // 1. If location field was manually changed, geocode it and use the
+      // freshly resolved location for this search — searching a place is
+      // not the same as "where the user currently is", so we must not fall
+      // back to stale context values that haven't re-rendered yet.
       if (locationValue && locationValue !== address) {
-        const result = await forwardGeocode(locationValue);
-        if (result) {
-          currentLat = result.lat;
-          currentLng = result.lng;
-          await setManualLocation(locationValue);
+        const resolved = await setManualLocation(locationValue);
+        if (resolved) {
+          currentLat = resolved.lat;
+          currentLng = resolved.lng;
+          activeCountry = resolved.country;
+          activeState = resolved.state;
+          activeCity = resolved.city;
+          activeCountryCode = resolved.countryCode;
+          activeStateCode = resolved.stateCode;
         } else {
           alert(`Could not find location "${locationValue}". Please try a different address.`);
           setSearching(false);
@@ -153,7 +165,7 @@ export default function Header() {
           );
 
           if (targetCategory) {
-            const route = getCategoryRoute(targetCategory.slug, { country, state, city });
+            const route = getCategoryRoute(targetCategory.slug, { country: activeCountry, state: activeState, city: activeCity, countryCode: activeCountryCode, stateCode: activeStateCode });
             router.push(route);
             return;
           }
