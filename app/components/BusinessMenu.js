@@ -174,7 +174,7 @@ export default function BusinessMenu({ business }) {
                 </div>
               ) : (
                 <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '32px' }}>
-                  {business.menuAbout || business.about || business.description || 'Menu information coming soon.'}
+                  {business.menuAbout || 'Menu information coming soon.'}
                 </p>
               )}
 

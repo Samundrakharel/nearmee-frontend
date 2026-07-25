@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import BusinessTabs from '../../components/BusinessTabs';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
@@ -23,17 +23,6 @@ export default function BusinessPageClient({ slug, initialBusiness, initialTabPa
 
   const activeTab = PATH_TO_TAB[initialTabPath] || 'Overview';
   const isFullPageTab = FULL_PAGE_TABS.includes(activeTab);
-
-  // DEBUG: Log the business data to see SEO structure
-  useEffect(() => {
-    if (business) {
-      console.log('=== BUSINESS DATA ===');
-      console.log('Full business object:', business);
-      console.log('SEO data:', business.seo);
-      console.log('Debug SEO:', business._debug_seo);
-      console.log('====================');
-    }
-  }, [business]);
 
   if (loading) return <BusinessDetailSkeleton />;
   if (!business) return <div className="error" style={{ padding: '100px', textAlign: 'center' }}>Business not found</div>;

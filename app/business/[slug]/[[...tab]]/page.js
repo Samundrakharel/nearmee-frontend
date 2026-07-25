@@ -65,16 +65,59 @@ export default async function BusinessTabbedPage(props) {
   const activeTab = PATH_TO_TAB[activeTabPath.toLowerCase()] || 'Overview';
   const isFullPageTab = ['Reviews', 'Menu', 'Photos'].includes(activeTab);
 
+  // Every prop passed to a client component is serialized into the page HTML
+  // (Next.js RSC flight data). Passing the whole business object would embed
+  // about-us, all reviews, etc. into EVERY tab's source — content that tab
+  // doesn't render, which muddies each page's identity for search engines.
+  // So hand each tab only the fields it actually displays.
+  const shellBusiness = business ? { slug: business.slug, name: business.name } : null;
+
+  const menuBusiness = business ? {
+    id: business.id,
+    name: business.name,
+    address: business.address,
+    phone: business.phone,
+    type: business.type,
+    categories: business.categories,
+    menuImages: business.menuImages,
+    menuItems: business.menuItems,
+    mustTryDishes: business.mustTryDishes,
+    // Descriptive copy is only shown as a fallback when there is no menu, so
+    // resolve it here and leave it empty when real menu items exist — that
+    // keeps about-us text out of the menu page source in the common case.
+    menuAbout: (business.menuItems && business.menuItems.length)
+      ? ''
+      : (business.menuAbout || business.about || business.description || ''),
+  } : null;
+
+  const reviewsBusiness = business ? {
+    id: business.id,
+    name: business.name,
+    address: business.address,
+    type: business.type,
+    categories: business.categories,
+    reviews: business.reviews,
+  } : null;
+
+  const photosBusiness = business ? {
+    id: business.id,
+    name: business.name,
+    address: business.address,
+    type: business.type,
+    categories: business.categories,
+    photos: business.photos,
+  } : null;
+
   let content = null;
   if (activeTab === 'Reviews') {
-    content = <BusinessFullReviews business={business} />;
+    content = <BusinessFullReviews business={reviewsBusiness} />;
   } else if (activeTab === 'Menu') {
-    content = <BusinessMenu business={business} />;
+    content = <BusinessMenu business={menuBusiness} />;
   } else if (activeTab === 'Photos') {
     content = (
       <main className="business-main">
         <div className="container">
-          <BusinessPhotos business={business} />
+          <BusinessPhotos business={photosBusiness} />
         </div>
       </main>
     );
@@ -105,10 +148,10 @@ export default async function BusinessTabbedPage(props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(business.schema) }}
         />
       )}
-      <BusinessPageClient 
-        slug={slug} 
-        initialBusiness={business} 
-        initialTabPath={activeTabPath} 
+      <BusinessPageClient
+        slug={slug}
+        initialBusiness={shellBusiness}
+        initialTabPath={activeTabPath}
         heroContent={!isFullPageTab ? <BusinessHero business={business} /> : null}
       >
         {content}
