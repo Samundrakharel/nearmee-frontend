@@ -1,4 +1,54 @@
+'use client';
+
+import { useSiteContent } from '../context/SiteContentContext';
+
+/**
+ * Site footer.
+ *
+ * Content comes from the Django admin (Core → Site Settings for the blurb and
+ * copyright line, Core → Footer Columns for the links), delivered through
+ * SiteContentContext so this still works when rendered inside a client
+ * component. The constants below are the fallback used when the API is
+ * unreachable or nothing has been configured yet, so the footer is never blank.
+ */
+const FALLBACK_TEXT =
+  'Discover the best local businesses within your city. From restaurants to ' +
+  'services, find everything you need near you.';
+
+const FALLBACK_COLUMNS = [
+  {
+    id: 'company',
+    title: 'Company',
+    links: [
+      { id: 'about', label: 'About Us', url: '/about' },
+      { id: 'contact', label: 'Contact Us', url: '/contact' },
+      { id: 'list', label: 'List Your Business', url: '/signup?next=/submit-business' },
+    ],
+  },
+  {
+    id: 'legal',
+    title: 'Legal',
+    links: [
+      { id: 'privacy', label: 'Privacy Policy', url: '#' },
+      { id: 'terms', label: 'Terms of Service', url: '#' },
+      { id: 'accessibility', label: 'Accessibility', url: '#' },
+    ],
+  },
+];
+
+// Kept so existing ids like #footer-about survive the move to admin content.
+function linkId(label) {
+  return `footer-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;
+}
+
 export default function Footer() {
+  const { footer } = useSiteContent();
+
+  const text = footer?.text || FALLBACK_TEXT;
+  const columns = footer?.columns?.length ? footer.columns : FALLBACK_COLUMNS;
+  const copyright =
+    footer?.copyright || `© ${new Date().getFullYear()} nearmee. All rights reserved.`;
+
   return (
     <footer className="footer" id="footer" style={{ borderTop: '1px solid var(--color-border)', backgroundColor: '#fff' }}>
       <style>{`
@@ -19,31 +69,35 @@ export default function Footer() {
             </svg>
           </a>
           <p style={{ color: 'var(--color-text-medium)', lineHeight: '1.6', maxWidth: '300px' }}>
-            Discover the best local businesses within your city. From restaurants to
-            services, find everything you need near you.
+            {text}
           </p>
         </div>
-        <div className="footer-col">
-          <h4 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Company</h4>
-          <ul>
-            <li><a href="#" id="footer-about" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>About Us</a></li>
-            <li><a href="#" id="footer-contact" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>Contact Us</a></li>
-            <li><a href="/signup?next=/submit-business" id="footer-list" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>List Your Business</a></li>
-          </ul>
-        </div>
-        <div className="footer-col">
-          <h4 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Legal</h4>
-          <ul>
-            <li><a href="#" id="footer-privacy" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>Privacy Policy</a></li>
-            <li><a href="#" id="footer-terms" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>Terms of Service</a></li>
-            <li><a href="#" id="footer-accessibility" style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}>Accessibility</a></li>
-          </ul>
-        </div>
+
+        {columns.map((column) => (
+          <div className="footer-col" key={column.id ?? column.title}>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>{column.title}</h4>
+            <ul>
+              {(column.links || []).map((link) => (
+                <li key={link.id ?? link.url}>
+                  <a
+                    href={link.url}
+                    id={linkId(link.label)}
+                    {...(link.open_in_new_tab
+                      ? { target: '_blank', rel: 'noopener noreferrer' }
+                      : {})}
+                    style={{ color: 'var(--color-text-medium)', fontSize: '0.95rem' }}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
       <div className="footer-bottom" style={{ borderTop: '1px solid var(--color-border)', padding: '24px 0', textAlign: 'center', color: 'var(--color-text-light)', fontSize: '0.9rem' }}>
-        &copy; {new Date().getFullYear()} nearmee. All rights reserved.
+        {copyright}
       </div>
     </footer>
   );
 }
-

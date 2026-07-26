@@ -144,6 +144,34 @@ export function isBusinessSubdomain() {
 }
 
 /**
+ * GET /locations/states/?slug=fl
+ * Resolve a state by slug. Most State rows have a blank `code` with the
+ * two-letter abbreviation stored in `slug`, so a code lookup alone misses them.
+ */
+export async function getStateBySlug(slug, countryCode) {
+  if (!slug) return null;
+  const params = new URLSearchParams({ slug });
+  if (countryCode) params.append('country__code', countryCode);
+  const data = await request(`/locations/states/?${params.toString()}`);
+  const results = data.results || (Array.isArray(data) ? data : []);
+  return results[0] || null;
+}
+
+/**
+ * GET /locations/cities/?slug=miami
+ * Resolve a city by slug. A city slug is only unique per state, so this goes
+ * through the list endpoint and returns the first match.
+ */
+export async function getCityBySlug(slug, stateSlug) {
+  if (!slug) return null;
+  const params = new URLSearchParams({ slug });
+  if (stateSlug) params.append('state__slug', stateSlug);
+  const data = await request(`/locations/cities/?${params.toString()}`);
+  const results = data.results || (Array.isArray(data) ? data : []);
+  return results[0] || null;
+}
+
+/**
  * Get the main domain URL (e.g. https://nearmee.net).
  * Useful for links that need to go back to the home page from a subdomain.
  */
@@ -1034,11 +1062,38 @@ export async function getAllCategories() {
 }
 
 /**
- * GET /page-scripts/?url_path={path}
- * Fetch dynamic scripts for the current page.
+ * GET /footer/
+ * Admin-managed footer content (blurb, link columns, copyright line).
+ * Cached briefly so every page render does not re-hit the API. 30s keeps admin
+ * edits visible quickly with no configuration; setting REVALIDATE_SECRET makes
+ * them instant via /api/revalidate (see core/signals.py).
  */
-export async function getPageScripts(path) {
-  return request(`/page-scripts/?url_path=${encodeURIComponent(path)}`);
+export async function getFooterContent() {
+  return request('/footer/', { next: { revalidate: 30 } });
+}
+
+/**
+ * GET /pages/{slug}/
+ * Admin-managed content for a page such as "about" or "contact".
+ * Throws (404) when the page is missing or unpublished — callers fall back to
+ * their built-in copy.
+ */
+export async function getPageContent(slug) {
+  return request(`/pages/${encodeURIComponent(slug)}/`, { next: { revalidate: 30 } });
+}
+
+/**
+ * GET /page-scripts/?url_path={path}&host={host}
+ * Fetch dynamic scripts for the current page.
+ *
+ * `host` is optional but should be passed from the browser: a business
+ * subdomain and the site homepage both have a path of "/", so the backend
+ * cannot tell them apart from the path alone.
+ */
+export async function getPageScripts(path, host) {
+  const params = new URLSearchParams({ url_path: path });
+  if (host) params.set('host', host);
+  return request(`/page-scripts/?${params.toString()}`);
 }
 
 // ─── Legacy aliases ────────────────────────────────────────

@@ -1,7 +1,9 @@
 import './globals.css';
 import { LocationProvider } from './context/LocationContext';
 import { AuthProvider } from './context/AuthContext';
+import { SiteContentProvider } from './context/SiteContentContext';
 import PageScriptLoader from './components/PageScriptLoader';
+import { getFooterContent } from './lib/api';
 
 export const metadata = {
   title: 'Nearmee - Find the Best Local Businesses Near You',
@@ -19,7 +21,12 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Admin-managed footer content, fetched once per render for the whole tree.
+  // A failure here must never take the site down — Footer falls back to its
+  // built-in copy when this is null.
+  const footer = await getFooterContent().catch(() => null);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -184,7 +191,9 @@ export default function RootLayout({ children }) {
 
         <AuthProvider>
           <LocationProvider>
-            {children}
+            <SiteContentProvider footer={footer}>
+              {children}
+            </SiteContentProvider>
           </LocationProvider>
         </AuthProvider>
       </body>
