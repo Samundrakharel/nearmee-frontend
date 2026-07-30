@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getRecaptchaToken } from '../lib/recaptcha';
 
 const SUBJECTS = [
   'General enquiry',
@@ -48,6 +49,8 @@ export default function ContactForm({ fallbackEmail = 'hello@nearmee.net' }) {
     setFailureMessage('');
 
     try {
+      const recaptchaToken = await getRecaptchaToken('contact').catch(() => null);
+
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,6 +61,7 @@ export default function ContactForm({ fallbackEmail = 'hello@nearmee.net' }) {
           message: form.message.trim(),
           // Honeypot — left empty by humans, filled in by naive bots.
           website: e.target.website?.value || '',
+          recaptchaToken,
         }),
       });
 

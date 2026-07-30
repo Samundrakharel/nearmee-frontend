@@ -6,14 +6,13 @@ const TABS = [
   { label: 'Overview', path: '' },
   { label: 'Reviews', path: '/reviews' },
   { label: 'Menu', path: '/menu' },
-  { label: 'Photos', path: '/photos' },
 ];
 
 export default function BusinessTabs({ activeTab }) {
   const pathname = usePathname();
 
   // Derive the base path (e.g. "/business/pizza-hut" or just "" for subdomain routing)
-  // If pathname is something like "/menu", "/reviews", "/photos", or "/",
+  // If pathname is something like "/menu", "/reviews", or "/",
   // the base is everything before the tab segment.
   const basePath = pathname
     .replace(/\/(menu|reviews|photos)\/?$/, '')

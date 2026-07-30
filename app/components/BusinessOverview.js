@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { generateAboutUs, isLoggedIn, getMyMenuPhotos } from '../lib/api';
+import { generateAboutUs } from '../lib/api';
 
 export default function BusinessOverview({ business }) {
   const router = useRouter();
@@ -13,52 +13,6 @@ export default function BusinessOverview({ business }) {
   const [generatingAboutUs, setGeneratingAboutUs] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
-  const [userPhotos, setUserPhotos] = useState([]);
-
-  const fetchUserPhotos = async () => {
-    if (!isLoggedIn()) return;
-    try {
-      const data = await getMyMenuPhotos();
-      const filtered = (data || [])
-        .filter(p => p.business === business.id)
-        .map(p => ({
-          id: p.id,
-          image: p.photo,
-          status: p.status,
-          caption: p.caption
-        }));
-      setUserPhotos(filtered);
-    } catch (err) {
-      console.error('Failed to fetch user menu photos:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserPhotos();
-    window.addEventListener('nearmee-photo-added', fetchUserPhotos);
-    return () => window.removeEventListener('nearmee-photo-added', fetchUserPhotos);
-  }, [business.id]);
-
-  const rawPhotos = business.photos || [];
-  const publicPhotos = rawPhotos.filter(Boolean).map(p => {
-    if (typeof p === 'string') {
-      return { image: p, status: 'approved' };
-    }
-    return {
-      image: p?.image || p?.google_photo_reference,
-      status: 'approved'
-    };
-  }).filter(p => p.image);
-
-  const mergedPhotos = [...publicPhotos];
-  userPhotos.forEach(up => {
-    const exists = publicPhotos.some(p => p.image === up.image);
-    if (!exists) {
-      mergedPhotos.unshift(up); // Prepend so it is at the start!
-    }
-  });
-
-  const photos = mergedPhotos;
   const amenities = business.amenities || [];
   const faqs = business.faqs || [];
 
@@ -140,40 +94,6 @@ export default function BusinessOverview({ business }) {
           </section>
         );
       })()}
-
-      {photos.length > 0 && (
-        <section className="overview-section" id="overview-photos">
-          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Photos of {business.name}</h2>
-          </div>
-          <div className="photos-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
-            {photos.filter(Boolean).slice(0, 4).map((photo, index) => {
-              const photoUrl = photo.image;
-              if (!photoUrl) return null;
-              return (
-                <div key={index} className="photo-item" style={{ borderRadius: '16px', overflow: 'hidden', aspectRatio: '1/1', border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'var(--transition-smooth)', position: 'relative' }}>
-                  <style>{`
-                    .photo-item:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
-                  `}</style>
-                  <img src={photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {photo.status && photo.status !== 'approved' && (
-                    <span style={{
-                      position: 'absolute', bottom: '8px', left: '8px', right: '8px',
-                      padding: '2px 4px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: '600',
-                      background: '#fef3c7', color: '#92400e', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                    }}>
-                      Pending
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-            <a href={`${basePath}/photos`} className="btn-see-more" style={{ textDecoration: 'none' }}>
-              View All Photos
-            </a>
-        </section>
-      )}
 
       {Object.keys(business.extensions || {}).length > 0 && (() => {
         const extensions = business.extensions || {};

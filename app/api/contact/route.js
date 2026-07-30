@@ -26,6 +26,34 @@ const LIMITS = {
   message: 4000,
 };
 
+const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
+const RECAPTCHA_SCORE_THRESHOLD = 0.5;
+
+/**
+ * Verifies a reCAPTCHA v3 token with Google. Resolves true if RECAPTCHA_SECRET_KEY
+ * isn't set, so local/dev deployments without a real key aren't blocked.
+ */
+async function verifyRecaptcha(token, remoteIp) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return true;
+  if (!token) return false;
+
+  try {
+    const params = new URLSearchParams({ secret, response: token });
+    if (remoteIp) params.set('remoteip', remoteIp);
+
+    const res = await fetch(RECAPTCHA_VERIFY_URL, { method: 'POST', body: params });
+    const result = await res.json();
+
+    return Boolean(result.success)
+      && result.action === 'contact'
+      && (result.score ?? 0) >= RECAPTCHA_SCORE_THRESHOLD;
+  } catch (err) {
+    console.error('[contact] reCAPTCHA verification failed:', err);
+    return false;
+  }
+}
+
 function validate(payload) {
   const name = (payload.name || '').trim();
   const email = (payload.email || '').trim();
@@ -89,12 +117,21 @@ export async function POST(request) {
   }
 
   const forwardedFor = request.headers.get('x-forwarded-for');
+  const remoteIp = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
+
+  const recaptchaOk = await verifyRecaptcha(payload.recaptchaToken, remoteIp);
+  if (!recaptchaOk) {
+    return NextResponse.json(
+      { error: "We couldn't verify you're not a robot. Please refresh the page and try again." },
+      { status: 400 }
+    );
+  }
 
   try {
     const delivered = await deliver({
       ...data,
       receivedAt: new Date().toISOString(),
-      ip: forwardedFor ? forwardedFor.split(',')[0].trim() : null,
+      ip: remoteIp,
       userAgent: request.headers.get('user-agent') || null,
     });
 

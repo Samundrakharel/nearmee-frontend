@@ -66,7 +66,7 @@ export function proxy(request) {
 
   // Rewrite to the business detail page
   // village-corner-bistro.nearmee.local/      → /business/village-corner-bistro
-  // village-corner-bistro.nearmee.local/photos → /business/village-corner-bistro/photos
+  // village-corner-bistro.nearmee.local/menu  → /business/village-corner-bistro/menu
   const rewritePath = pathname === '/' ? `/business/${slug}` : `/business/${slug}${pathname}`;
   
   const url = request.nextUrl.clone();

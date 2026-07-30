@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../lib/api';
+import { getRecaptchaToken } from '../lib/recaptcha';
 import { HexagonOverlay } from '../components/HexagonLoader';
 import { useLocation } from '../context/LocationContext';
 
@@ -112,20 +113,23 @@ function SignUpPageContent() {
       return;
     }
 
-    const userData = {
-      username: username.trim(),
-      email: email.trim(),
-      password,
-      confirm_password: confirmPassword,
-      user_type: role === 'business' ? 'BUSINESS_LISTER' : 'CUSTOMER',
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
-      phone_number: `${countryCode}${phoneNumber.trim()}`,
-      location: location.trim(),
-    };
-
     setLoading(true);
     try {
+      const recaptchaToken = await getRecaptchaToken('signup').catch(() => null);
+
+      const userData = {
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        confirm_password: confirmPassword,
+        user_type: role === 'business' ? 'BUSINESS_LISTER' : 'CUSTOMER',
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        phone_number: `${countryCode}${phoneNumber.trim()}`,
+        location: location.trim(),
+        recaptcha_token: recaptchaToken,
+      };
+
       await registerUser(userData);
       setSuccess(true);
       setTimeout(() => {

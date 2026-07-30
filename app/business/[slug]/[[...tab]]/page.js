@@ -6,7 +6,6 @@ import BusinessSidebar from '../../../components/BusinessSidebar';
 import UserSubmissionActions from '../../../components/UserSubmissionActions';
 import BusinessFullReviews from '../../../components/BusinessFullReviews';
 import BusinessMenu from '../../../components/BusinessMenu';
-import BusinessPhotos from '../../../components/BusinessPhotos';
 export async function generateMetadata(props) {
   const params = await props.params;
   const { slug, tab } = params;
@@ -23,9 +22,8 @@ export async function generateMetadata(props) {
     // Customize title based on tab
     if (activeTab === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
     else if (activeTab === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
-    else if (activeTab === 'photos') seoTitle = seo.services_title || `${biz.name} Photos | Nearmee`;
 
-    const description = seo.description || biz.description || `View reviews, menus, and photos for ${biz.name} on Nearmee.`;
+    const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
     const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`;
     const robots = seo.robots || { index: true, follow: true };
 
@@ -60,10 +58,9 @@ export default async function BusinessTabbedPage(props) {
     'overview': 'Overview',
     'reviews': 'Reviews',
     'menu': 'Menu',
-    'photos': 'Photos',
   };
   const activeTab = PATH_TO_TAB[activeTabPath.toLowerCase()] || 'Overview';
-  const isFullPageTab = ['Reviews', 'Menu', 'Photos'].includes(activeTab);
+  const isFullPageTab = ['Reviews', 'Menu'].includes(activeTab);
 
   // Every prop passed to a client component is serialized into the page HTML
   // (Next.js RSC flight data). Passing the whole business object would embed
@@ -99,28 +96,11 @@ export default async function BusinessTabbedPage(props) {
     reviews: business.reviews,
   } : null;
 
-  const photosBusiness = business ? {
-    id: business.id,
-    name: business.name,
-    address: business.address,
-    type: business.type,
-    categories: business.categories,
-    photos: business.photos,
-  } : null;
-
   let content = null;
   if (activeTab === 'Reviews') {
     content = <BusinessFullReviews business={reviewsBusiness} />;
   } else if (activeTab === 'Menu') {
     content = <BusinessMenu business={menuBusiness} />;
-  } else if (activeTab === 'Photos') {
-    content = (
-      <main className="business-main">
-        <div className="container">
-          <BusinessPhotos business={photosBusiness} />
-        </div>
-      </main>
-    );
   } else {
     // Overview
     content = (
