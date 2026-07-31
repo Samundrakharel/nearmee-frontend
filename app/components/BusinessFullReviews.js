@@ -81,9 +81,8 @@ export default function BusinessFullReviews({ business }) {
 
   const categories = business.categories || [];
 
-  const updatedLabel = business.updatedAt
-    ? new Date(business.updatedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    : null;
+  const updatedLabel = new Date(business.updatedAt || Date.now())
+    .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
     <div className="business-reviews-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
@@ -100,11 +99,9 @@ export default function BusinessFullReviews({ business }) {
                 <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
                   {business.name} - Reviews
                 </h1>
-                {updatedLabel && (
-                  <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
-                    (updated {updatedLabel})
-                  </span>
-                )}
+                <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
+                  (updated {updatedLabel})
+                </span>
               </div>
 
               <div style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '8px' }}>
