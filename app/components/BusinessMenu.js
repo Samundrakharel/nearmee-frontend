@@ -13,6 +13,10 @@ export default function BusinessMenu({ business }) {
   // Handle categories as either strings or objects
   const categories = business.categories || [];
 
+  const updatedLabel = business.updatedAt
+    ? new Date(business.updatedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : null;
+
   return (
     <div className="business-menu-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
       <div className="container">
@@ -27,9 +31,11 @@ export default function BusinessMenu({ business }) {
               <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
                 {business.name} - Menu
               </h1>
-              <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
-                (updated May 2026)
-              </span>
+              {updatedLabel && (
+                <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
+                  (updated {updatedLabel})
+                </span>
+              )}
             </div>
 
             <div style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '8px' }}>
