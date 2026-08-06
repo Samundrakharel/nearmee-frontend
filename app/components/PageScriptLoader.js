@@ -22,7 +22,7 @@ function scriptMarkup(script) {
   return content;
 }
 
-export default function PageScriptLoader() {
+export default function PageScriptLoader({ initialPathname, initialScriptIds } = {}) {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -89,7 +89,17 @@ export default function PageScriptLoader() {
 
       if (cancelled || !Array.isArray(scripts)) return;
 
+      // The scripts matching initialPathname were already server-rendered
+      // (see app/layout.js) so they show up in View Page Source. Re-running
+      // this same fetch on mount would otherwise inject — and re-execute —
+      // duplicates of them on every hard/first load.
+      const alreadyRendered =
+        pathname === initialPathname && Array.isArray(initialScriptIds)
+          ? new Set(initialScriptIds)
+          : null;
+
       scripts.forEach((script) => {
+        if (alreadyRendered?.has(script.id)) return;
         // One bad record must not stop the rest from loading.
         try {
           injectScript(script);

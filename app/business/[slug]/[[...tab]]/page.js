@@ -79,6 +79,7 @@ export default async function BusinessTabbedPage(props) {
     menuImages: business.menuImages,
     menuItems: business.menuItems,
     mustTryDishes: business.mustTryDishes,
+    updatedAt: business.updatedAt,
     // Descriptive copy is only shown as a fallback when there is no menu, so
     // resolve it here and leave it empty when real menu items exist — that
     // keeps about-us text out of the menu page source in the common case.
@@ -94,6 +95,7 @@ export default async function BusinessTabbedPage(props) {
     type: business.type,
     categories: business.categories,
     reviews: business.reviews,
+    updatedAt: business.updatedAt,
   } : null;
 
   let content = null;

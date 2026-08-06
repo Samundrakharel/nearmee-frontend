@@ -30,12 +30,19 @@ export function proxy(request) {
   const { pathname, search } = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
+  // Forwarded so Server Components (app/layout.js) can read the current
+  // pathname via next/headers — there is no other way to get it there, since
+  // layouts don't receive route params directly.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+  const withPathname = { request: { headers: requestHeaders } };
+
   // Strip port (e.g. pizza-hut.nearmee.net:3000 → pizza-hut.nearmee.net)
   const hostWithoutPort = hostname.split(':')[0];
 
   // Pass through if this is the root domain (no subdomain)
   if (MAIN_DOMAINS.has(hostname) || MAIN_DOMAINS.has(hostWithoutPort)) {
-    return NextResponse.next();
+    return NextResponse.next(withPathname);
   }
 
   // Check if this is a subdomain of nearmee.net or nearmee.local
@@ -43,7 +50,7 @@ export function proxy(request) {
   const isNearmeeLocal = hostWithoutPort.endsWith('.nearmee.local');
 
   if (!isNearmeeNet && !isNearmeeLocal) {
-    return NextResponse.next();
+    return NextResponse.next(withPathname);
   }
 
   // Extract slug
@@ -56,24 +63,24 @@ export function proxy(request) {
 
   // Ignore empty or reserved subdomains
   if (!slug || RESERVED_SUBDOMAINS.has(slug)) {
-    return NextResponse.next();
+    return NextResponse.next(withPathname);
   }
 
   // Prevent infinite rewrite loop
   if (pathname.startsWith('/business')) {
-    return NextResponse.next();
+    return NextResponse.next(withPathname);
   }
 
   // Rewrite to the business detail page
   // village-corner-bistro.nearmee.local/      → /business/village-corner-bistro
   // village-corner-bistro.nearmee.local/menu  → /business/village-corner-bistro/menu
   const rewritePath = pathname === '/' ? `/business/${slug}` : `/business/${slug}${pathname}`;
-  
+
   const url = request.nextUrl.clone();
   url.pathname = rewritePath;
   url.search = search;
 
-  return NextResponse.rewrite(url);
+  return NextResponse.rewrite(url, withPathname);
 }
 
 // Support for both naming conventions if necessary

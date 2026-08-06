@@ -1,5 +1,7 @@
 'use client';
 
+import ClaimBusinessButton from './ClaimBusinessButton';
+
 export default function BusinessHero({ business }) {
   return (
     <div className="business-hero-wrapper">
@@ -25,6 +27,7 @@ export default function BusinessHero({ business }) {
                 {business.name}
               </h1>
             </div>
+            {business.id && <ClaimBusinessButton business={business} />}
           </div>
 
           <div className="business-categories" style={{ color: 'var(--color-text-medium)', fontSize: '1.05rem', marginBottom: '8px' }}>

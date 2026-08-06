@@ -439,7 +439,8 @@ export function transformBusiness(biz) {
   const googleReviewsList = Array.isArray(googleReviews) ? googleReviews.map(r => ({
     user: r.author_name || 'Anonymous',
     initials: (r.author_name || 'A').substring(0, 2).toUpperCase(),
-    avatar: r.author_profile_image || null,
+    // Reviewer photos are intentionally not shown — only the initials avatar.
+    avatar: null,
     rating: r.rating || 0,
     comment: r.content || '',
     date: r.relative_time || (r.published_at ? new Date(r.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''),
@@ -483,6 +484,7 @@ export function transformBusiness(biz) {
     totalReviews: totalReviews,
     isFeatured: biz.is_featured || false,
     isClaimed: biz.is_claimed || false,
+    ownerId: biz.owner ?? null,
     isActive: biz.is_active !== undefined ? biz.is_active : true,
     lat: biz.lat,
     lng: biz.lng,
@@ -1049,6 +1051,41 @@ export async function updateBusinessSubmission(id, formData) {
   return requestFormData(`/user-business-submissions/${id}/`, {
     method: 'PATCH',
     body: formData,
+  });
+}
+
+/**
+ * POST /business-claims/
+ * Request to claim an existing (unclaimed) business listing.
+ * Requires authentication. Goes to admin for approval — does not grant
+ * ownership immediately.
+ */
+export async function claimBusiness(businessId, payload) {
+  return request('/business-claims/', {
+    method: 'POST',
+    body: JSON.stringify({ business: businessId, ...payload }),
+  });
+}
+
+/**
+ * GET /my-business-claims/
+ * Get the current user's claim requests (pending/approved/rejected).
+ * Requires authentication.
+ */
+export async function getMyBusinessClaims() {
+  const data = await request('/my-business-claims/');
+  return normalizeList(data);
+}
+
+/**
+ * PATCH /businesses/{slug}/
+ * Update the content of a business the current user owns (claim approved).
+ * Requires authentication + ownership (or staff).
+ */
+export async function updateBusiness(slug, payload) {
+  return request(`/businesses/${encodeURIComponent(slug)}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
   });
 }
 
