@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { getBusinessBySlug } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
@@ -6,35 +7,29 @@ import BusinessSidebar from '../../../components/BusinessSidebar';
 import UserSubmissionActions from '../../../components/UserSubmissionActions';
 import BusinessFullReviews from '../../../components/BusinessFullReviews';
 import BusinessMenu from '../../../components/BusinessMenu';
+
+// A business subdomain (foo.nearmee.net) rewrites to /business/foo here (see
+// proxy.js). A 404 from the API means the slug doesn't exist — surfaced with
+// notFound() so it renders the styled app/not-found.js page under a real 404
+// status instead of a 200 "not found" div, and so subdomains get the same
+// 404 page as the main site.
+async function fetchBusiness(slug, queryParams, skipGenerate) {
+  try {
+    return await getBusinessBySlug(slug, queryParams, skipGenerate);
+  } catch (err) {
+    if (err?.status === 404) return null;
+    throw err;
+  }
+}
+
 export async function generateMetadata(props) {
   const params = await props.params;
   const { slug, tab } = params;
   const activeTab = tab ? tab[0] : 'overview';
 
+  let biz;
   try {
-    const biz = await getBusinessBySlug(params.slug, {}, true);
-    
-    if (!biz) throw new Error('Business not found');
-
-    const seo = biz.seo || {};
-    let seoTitle = seo.title || `${biz.name} | Nearmee`;
-    
-    // Customize title based on tab
-    if (activeTab === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
-    else if (activeTab === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
-
-    const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
-    const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`;
-    const robots = seo.robots || { index: true, follow: true };
-
-    return {
-      title: seoTitle,
-      description,
-      alternates: {
-        canonical,
-      },
-      robots,
-    };
+    biz = await fetchBusiness(params.slug, {}, true);
   } catch (e) {
     console.error('generateMetadata failed:', e.message);
     return {
@@ -43,12 +38,39 @@ export async function generateMetadata(props) {
       robots: { index: false, follow: false },
     };
   }
+
+  // Bail out here rather than in the component below. By the time the page
+  // body runs, the response status has already been committed as 200, so a
+  // notFound() there yields a soft 404 — 404 content served under a 200,
+  // which search engines will happily index.
+  if (!biz) notFound();
+
+  const seo = biz.seo || {};
+  let seoTitle = seo.title || `${biz.name} | Nearmee`;
+
+  // Customize title based on tab
+  if (activeTab === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
+  else if (activeTab === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
+
+  const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
+  const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`;
+  const robots = seo.robots || { index: true, follow: true };
+
+  return {
+    title: seoTitle,
+    description,
+    alternates: {
+      canonical,
+    },
+    robots,
+  };
 }
 
 export default async function BusinessTabbedPage(props) {
   const params = await props.params;
   const { slug, tab } = params;
-  const business = await getBusinessBySlug(slug).catch(() => null);
+  const business = await fetchBusiness(slug);
+  if (!business) notFound();
 
   // tab is an array like ['photos'] or undefined
   const activeTabPath = tab ? tab[0] : 'overview';
@@ -67,9 +89,9 @@ export default async function BusinessTabbedPage(props) {
   // about-us, all reviews, etc. into EVERY tab's source — content that tab
   // doesn't render, which muddies each page's identity for search engines.
   // So hand each tab only the fields it actually displays.
-  const shellBusiness = business ? { slug: business.slug, name: business.name } : null;
+  const shellBusiness = { slug: business.slug, name: business.name };
 
-  const menuBusiness = business ? {
+  const menuBusiness = {
     id: business.id,
     name: business.name,
     address: business.address,
@@ -86,9 +108,9 @@ export default async function BusinessTabbedPage(props) {
     menuAbout: (business.menuItems && business.menuItems.length)
       ? ''
       : (business.menuAbout || business.about || business.description || ''),
-  } : null;
+  };
 
-  const reviewsBusiness = business ? {
+  const reviewsBusiness = {
     id: business.id,
     name: business.name,
     address: business.address,
@@ -96,7 +118,7 @@ export default async function BusinessTabbedPage(props) {
     categories: business.categories,
     reviews: business.reviews,
     updatedAt: business.updatedAt,
-  } : null;
+  };
 
   let content = null;
   if (activeTab === 'Reviews') {
@@ -124,7 +146,7 @@ export default async function BusinessTabbedPage(props) {
 
   return (
     <>
-      {business?.schema && (
+      {business.schema && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(business.schema) }}
