@@ -8,6 +8,14 @@ import UserSubmissionActions from '../../../components/UserSubmissionActions';
 import BusinessFullReviews from '../../../components/BusinessFullReviews';
 import BusinessMenu from '../../../components/BusinessMenu';
 
+// Tabs recognized under a business page/subdomain — anything else 404s
+// rather than silently rendering the Overview tab under that URL.
+const PATH_TO_TAB = {
+  'overview': 'Overview',
+  'reviews': 'Reviews',
+  'menu': 'Menu',
+};
+
 // A business subdomain (foo.nearmee.net) rewrites to /business/foo here (see
 // proxy.js). A 404 from the API means the slug doesn't exist — surfaced with
 // notFound() so it renders the styled app/not-found.js page under a real 404
@@ -22,10 +30,21 @@ async function fetchBusiness(slug, queryParams, skipGenerate) {
   }
 }
 
+// `tab` is an optional catch-all, so a URL can carry extra junk segments
+// (e.g. /menu/foo) or an unrecognized first segment (e.g. /photos) — both
+// should 404 rather than silently rendering the Overview tab at that URL.
+function resolveTabPath(tab) {
+  if (!tab) return 'overview';
+  if (tab.length > 1) return null;
+  const path = tab[0].toLowerCase();
+  return PATH_TO_TAB[path] ? path : null;
+}
+
 export async function generateMetadata(props) {
   const params = await props.params;
   const { slug, tab } = params;
-  const activeTab = tab ? tab[0] : 'overview';
+  const activeTabPath = resolveTabPath(tab);
+  if (!activeTabPath) notFound();
 
   let biz;
   try {
@@ -49,11 +68,11 @@ export async function generateMetadata(props) {
   let seoTitle = seo.title || `${biz.name} | Nearmee`;
 
   // Customize title based on tab
-  if (activeTab === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
-  else if (activeTab === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
+  if (activeTabPath === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
+  else if (activeTabPath === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
 
   const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
-  const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTab !== 'overview' ? `/${activeTab}` : ''}`;
+  const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTabPath !== 'overview' ? `/${activeTabPath}` : ''}`;
   const robots = seo.robots || { index: true, follow: true };
 
   return {
@@ -69,19 +88,14 @@ export async function generateMetadata(props) {
 export default async function BusinessTabbedPage(props) {
   const params = await props.params;
   const { slug, tab } = params;
+
+  const activeTabPath = resolveTabPath(tab);
+  if (!activeTabPath) notFound();
+
   const business = await fetchBusiness(slug);
   if (!business) notFound();
 
-  // tab is an array like ['photos'] or undefined
-  const activeTabPath = tab ? tab[0] : 'overview';
-
-  // Normalize active tab for rendering logic
-  const PATH_TO_TAB = {
-    'overview': 'Overview',
-    'reviews': 'Reviews',
-    'menu': 'Menu',
-  };
-  const activeTab = PATH_TO_TAB[activeTabPath.toLowerCase()] || 'Overview';
+  const activeTab = PATH_TO_TAB[activeTabPath];
   const isFullPageTab = ['Reviews', 'Menu'].includes(activeTab);
 
   // Every prop passed to a client component is serialized into the page HTML

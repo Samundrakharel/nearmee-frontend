@@ -215,11 +215,10 @@ export default function BusinessFullReviews({ business }) {
                         fontSize: '0.9rem',
                         overflow: 'hidden'
                       }}>
-                        {review.avatar ? (
-                          <img src={review.avatar} alt={review.user} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          review.initials || (review.user || 'A').substring(0, 2).toUpperCase()
-                        )}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
                       </div>
                       <div>
                         <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-text-dark, #0f172a)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>

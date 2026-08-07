@@ -12,6 +12,8 @@ const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
 // Subdomains that should NOT be treated as business slugs
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging']);
 
+const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
+
 // Main domains (root domain — no subdomain routing)
 const MAIN_DOMAINS = new Set([
   'nearmee.net',
@@ -68,6 +70,15 @@ export function proxy(request) {
 
   // Prevent infinite rewrite loop
   if (pathname.startsWith('/business')) {
+    return NextResponse.next(withPathname);
+  }
+
+  // robots.txt/sitemap.xml/ads.txt are per-origin (RFC 9309) and served by
+  // the Django backend for every subdomain (see restaurants/subdomain_urls.py).
+  // Rewriting them into /business/{slug}/robots.txt etc. would land in the
+  // [[...tab]] catch-all, which doesn't recognize those segments and silently
+  // renders the Overview tab with a 200 instead of the real file.
+  if (WELL_KNOWN_FILES.has(pathname)) {
     return NextResponse.next(withPathname);
   }
 

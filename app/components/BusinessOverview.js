@@ -173,11 +173,10 @@ export default function BusinessOverview({ business }) {
               <div key={index} className="review-card">
                 <div className="review-header">
                   <div className="user-avatar" style={{ overflow: 'hidden' }}>
-                    {review.avatar ? (
-                      <img src={review.avatar} alt={review.user} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      (review.user || review.userName || 'A').charAt(0)
-                    )}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                   </div>
                   <div className="user-info">
                     <div className="user-name">{review.user || review.userName}</div>
@@ -197,11 +196,10 @@ export default function BusinessOverview({ business }) {
               <div key={index} className="review-card">
                 <div className="review-header">
                   <div className="user-avatar" style={{ overflow: 'hidden' }}>
-                    {review.avatar ? (
-                      <img src={review.avatar} alt={review.user} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      (review.user || 'A').charAt(0)
-                    )}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                   </div>
                   <div className="user-info">
                     <div className="user-name">{review.user}</div>
