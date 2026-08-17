@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useSiteContent } from '../context/SiteContentContext';
+import { isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
 
 /**
  * Site footer.
@@ -29,8 +31,11 @@ const FALLBACK_COLUMNS = [
     id: 'legal',
     title: 'Legal',
     links: [
-      { id: 'privacy', label: 'Privacy Policy', url: '#' },
-      { id: 'terms', label: 'Terms of Service', url: '#' },
+      { id: 'privacy', label: 'Privacy Policy', url: '/privacy-policy' },
+      { id: 'terms', label: 'Terms of Service', url: '/terms-of-service' },
+      // No page yet. Add one under Core → Content Pages with slug
+      // "accessibility" and point this at /accessibility — the top-level slug
+      // route serves it without any further frontend change.
       { id: 'accessibility', label: 'Accessibility', url: '#' },
     ],
   },
@@ -41,8 +46,33 @@ function linkId(label) {
   return `footer-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`;
 }
 
+/**
+ * A business subdomain (pizza-hut.nearmee.net) serves the same app, but the
+ * footer's site-wide destinations (About, Contact, Privacy, …) only exist on
+ * the main domain, so a root-relative href would resolve against the business
+ * host. Prefix those with the main origin and leave everything else alone:
+ * in-page anchors, protocol-relative and absolute URLs, mailto:, tel:.
+ */
+function toMainDomain(url, origin) {
+  if (!origin || !url) return url;
+  if (!url.startsWith('/') || url.startsWith('//')) return url;
+  return `${origin}${url}`;
+}
+
 export default function Footer() {
   const { footer } = useSiteContent();
+
+  // Resolved after mount rather than during render: the hostname is only known
+  // client-side, and deferring it keeps the server and first client render
+  // identical so hydration doesn't complain. Empty string on the main domain
+  // leaves every href relative, exactly as before.
+  const [mainDomain, setMainDomain] = useState('');
+
+  useEffect(() => {
+    if (isBusinessSubdomain()) {
+      setMainDomain(getMainDomainUrl());
+    }
+  }, []);
 
   const text = footer?.text || FALLBACK_TEXT;
   const columns = footer?.columns?.length ? footer.columns : FALLBACK_COLUMNS;
@@ -61,7 +91,7 @@ export default function Footer() {
       `}</style>
       <div className="footer-inner">
         <div className="footer-brand">
-          <a href="/" className="logo">
+          <a href={toMainDomain('/', mainDomain)} className="logo">
             <svg width="100" height="30" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
               <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
               <circle cx="75" cy="20" r="18" fill="#3B82F6" />
@@ -80,7 +110,7 @@ export default function Footer() {
               {(column.links || []).map((link) => (
                 <li key={link.id ?? link.url}>
                   <a
-                    href={link.url}
+                    href={toMainDomain(link.url, mainDomain)}
                     id={linkId(link.label)}
                     {...(link.open_in_new_tab
                       ? { target: '_blank', rel: 'noopener noreferrer' }

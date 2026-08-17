@@ -537,6 +537,8 @@ export function transformBusiness(biz) {
       },
       list: reviewsList,
     },
+    reviewsSummary: biz.reviews_summary || '',
+    reviewsSummaryGeneratedAt: biz.reviews_summary_generated_at || null,
     topReviews: reviewsList.slice(0, 3),
     googleReviews: googleReviews,
     localReviews: localReviews,
@@ -871,7 +873,9 @@ export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = f
   const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
   const business = transformBusiness(data);
 
-  // Auto-generate about_us if not yet generated
+  // Auto-generate about_us if not yet generated. The reviews summary is
+  // deliberately NOT generated here: this function runs for every tab, and the
+  // summary is only ever shown on the Overview tab. See ensureReviewsSummary.
   if (!skipGenerate && !business.aboutUs) {
     try {
       const generated = await generateAboutUs(slug);
@@ -880,6 +884,32 @@ export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = f
     } catch (e) {
       console.error('Failed to generate about_us:', e);
     }
+  }
+
+  return business;
+}
+
+/**
+ * Populate `business.reviewsSummary`, generating it if this is the first time
+ * anyone has needed it.
+ *
+ * Call this only from the page that actually renders the summary (the Overview
+ * tab). Keeping it out of getBusinessBySlug means visiting /menu or /reviews
+ * costs no extra request, and mutating the passed-in business keeps the call
+ * site to one line.
+ *
+ * No-ops when a summary already exists or the business has no reviews, so the
+ * request only ever fires on a genuine first render.
+ */
+export async function ensureReviewsSummary(business) {
+  if (!business || business.reviewsSummary) return business;
+  if ((business.reviews?.list?.length || 0) === 0) return business;
+
+  try {
+    const generated = await generateReviewsSummary(business.slug);
+    business.reviewsSummary = generated.reviews_summary || '';
+  } catch (e) {
+    console.error('Failed to generate reviews summary:', e);
   }
 
   return business;
@@ -1143,5 +1173,12 @@ export async function generateAboutUs(slug, force = false) {
   const endpoint = force
     ? `/businesses/${slug}/generate_about_us/?force=true`
     : `/businesses/${slug}/generate_about_us/`;
+  return request(endpoint, { method: 'POST' });
+}
+
+export async function generateReviewsSummary(slug, force = false) {
+  const endpoint = force
+    ? `/businesses/${slug}/generate_reviews_summary/?force=true`
+    : `/businesses/${slug}/generate_reviews_summary/`;
   return request(endpoint, { method: 'POST' });
 }

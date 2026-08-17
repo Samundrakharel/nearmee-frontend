@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug } from '../../../lib/api';
+import { getBusinessBySlug, ensureReviewsSummary } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
 import BusinessOverview from '../../../components/BusinessOverview';
@@ -140,7 +140,11 @@ export default async function BusinessTabbedPage(props) {
   } else if (activeTab === 'Menu') {
     content = <BusinessMenu business={menuBusiness} />;
   } else {
-    // Overview
+    // Overview — the only tab that renders the reviews summary, so it is also
+    // the only one that pays to generate it. Awaiting here puts the summary in
+    // the server-rendered HTML, so crawlers see it too.
+    await ensureReviewsSummary(business);
+
     content = (
       <main className="business-main">
         <div className="container">

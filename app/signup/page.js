@@ -8,18 +8,66 @@ import { getRecaptchaToken } from '../lib/recaptcha';
 import { HexagonOverlay } from '../components/HexagonLoader';
 import { useLocation } from '../context/LocationContext';
 
-// Maps a detected country name (as returned by reverse geocoding) to the
-// matching dial code option below. Falls back to +977 when the user's
-// country isn't detected or isn't in this list.
-const COUNTRY_DIAL_CODES = {
+// The dial codes always listed in the picker. Whatever gets detected is added
+// to this list when it isn't already here — a <select> whose value matches no
+// <option> silently displays the first one instead, which would show a code
+// different from the one actually submitted.
+const DIAL_OPTIONS = [
+  { dial: '+1', label: '+1 (US/CA)' },
+  { dial: '+44', label: '+44 (UK)' },
+  { dial: '+61', label: '+61 (AU)' },
+  { dial: '+91', label: '+91 (IN)' },
+  { dial: '+977', label: '+977 (NP)' },
+];
+
+// Primary lookup: ISO 3166-1 alpha-2 → dial code. LocationContext supplies
+// this from both the GPS path (Nominatim country_code) and the IP fallback
+// (ipapi country_code). Unlike the country name it is a fixed code rather
+// than free text that can be localized or spelled several ways, so it is the
+// reliable thing to match on.
+const ISO_DIAL_CODES = {
+  US: '+1', CA: '+1', PR: '+1',
+  GB: '+44', UK: '+44', IE: '+353',
+  AU: '+61', NZ: '+64',
+  IN: '+91', NP: '+977', PK: '+92', BD: '+880', LK: '+94',
+  DE: '+49', FR: '+33', ES: '+34', IT: '+39', NL: '+31', BE: '+32',
+  CH: '+41', AT: '+43', SE: '+46', NO: '+47', DK: '+45', FI: '+358',
+  PL: '+48', PT: '+351', GR: '+30', CZ: '+420', RO: '+40', UA: '+380',
+  RU: '+7', TR: '+90', IL: '+972',
+  CN: '+86', JP: '+81', KR: '+82', HK: '+852', TW: '+886',
+  SG: '+65', MY: '+60', TH: '+66', ID: '+62', PH: '+63', VN: '+84',
+  AE: '+971', SA: '+966', QA: '+974', KW: '+965',
+  ZA: '+27', NG: '+234', KE: '+254', EG: '+20', GH: '+233',
+  BR: '+55', MX: '+52', AR: '+54', CL: '+56', CO: '+57', PE: '+51',
+};
+
+// Fallback for the case where a country name was resolved but no ISO code was.
+const NAME_DIAL_CODES = {
   'united states': '+1',
   'united states of america': '+1',
+  'usa': '+1',
   'canada': '+1',
   'united kingdom': '+44',
+  'great britain': '+44',
   'australia': '+61',
   'india': '+91',
   'nepal': '+977',
 };
+
+/**
+ * Resolve the dial code for a detected location, ISO code first.
+ * Returns null when nothing can be determined, so the caller can leave the
+ * current selection alone rather than overwriting it with a wrong guess.
+ */
+function dialCodeFor(countryIso, countryName) {
+  const iso = (countryIso || '').trim().toUpperCase();
+  if (iso && ISO_DIAL_CODES[iso]) return ISO_DIAL_CODES[iso];
+
+  const name = (countryName || '').trim().toLowerCase();
+  if (name && NAME_DIAL_CODES[name]) return NAME_DIAL_CODES[name];
+
+  return null;
+}
 
 function SignUpPageContent() {
   const router = useRouter();
@@ -63,18 +111,26 @@ function SignUpPageContent() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [countryCode, setCountryCode] = useState('+977');
+  // Starts at +1 rather than +977: location detection is async and can fail
+  // outright (permission denied with the IP fallback also unreachable), so
+  // this is what the user is left with, and the site's audience is US/Canada.
+  const [countryCode, setCountryCode] = useState('+1');
   const [countryCodeTouched, setCountryCodeTouched] = useState(false);
   const [location, setLocation] = useState('');
-  const { country } = useLocation();
+  const { country, countryCode: detectedIso } = useLocation();
 
   // Default the phone dial code to the user's detected location, unless
   // they've already picked one manually.
   useEffect(() => {
-    if (countryCodeTouched || !country) return;
-    const detectedCode = COUNTRY_DIAL_CODES[country.trim().toLowerCase()];
-    if (detectedCode) setCountryCode(detectedCode);
-  }, [country, countryCodeTouched]);
+    if (countryCodeTouched) return;
+    const detectedDial = dialCodeFor(detectedIso, country);
+    if (detectedDial) setCountryCode(detectedDial);
+  }, [detectedIso, country, countryCodeTouched]);
+
+  // Guarantee the selected code is actually present in the dropdown.
+  const dialOptions = DIAL_OPTIONS.some((o) => o.dial === countryCode)
+    ? DIAL_OPTIONS
+    : [...DIAL_OPTIONS, { dial: countryCode, label: countryCode }];
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -139,21 +195,27 @@ function SignUpPageContent() {
         router.push(loginUrl);
       }, 2000);
     } catch (err) {
-      if (err.fieldErrors) {
-        const apiErrors = { ...err.fieldErrors };
-        // Map non-field errors (like public email domain) to the email field
-        if (apiErrors._general) {
-          apiErrors.email = apiErrors._general;
-          delete apiErrors._general;
-        }
-        setFieldErrors(apiErrors);
-      } else {
-        setFieldErrors({ email: err.message || 'Registration failed. Please try again.' });
-      }
-      // Scroll to first error field
+      const apiErrors = { ...(err.fieldErrors || {}) };
+
+      // Errors that aren't tied to a field — failed reCAPTCHA, rate limits,
+      // a server error — belong in the banner above the form. They used to be
+      // pinned onto the email input, which told the user their email was the
+      // problem when it wasn't.
+      const generalError = apiErrors._general;
+      delete apiErrors._general;
+
+      setFieldErrors(apiErrors);
+      setError(
+        generalError ||
+        (Object.keys(apiErrors).length
+          ? ''
+          : err.message || 'Registration failed. Please try again.')
+      );
+
+      // Scroll to whichever came first: the banner, else the first bad field.
       setTimeout(() => {
-        const firstError = document.querySelector('[data-field-error]');
-        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const target = errorRef.current || document.querySelector('[data-field-error]');
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
     } finally {
       setLoading(false);
@@ -237,6 +299,21 @@ function SignUpPageContent() {
           </button>
         </div>
 
+        {/* Error — form-level problems that aren't about any single field */}
+        {error && (
+          <div ref={errorRef} role="alert" style={{
+            background: '#fef2f2',
+            color: '#dc2626',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            fontSize: '0.88rem',
+            marginBottom: '18px',
+            border: '1px solid #fecaca',
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* Form */}
         <form className="auth-form" onSubmit={handleSubmit}>
           {/* Username */}
@@ -303,11 +380,9 @@ function SignUpPageContent() {
                   }}
                   style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'inherit', fontSize: '0.95rem', appearance: 'none', cursor: 'pointer' }}
                 >
-                  <option value="+1">+1 (US/CA)</option>
-                  <option value="+44">+44 (UK)</option>
-                  <option value="+61">+61 (AU)</option>
-                  <option value="+91">+91 (IN)</option>
-                  <option value="+977">+977 (NP)</option>
+                  {dialOptions.map((opt) => (
+                    <option key={opt.dial} value={opt.dial}>{opt.label}</option>
+                  ))}
                 </select>
                 <div style={{ pointerEvents: 'none', position: 'absolute', right: '12px', display: 'flex', alignItems: 'center' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -427,7 +502,14 @@ function SignUpPageContent() {
           {/* Terms */}
           <label className="auth-terms">
             <input type="checkbox" id="signup-terms" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} />
-            <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+            {/* Opened in a new tab so reading the terms does not discard a
+                part-filled signup form. */}
+            <span>
+              I agree to the{' '}
+              <a href="/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            </span>
           </label>
           <FieldError field="terms" />
 

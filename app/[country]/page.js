@@ -6,27 +6,43 @@ import {
   getStateByCode,
   getStateBySlug,
   getCityBySlug,
+  getPageContent,
 } from '@/app/lib/api';
 import CategoryPageClient from '@/app/category/[slug]/CategoryPageClient';
+import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
+import ContentPage from '@/app/components/ContentPage';
 
 /**
- * Flat category + location landing pages: /{category}-in-{state|city}/
+ * Every one-segment top-level URL that is not its own route, in two flavours.
  *
- *   /asian-restaurants-in-fl/      → Asian Restaurants across Florida
- *   /asian-restaurants-in-miami/   → Asian Restaurants in Miami
+ * 1. Flat category + location landing pages: /{category}-in-{state|city}/
  *
- * These are the URLs listed in /us-sitemap.xml and
- * /state-category1-sitemap.xml, and they are the canonical form for this
- * content — the deeper /[country]/[state]/[city]/[category] route still works
- * for existing links but points its canonical here.
+ *      /asian-restaurants-in-fl/      → Asian Restaurants across Florida
+ *      /asian-restaurants-in-miami/   → Asian Restaurants in Miami
+ *
+ *    These are the URLs listed in /us-sitemap.xml and
+ *    /state-category1-sitemap.xml, and they are the canonical form for this
+ *    content — the deeper /[country]/[state]/[city]/[category] route still
+ *    works for existing links but points its canonical here.
+ *
+ * 2. Admin-managed content pages: /{slug} for any published
+ *    core.models.Page — /privacy-policy, /terms-of-service and anything added
+ *    later. Creating the page in Django admin → Core → Content Pages is the
+ *    whole job; no route needs to be added here for it to go live. (/about and
+ *    /contact predate this and keep their own routes, since each adds
+ *    page-specific furniture.)
+ *
+ * Category lookup is tried first so an existing landing page can never be
+ * shadowed by a content page someone names after it.
  *
  * The folder is named [country] out of necessity, not meaning: Next.js forbids
  * two differently-named dynamic segments at the same level, and
  * [country]/[state]/[city]/[category] already claims this one. The segment
- * value here is the "{category}-in-{location}" string, never a country.
- * Two-letter segments never reach this page — next.config.mjs redirects
- * /:country([a-z]{2}) to the homepage.
+ * value here is a "{category}-in-{location}" string or a page slug, never a
+ * country. Two-letter segments never reach this page — next.config.mjs
+ * redirects /:country([a-z]{2}) to the homepage, so a two-letter page slug
+ * would be unreachable.
  */
 
 // Splits on the LAST "-in-" so category slugs containing "in" survive intact
@@ -38,35 +54,44 @@ function titleCase(str) {
 }
 
 /**
- * Work out what the segment refers to.
+ * Work out what the segment refers to, as `{ kind: 'category' | 'page', … }`.
  *
- * State slugs are the two-letter codes ("fl"), so a state lookup is tried
- * first; anything else is looked up as a city slug. Returns null when the
- * segment is not a category-in-location URL at all, so unrelated one-segment
- * paths keep 404ing instead of rendering an empty listing.
+ * A category-in-location URL is resolved first. State slugs are the two-letter
+ * codes ("fl"), so a state lookup is tried before falling back to a city slug.
+ * Failing that, the segment is looked up as a published content page slug.
+ *
+ * Returns null when it is neither, so unrelated one-segment paths keep 404ing
+ * instead of rendering an empty listing.
  */
 const resolveSegment = cache(async function resolveSegment(segment) {
-  const match = CATEGORY_IN_LOCATION_RE.exec(segment || '');
-  if (!match) return null;
+  if (!segment) return null;
 
-  const [, categorySlug, locationSlug] = match;
+  const match = CATEGORY_IN_LOCATION_RE.exec(segment);
+  if (match) {
+    const [, categorySlug, locationSlug] = match;
+    const category = await getCategoryBySlug(categorySlug).catch(() => null);
 
-  const category = await getCategoryBySlug(categorySlug).catch(() => null);
-  if (!category) return null;
+    if (category) {
+      // Try `code` first, then `slug`: State.code is blank for most rows and
+      // the two-letter abbreviation lives in the slug instead.
+      const state =
+        (await getStateByCode(locationSlug).catch(() => null)) ||
+        (await getStateBySlug(locationSlug).catch(() => null));
+      if (state) {
+        return { kind: 'category', categorySlug, category, scope: 'state', state, locationName: state.name };
+      }
 
-  // Try `code` first, then `slug`: State.code is blank for most rows and the
-  // two-letter abbreviation lives in the slug instead.
-  const state =
-    (await getStateByCode(locationSlug).catch(() => null)) ||
-    (await getStateBySlug(locationSlug).catch(() => null));
-  if (state) {
-    return { categorySlug, category, scope: 'state', state, locationName: state.name };
+      const city = await getCityBySlug(locationSlug).catch(() => null);
+      if (city) {
+        return { kind: 'category', categorySlug, category, scope: 'city', city, locationName: city.name };
+      }
+    }
   }
 
-  const city = await getCityBySlug(locationSlug).catch(() => null);
-  if (city) {
-    return { categorySlug, category, scope: 'city', city, locationName: city.name };
-  }
+  // Not a category landing page — an admin-managed content page, or nothing.
+  // The API 404s for a missing or unpublished page, which lands here as null.
+  const page = await getPageContent(segment).catch(() => null);
+  if (page) return { kind: 'page', page };
 
   return null;
 });
@@ -81,6 +106,18 @@ export async function generateMetadata(props) {
   // notFound() there yields a soft 404 — 404 content served under a 200, which
   // search engines will happily index.
   if (!resolved) notFound();
+
+  if (resolved.kind === 'page') {
+    const { page } = resolved;
+    return {
+      title: page.meta_title || `${page.hero_heading || page.title} | Nearmee`,
+      description: page.meta_description,
+      alternates: {
+        canonical: `https://www.nearmee.net/${page.slug}`,
+      },
+      robots: { index: true, follow: true },
+    };
+  }
 
   const categoryName = resolved.category?.name || titleCase(resolved.categorySlug);
   const where =
@@ -98,12 +135,22 @@ export async function generateMetadata(props) {
   };
 }
 
-export default async function CategoryLocationPage(props) {
+export default async function TopLevelSegmentPage(props) {
   const params = await props.params;
   const segment = params.country;
 
   const resolved = await resolveSegment(segment);
   if (!resolved) notFound();
+
+  if (resolved.kind === 'page') {
+    return (
+      <>
+        <Header />
+        <ContentPage page={resolved.page} />
+        <Footer />
+      </>
+    );
+  }
 
   const { categorySlug, category, scope } = resolved;
 

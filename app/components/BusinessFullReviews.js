@@ -96,7 +96,7 @@ export default function BusinessFullReviews({ business }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+                <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)', fontWeight: '800', margin: 0, color: '#0f172a', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
                   {business.name} - Reviews
                 </h1>
                 <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
@@ -142,11 +142,13 @@ export default function BusinessFullReviews({ business }) {
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+        {/* Main Content Area — classes rather than inline styles so the
+            columns can stack on narrow screens (inline styles can't be
+            overridden by a media query). */}
+        <div className="reviews-layout">
 
           {/* Left Column: Rating Summary */}
-          <div style={{ flex: '0 0 350px', position: 'sticky', top: '24px' }}>
+          <div className="reviews-summary-col">
             <div className="rating-summary-card" style={{
               background: '#fff',
               padding: '32px',
@@ -166,7 +168,7 @@ export default function BusinessFullReviews({ business }) {
                 <div className="rating-bars">
                   {starPercentages.map((item) => (
                     <div key={item.star} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.9rem', color: 'var(--color-text-medium, #64748b)', width: '45px', flexShrink: 0 }}>{item.star} stars</span>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--color-text-medium, #64748b)', width: '52px', flexShrink: 0, whiteSpace: 'nowrap' }}>{item.star} stars</span>
                       <div style={{
                         flex: 1,
                         height: '8px',
@@ -189,7 +191,7 @@ export default function BusinessFullReviews({ business }) {
           </div>
 
           {/* Right Column: All Reviews */}
-          <div style={{ flex: '1', minWidth: 0 }}>
+          <div className="reviews-list-col">
             <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>All Reviews</h2>
             <div className="reviews-list">
               {mergedList.length > 0 ? mergedList.map((review, index) => (
@@ -238,7 +240,7 @@ export default function BusinessFullReviews({ business }) {
                     <StarRating rating={review.rating} />
                   </div>
                   {review.title && <h4 style={{ margin: '0 0 6px 0', fontWeight: '600', fontSize: '0.95rem' }}>{review.title}</h4>}
-                  <p style={{ fontSize: '0.95rem', color: 'var(--color-text-medium, #475569)', lineHeight: '1.6', margin: 0 }}>{review.comment}</p>
+                  <p style={{ fontSize: '0.95rem', color: 'var(--color-text-medium, #475569)', lineHeight: '1.6', margin: 0, overflowWrap: 'anywhere' }}>{review.comment}</p>
                   {review.photos && review.photos.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                       {review.photos.map(p => (

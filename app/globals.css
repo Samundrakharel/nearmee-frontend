@@ -126,6 +126,12 @@ img {
   display: block;
 }
 
+/* Replaced elements keep their own intrinsic width (an iframe defaults to
+   300px) and will happily push a phone-width page sideways. */
+iframe {
+  max-width: 100%;
+}
+
 button {
   cursor: pointer;
   font-family: var(--font-family);
@@ -199,7 +205,13 @@ input {
   align-items: center;
   flex: 1;
   max-width: 560px;
-  gap: 0;
+  /* The query and location fields are separate pills; with gap:0 their rounded
+     ends touched. One gap value spaces all three children evenly. */
+  gap: 8px;
+}
+
+.search-bar .btn-search {
+  margin-left: 0;
 }
 
 .search-input-group {
@@ -283,7 +295,13 @@ input {
   background: var(--color-search-btn);
   color: #fff;
   border: none;
-  padding: 10px 22px;
+  /* Fixed height so the button lines up with the 42px input pills beside it —
+     padding alone left it 5px short. */
+  height: 42px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-full);
   font-size: 0.9rem;
   font-weight: 600;
@@ -1297,6 +1315,14 @@ input {
   gap: 40px;
 }
 
+/* Grid and flex children default to min-width:auto, meaning they refuse to
+   shrink below their widest descendant. On a phone that is what pushes the
+   whole page sideways instead of letting the inner content reflow. */
+.business-content,
+.business-sidebar {
+  min-width: 0;
+}
+
 /* Sidebar */
 .business-sidebar {
   display: flex;
@@ -1386,10 +1412,15 @@ input {
 }
 
 /* Overview Content */
+/* Each section is a white card on the grey page background. It previously had
+   a white background with padding:0, so the card edge sat flush against the
+   heading and text with no breathing room. Matches .sidebar-card. */
 .overview-section {
   background: #fff;
-  padding: 0;
-  margin-bottom: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
 .overview-section h2 {
@@ -1498,12 +1529,14 @@ input {
 
 .user-info {
   flex: 1;
+  min-width: 0;
 }
 
 .user-name {
   font-weight: 700;
   color: var(--color-text-dark);
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .review-date {
@@ -1515,6 +1548,91 @@ input {
   font-size: 0.95rem;
   color: var(--color-text-medium);
   line-height: 1.6;
+  /* User-written reviews can contain long unbroken URLs. "anywhere" also
+     shrinks min-content width, so the URL can't widen its container. */
+  overflow-wrap: anywhere;
+}
+
+/* Full Reviews page: rating summary beside the review list */
+.reviews-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.reviews-summary-col {
+  flex: 0 0 350px;
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+}
+
+.reviews-list-col {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 992px) {
+  /* A fixed 350px column plus the list cannot fit a phone, so stack them.
+     align-items must become stretch: in a column flex container align-items
+     governs the horizontal axis, and flex-start would size each column to its
+     widest content instead of to the screen. Sticky is dropped too — pinned
+     full-width it would cover the list. */
+  .reviews-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .reviews-summary-col,
+  .reviews-list-col {
+    flex: 0 1 auto;
+    width: 100%;
+    position: static;
+  }
+}
+
+/* Aggregated summary shown in place of individual reviews on the overview.
+   The surrounding .overview-section already supplies the card frame, so this
+   stays flat rather than nesting a second bordered box inside it. */
+.reviews-summary {
+  background: transparent;
+}
+
+.reviews-summary-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reviews-summary-score {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.reviews-summary-count {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.reviews-summary-text {
+  font-size: 1rem;
+  color: var(--color-text-medium);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.reviews-summary-note {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
 }
 
 @media (max-width: 992px) {
@@ -2010,8 +2128,10 @@ input {
 }
 
 @media (max-width: 900px) {
+  /* Padding deliberately not changed here: .container only narrows to 16px at
+     768px, so tightening the header earlier left the logo 8px inside the page
+     content below it. The 16px header padding lives in the 768px block. */
   .header-inner {
-    padding: 0 16px;
     gap: 8px;
   }
 
@@ -2025,8 +2145,18 @@ input {
 }
 
 @media (max-width: 768px) {
-  .container {
+  /* Header and page content must narrow together or the logo and the content
+     below it sit on different left edges. */
+  .container,
+  .header-inner {
     padding: 0 16px;
+  }
+
+  /* 24px inside a card that already sits 16px from the screen edge leaves the
+     text squeezed into the middle on a phone. */
+  .overview-section {
+    padding: 20px 16px;
+    margin-bottom: 16px;
   }
 
   .categories-grid {

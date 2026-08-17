@@ -16,6 +16,13 @@ export default function BusinessOverview({ business }) {
   const amenities = business.amenities || [];
   const faqs = business.faqs || [];
 
+  // Resolved server-side by ensureReviewsSummary before this renders, so there
+  // is no client-side generation call to make here.
+  const reviewsSummary = business.reviewsSummary || '';
+  const avgRating = business.reviews?.summary?.average || business.rating || 0;
+  const totalReviews = business.reviews?.summary?.total || business.reviewCount || 0;
+  const hasReviews = (business.reviews?.list || []).length > 0 || totalReviews > 0;
+
   useEffect(() => {
     // Generate about_us if it doesn't exist or is empty
     const generateAbout = async () => {
@@ -64,9 +71,9 @@ export default function BusinessOverview({ business }) {
             <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Popular Menu Items</h2>
             </div>
-            <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
               {menuItems.slice(0, 4).map((item, idx) => (
-                <div key={idx} className="menu-item-card glass" style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary-light)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                <div key={idx} className="menu-item-card glass" style={{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'all 0.2s', minWidth: 0 }} onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary-light)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }} onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0, background: '#f1f5f9' }}>
                     {item.image ? (
                       <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -76,10 +83,10 @@ export default function BusinessOverview({ business }) {
                       </div>
                     )}
                   </div>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                        <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', lineHeight: '1.2' }}>{item.name}</h4>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '8px' }}>
+                        <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', lineHeight: '1.2', minWidth: 0, overflowWrap: 'anywhere' }}>{item.name}</h4>
                         <span style={{ fontWeight: '700', color: '#059669', fontSize: '1.05rem' }}>{item.price}</span>
                       </div>
                       {item.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>}
@@ -111,7 +118,7 @@ export default function BusinessOverview({ business }) {
         return (
           <section className="overview-section" id="amenities-and-more">
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', color: '#0f172a' }}>Amenities and More</h2>
-            <div className="extensions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
+            <div className="extensions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '32px' }}>
               {keysToShow.map((key) => (
                 <div key={key} className="extension-category glass" style={{ border: '1px solid var(--color-border)', borderRadius: '16px', padding: '20px' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -167,58 +174,31 @@ export default function BusinessOverview({ business }) {
               See All Reviews
             </a>
         </div>
-        <div className="reviews-list">
-          {(business.topReviews || []).length > 0 ? (
-            business.topReviews.map((review, index) => (
-              <div key={index} className="review-card">
-                <div className="review-header">
-                  <div className="user-avatar" style={{ overflow: 'hidden' }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                  <div className="user-info">
-                    <div className="user-name">{review.user || review.userName}</div>
-                    <div className="review-date">{review.date}</div>
-                  </div>
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={`star ${i < review.rating ? '' : 'empty'}`}>★</span>
-                    ))}
-                  </div>
-                </div>
-                <p className="review-content">{review.comment}</p>
+        {/* A summary of what reviewers say, rather than a handful of individual
+            reviews. The full list lives on the Reviews tab. */}
+        {reviewsSummary ? (
+          <div className="reviews-summary">
+            <div className="reviews-summary-stats">
+              <span className="reviews-summary-score">{avgRating.toFixed(1)}</span>
+              <div className="stars">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className={`star ${i < Math.round(avgRating) ? '' : 'empty'}`}>★</span>
+                ))}
               </div>
-            ))
-          ) : (
-            (business.reviews?.list || []).slice(0, 3).map((review, index) => (
-              <div key={index} className="review-card">
-                <div className="review-header">
-                  <div className="user-avatar" style={{ overflow: 'hidden' }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                  <div className="user-info">
-                    <div className="user-name">{review.user}</div>
-                    <div className="review-date">{review.date}</div>
-                  </div>
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={`star ${i < review.rating ? '' : 'empty'}`}>★</span>
-                    ))}
-                  </div>
-                </div>
-                <p className="review-content">{review.comment}</p>
-              </div>
-            ))
-          )}
-          {(business.topReviews || []).length === 0 && (business.reviews?.list || []).length === 0 && (
-            <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>No reviews yet.</p>
-          )}
-        </div>
+              {totalReviews > 0 && (
+                <span className="reviews-summary-count">
+                  {totalReviews.toLocaleString()} review{totalReviews === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+            <p className="reviews-summary-text">{reviewsSummary}</p>
+            <p className="reviews-summary-note">Summarised from customer reviews</p>
+          </div>
+        ) : (
+          <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>
+            {hasReviews ? 'Review summary coming soon.' : 'No reviews yet.'}
+          </p>
+        )}
           <a href={`${basePath}/reviews`} className="btn-see-more" style={{ textDecoration: 'none' }}>
             See Full Reviews
           </a>

@@ -2,6 +2,32 @@
 
 import { usePathname } from 'next/navigation';
 
+function formatPrice(price) {
+  if (price === null || price === undefined || price === '') return '';
+  const str = String(price);
+  return str.startsWith('$') ? str : `$${str}`;
+}
+
+const ITEMS_PER_CARD = 5;
+
+/**
+ * Deal the menu into cards of five.
+ *
+ * The order is deliberately left exactly as the API returned it — no
+ * alphabetising, no sorting, no re-ordering of any kind. The cards are just
+ * consecutive slices, so each one holds an arbitrary handful of the menu.
+ * (Shuffling per render is avoided on purpose: this component is server
+ * rendered, so a fresh random order on the client would not match the server's
+ * HTML and React would throw a hydration mismatch.)
+ */
+function chunkMenuItems(items) {
+  const cards = [];
+  for (let i = 0; i < items.length; i += ITEMS_PER_CARD) {
+    cards.push(items.slice(i, i + ITEMS_PER_CARD));
+  }
+  return cards;
+}
+
 export default function BusinessMenu({ business }) {
   const pathname = usePathname();
   const basePath = pathname
@@ -9,6 +35,7 @@ export default function BusinessMenu({ business }) {
     .replace(/\/$/, '') || '';
 
   const menuItems = business.menuItems || [];
+  const cards = chunkMenuItems(menuItems);
 
   // Handle categories as either strings or objects
   const categories = business.categories || [];
@@ -18,6 +45,88 @@ export default function BusinessMenu({ business }) {
 
   return (
     <div className="business-menu-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
+      <style>{`
+        /* Each card holds five menu items. */
+        .menu-card-grid {
+          display: grid;
+          /* min() keeps the track from forcing a floor wider than the screen
+             on narrow phones, which would push the page sideways. */
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+          gap: 20px;
+          align-items: start;
+        }
+        .menu-card {
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 8px 20px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          /* Grid items default to min-width:auto and would otherwise stretch
+             the track to fit the longest item name. */
+          min-width: 0;
+        }
+        .menu-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+        }
+
+        .menu-item {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          padding: 16px 0;
+          border-top: 1px solid #f1f5f9;
+        }
+        .menu-item:first-child { border-top: none; }
+
+        .menu-item-thumb {
+          width: 56px;
+          height: 56px;
+          flex-shrink: 0;
+          object-fit: cover;
+          border-radius: 8px;
+          display: block;
+          background: #f1f5f9;
+        }
+        .menu-item-body { flex: 1; min-width: 0; }
+        .menu-item-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 12px;
+        }
+        .menu-item-name {
+          font-size: 0.98rem;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+          line-height: 1.4;
+          /* Scraped item names can be long unbroken strings. "anywhere" rather
+             than "break-word" because only anywhere shrinks the element's
+             min-content width, which is what the grid track measures. */
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+        .menu-item-price {
+          font-size: 0.98rem;
+          font-weight: 700;
+          color: #0d7377;
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }
+        .menu-item-desc {
+          margin: 6px 0 0;
+          font-size: 0.88rem;
+          color: #64748b;
+          line-height: 1.5;
+          overflow-wrap: break-word;
+        }
+
+        @media (max-width: 640px) {
+          .menu-card-grid { grid-template-columns: 1fr; gap: 16px; }
+          .menu-card { padding: 4px 16px; }
+        }
+      `}</style>
       <div className="container">
         {/* Breadcrumb & Header Area */}
         <div className="menu-header-area" style={{ marginBottom: '32px' }}>
@@ -27,7 +136,7 @@ export default function BusinessMenu({ business }) {
 
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+              <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)', fontWeight: '800', margin: 0, color: '#0f172a', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
                 {business.name} - Menu
               </h1>
               <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
@@ -83,32 +192,46 @@ export default function BusinessMenu({ business }) {
 
         {/* Menu Items */}
         <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '32px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>
-            {menuItems.length > 0 ? 'Menu Items' : 'About Menu'}
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+              {menuItems.length > 0 ? 'Menu Items' : 'About Menu'}
+            </h2>
+            {menuItems.length > 0 && (
+              <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                {menuItems.length} item{menuItems.length === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
 
           {menuItems.length > 0 ? (
-            <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
-                <thead>
-                  <tr style={{ background: '#0f172a' }}>
-                    <th style={{ textAlign: 'left', padding: '14px 20px', color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>Item</th>
-                    <th style={{ textAlign: 'left', padding: '14px 20px', color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>Description</th>
-                    <th style={{ textAlign: 'right', padding: '14px 20px', color: '#fff', fontSize: '0.9rem', fontWeight: '600' }}>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {menuItems.map((item, idx) => (
-                    <tr key={idx} style={{ borderTop: idx === 0 ? 'none' : '1px solid #e2e8f0', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
-                      <td style={{ padding: '14px 20px', fontWeight: '600', color: '#0f172a', verticalAlign: 'top' }}>{item.name}</td>
-                      <td style={{ padding: '14px 20px', color: '#64748b', fontSize: '0.9rem', verticalAlign: 'top' }}>{item.description || '—'}</td>
-                      <td style={{ padding: '14px 20px', color: '#0d7377', fontWeight: '600', textAlign: 'right', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                        {item.price ? (String(item.price).startsWith('$') ? item.price : `$${item.price}`) : ''}
-                      </td>
-                    </tr>
+            <div className="menu-card-grid">
+              {cards.map((cardItems, cardIdx) => (
+                <div className="menu-card" key={cardIdx}>
+                  {cardItems.map((item, idx) => (
+                    <article className="menu-item" key={item.id ?? `${cardIdx}-${idx}`}>
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="menu-item-thumb"
+                          loading="lazy"
+                        />
+                      )}
+                      <div className="menu-item-body">
+                        <div className="menu-item-head">
+                          <h3 className="menu-item-name">{item.name}</h3>
+                          {formatPrice(item.price) && (
+                            <span className="menu-item-price">{formatPrice(item.price)}</span>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="menu-item-desc">{item.description}</p>
+                        )}
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              ))}
             </div>
           ) : (
             <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.6' }}>
