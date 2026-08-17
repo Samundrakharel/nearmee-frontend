@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useCurrentMonthLabel } from '../lib/use-current-month';
 
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return '';
@@ -40,8 +41,7 @@ export default function BusinessMenu({ business }) {
   // Handle categories as either strings or objects
   const categories = business.categories || [];
 
-  const updatedLabel = new Date(business.updatedAt || Date.now())
-    .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const updatedLabel = useCurrentMonthLabel();
 
   return (
     <div className="business-menu-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
@@ -139,7 +139,7 @@ export default function BusinessMenu({ business }) {
               <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)', fontWeight: '800', margin: 0, color: '#0f172a', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
                 {business.name} - Menu
               </h1>
-              <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
+              <span suppressHydrationWarning style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
                 (updated {updatedLabel})
               </span>
             </div>

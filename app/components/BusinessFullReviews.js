@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { isLoggedIn, getMyReviews } from '../lib/api';
+import { useCurrentMonthLabel } from '../lib/use-current-month';
 import { useAuth } from '../context/AuthContext';
 
 export default function BusinessFullReviews({ business }) {
@@ -81,8 +82,7 @@ export default function BusinessFullReviews({ business }) {
 
   const categories = business.categories || [];
 
-  const updatedLabel = new Date(business.updatedAt || Date.now())
-    .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const updatedLabel = useCurrentMonthLabel();
 
   return (
     <div className="business-reviews-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
@@ -99,7 +99,7 @@ export default function BusinessFullReviews({ business }) {
                 <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)', fontWeight: '800', margin: 0, color: '#0f172a', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
                   {business.name} - Reviews
                 </h1>
-                <span style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
+                <span suppressHydrationWarning style={{ fontSize: '1rem', fontWeight: '400', color: '#64748b', whiteSpace: 'nowrap' }}>
                   (updated {updatedLabel})
                 </span>
               </div>
