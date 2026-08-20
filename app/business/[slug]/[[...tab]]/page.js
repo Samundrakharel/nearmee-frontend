@@ -92,7 +92,12 @@ export default async function BusinessTabbedPage(props) {
   const activeTabPath = resolveTabPath(tab);
   if (!activeTabPath) notFound();
 
-  const business = await fetchBusiness(slug);
+  // skipGenerate: About Us is never generated on render. This page is served
+  // to crawlers far more often than to people, and with tens of thousands of
+  // listings still ungenerated, one live LLM call per crawled business is
+  // unbounded spend driven by whoever happens to be crawling us. Backfill it
+  // deliberately instead: `python manage.py generate_about_us`.
+  const business = await fetchBusiness(slug, {}, true);
   if (!business) notFound();
 
   const activeTab = PATH_TO_TAB[activeTabPath];

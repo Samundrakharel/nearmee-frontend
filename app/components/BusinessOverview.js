@@ -1,7 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { generateAboutUs } from '../lib/api';
 
 export default function BusinessOverview({ business }) {
   const router = useRouter();
@@ -9,8 +8,7 @@ export default function BusinessOverview({ business }) {
   const basePath = pathname
     .replace(/\/(menu|reviews|photos)\/?$/, '')
     .replace(/\/$/, '') || '';
-  const [aboutUsContent, setAboutUsContent] = useState(business.about || business.description || '');
-  const [generatingAboutUs, setGeneratingAboutUs] = useState(false);
+  const aboutUsContent = business.aboutUs || business.about || business.description || '';
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
   const amenities = business.amenities || [];
@@ -23,39 +21,17 @@ export default function BusinessOverview({ business }) {
   const totalReviews = business.reviews?.summary?.total || business.reviewCount || 0;
   const hasReviews = (business.reviews?.list || []).length > 0 || totalReviews > 0;
 
-  useEffect(() => {
-    // Generate about_us if it doesn't exist or is empty
-    const generateAbout = async () => {
-      if (!business.about && !business.aboutUs && business.slug) {
-        setGeneratingAboutUs(true);
-        try {
-          const response = await generateAboutUs(business.slug);
-          if (response && response.about_us) {
-            setAboutUsContent(response.about_us);
-          }
-        } catch (error) {
-          console.error('Failed to generate about_us:', error);
-        } finally {
-          setGeneratingAboutUs(false);
-        }
-      }
-    };
-
-    generateAbout();
-  }, [business.slug, business.about, business.aboutUs]);
+  // No about_us generation here. This effect used to fire a live LLM call from
+  // the browser whenever the copy was empty — which, with tens of thousands of
+  // listings still ungenerated, meant one billable call per Overview view (and
+  // Googlebot runs JS, so crawlers triggered it too). Backfill deliberately
+  // instead: `python manage.py generate_about_us`.
 
   return (
     <div className="business-overview" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
       <section className="overview-section" id="about">
         <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', color: '#0f172a' }}>About - {business.name}</h2>
-        {generatingAboutUs ? (
-          <div className="loading-placeholder glass" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8', borderRadius: '16px' }}>
-            <div style={{ marginBottom: '12px' }}><LoadingIcon size={24} /></div>
-            Generating description...
-          </div>
-        ) : (
-          <p style={{ fontSize: '1.05rem', lineHeight: '1.7', color: '#475569', margin: 0 }}>{aboutUsContent || 'No description available.'}</p>
-        )}
+        <p style={{ fontSize: '1.05rem', lineHeight: '1.7', color: '#475569', margin: 0 }}>{aboutUsContent || 'No description available.'}</p>
       </section>
 
       {(() => {
