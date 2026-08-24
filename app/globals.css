@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Inter is loaded via a <link rel="stylesheet"> + preconnect in
+   app/layout.js's head, not an @import here — @import blocks on fetching
+   and parsing this whole file before the browser even discovers the font
+   request, serializing what should be a parallel head resource. */
 
 /* ===== CSS Reset & Variables ===== */
 :root {

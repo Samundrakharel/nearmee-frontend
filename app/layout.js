@@ -15,6 +15,23 @@ import { getFooterContent, getPageScripts } from './lib/api';
 // inside a wrapper element — or the browser's HTML parser foster-parents it
 // out of <head> entirely.
 const STATIC_HEAD_HTML = `
+  <!-- 1. RESOURCE HINTS -->
+  <!-- Preconnect before the stylesheet link below so the connection to
+       both Google Fonts hosts is already warm by the time the font
+       stylesheet is requested, instead of the browser discovering the
+       cross-origin hosts only after parsing that response. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- 2. FONTS -->
+  <!-- Moved here from an @import in globals.css: an @import forces the
+       browser to fetch and parse the whole stylesheet before it even
+       discovers the font request, turning one round trip into a serial
+       chain. A <link> in <head> is discovered immediately, in parallel
+       with every other head resource. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+
+  <!-- 3. ANALYTICS -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -22,6 +39,8 @@ const STATIC_HEAD_HTML = `
     gtag('js', new Date());
     gtag('config', 'G-RYVZ90Z0JH');
   </script>
+
+  <!-- 4. PRE-HYDRATION LOADER (critical inline CSS + script) -->
   <style>
     #page-loader {
       position: fixed; inset: 0; z-index: 99999;
@@ -163,7 +182,31 @@ export default async function RootLayout({ children }) {
     }
   });
 
-  const headHtml = `${STATIC_HEAD_HTML}\n${byPlacement.head.join('\n')}`;
+  // 0. CHARSET & VIEWPORT — must be first. Next always appends its own
+  //    auto-managed head tags (charset, viewport, the page's per-route
+  //    <title>/<meta>/<link> from each route's `metadata` export, framework
+  //    chunks) AFTER whatever is in this literal <head> element — there is
+  //    no way, short of dropping the literal <head> override entirely (which
+  //    would break arbitrary admin <meta>/<script>/<style> injection), to
+  //    make our content render after them instead. Restating charset+
+  //    viewport here (a harmless duplicate — browsers use whichever comes
+  //    first) at least keeps sections 1-5 below from being the very first
+  //    bytes of <head>, ahead of even the charset declaration.
+  //
+  //    SEO tags (title, description, robots, canonical) are deliberately
+  //    NOT duplicated here: each route supplies its own dynamic `metadata`
+  //    export (business name, city, etc.), and Next renders those further
+  //    down in this same <head> — hand-authoring them here would either go
+  //    stale or fight the per-route values.
+  //
+  // 5. ADDITIONAL SCRIPTS & STYLES (admin/CMS-managed, placement="head")
+  //    Appended last, after the static sections above — see byPlacement.head.
+  const headHtml = [
+    '<meta charSet="utf-8" />',
+    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+    STATIC_HEAD_HTML,
+    byPlacement.head.join('\n'),
+  ].join('\n');
   const bodyStartHtml = byPlacement.body_start.join('\n');
   const bodyEndHtml = byPlacement.body_end.join('\n');
   // Handed to PageScriptLoader so it doesn't re-inject (and re-execute) on

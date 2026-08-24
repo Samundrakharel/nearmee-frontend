@@ -20,6 +20,7 @@ export default function BusinessOverview({ business }) {
   const avgRating = business.reviews?.summary?.average || business.rating || 0;
   const totalReviews = business.reviews?.summary?.total || business.reviewCount || 0;
   const hasReviews = (business.reviews?.list || []).length > 0 || totalReviews > 0;
+  const topReviews = (business.topReviews?.length ? business.topReviews : business.reviews?.list || []).slice(0, 4);
 
   // No about_us generation here. This effect used to fire a live LLM call from
   // the browser whenever the copy was empty — which, with tens of thousands of
@@ -150,8 +151,6 @@ export default function BusinessOverview({ business }) {
               See All Reviews
             </a>
         </div>
-        {/* A summary of what reviewers say, rather than a handful of individual
-            reviews. The full list lives on the Reviews tab. */}
         {reviewsSummary ? (
           <div className="reviews-summary">
             <div className="reviews-summary-stats">
@@ -174,6 +173,32 @@ export default function BusinessOverview({ business }) {
           <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>
             {hasReviews ? 'Review summary coming soon.' : 'No reviews yet.'}
           </p>
+        )}
+        {topReviews.length > 0 && (
+          <div className="reviews-list">
+            {topReviews.map((review, index) => (
+              <div key={index} className="review-card">
+                <div className="review-header">
+                  <div className="user-avatar">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <div className="user-info">
+                    <div className="user-name">{review.user}</div>
+                    <div className="review-date">{review.date}</div>
+                  </div>
+                  <div className="stars">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`star ${i < Math.round(review.rating || 0) ? '' : 'empty'}`}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="review-content">{review.comment}</p>
+              </div>
+            ))}
+          </div>
         )}
           <a href={`${basePath}/reviews`} className="btn-see-more" style={{ textDecoration: 'none' }}>
             See Full Reviews

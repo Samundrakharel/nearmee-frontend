@@ -504,10 +504,6 @@ export function transformBusiness(biz) {
       services_title: `${biz.name} Services | Nearmee`,
     },
 
-    // DEBUG: Log the SEO data
-    // Remove this after debugging
-    _debug_seo: biz.seo,
-
     // Nested objects
     city: biz.city || null,
     state: biz.state || null,
@@ -539,7 +535,7 @@ export function transformBusiness(biz) {
     },
     reviewsSummary: biz.reviews_summary || '',
     reviewsSummaryGeneratedAt: biz.reviews_summary_generated_at || null,
-    topReviews: reviewsList.slice(0, 3),
+    topReviews: reviewsList.slice(0, 4),
     googleReviews: googleReviews,
     localReviews: localReviews,
     reviewCategories: safeParse(biz.review_categories, []),
@@ -548,10 +544,6 @@ export function transformBusiness(biz) {
     amenities: [],
     faqs: [],
     extensions: safeParse(biz.extensions, {}),
-
-    // Google
-    googlePlaceId: biz.google_place_id || '',
-    googleDataId: biz.google_data_id || '',
 
     // For business list cards (shorthand)
     image: biz.cover_image || (images.length > 0 ? images[0] : ''),
