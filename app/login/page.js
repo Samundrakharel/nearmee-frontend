@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { HexagonOverlay } from '../components/HexagonLoader';
+import Logo from '../components/Logo';
 
 function LoginPageContent() {
   const router = useRouter();
@@ -71,11 +72,7 @@ function LoginPageContent() {
         {/* Logo */}
         <div className="auth-logo">
           <Link href="/">
-            <svg width="130" height="45" viewBox="0 0 130 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="0" y="32" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="28" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
-              <circle cx="88" cy="23" r="21" fill="#3B82F6" />
-              <text x="72" y="32" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="28" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
-            </svg>
+            <Logo />
           </Link>
         </div>
 

@@ -9,15 +9,15 @@
  */
 export const ABOUT_FALLBACK = {
   slug: 'about',
-  meta_title: 'About Us — Nearmee',
+  meta_title: 'About Us — DoersMarketing',
   meta_description:
-    'Nearmee is a local business directory built to help people find trusted ' +
+    'DoersMarketing is a local business directory built to help people find trusted ' +
     'restaurants, cafes and services in their own city — and to help those ' +
     'businesses get discovered.',
-  hero_eyebrow: 'About Nearmee',
+  hero_eyebrow: 'About DoersMarketing',
   hero_heading: 'Good local businesses, easier to find',
   hero_lead:
-    'Nearmee is a local business directory. We collect the details that ' +
+    'DoersMarketing is a local business directory. We collect the details that ' +
     'matter — hours, menus, photos, reviews and directions — so finding ' +
     'somewhere good near you takes a minute instead of an evening.',
   sections: [
@@ -28,7 +28,7 @@ export const ABOUT_FALLBACK = {
       tinted: false,
       paragraphs: [
         'Finding a decent place to eat in your own city is harder than it should be. The information exists, but it is spread across search results, social posts, out-of-date listings and screenshots of menus. Half of it contradicts the other half, and the opening hours are usually wrong.',
-        'Nearmee pulls that together into one place, organised by where you actually are. Pick a category or search a name, and you get the listing with the things you were going to check anyway — what is on the menu, when it opens, what other people thought, and how to get there.',
+        'DoersMarketing pulls that together into one place, organised by where you actually are. Pick a category or search a name, and you get the listing with the things you were going to check anyway — what is on the menu, when it opens, what other people thought, and how to get there.',
         'The same directory works in the other direction. A small restaurant or service business can list itself for free, keep its own details accurate, and be found by people who are already looking for what it offers — without paying for ads to do it.',
       ],
       items: [],
@@ -36,7 +36,7 @@ export const ABOUT_FALLBACK = {
     {
       id: 'what',
       layout: 'cards',
-      heading: 'What Nearmee does',
+      heading: 'What DoersMarketing does',
       tinted: true,
       paragraphs: [],
       items: [
@@ -72,7 +72,7 @@ export const ABOUT_FALLBACK = {
         {
           id: 'step1',
           heading: 'Tell us where you are',
-          body: 'Share your location or type in a city. Nearmee narrows the directory down to what is genuinely within reach.',
+          body: 'Share your location or type in a city. DoersMarketing narrows the directory down to what is genuinely within reach.',
         },
         {
           id: 'step2',

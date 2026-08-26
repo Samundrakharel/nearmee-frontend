@@ -117,51 +117,52 @@ export default function Hero() {
   };
 
   return (
-    <section className="hero" id="hero">
-      <div className="hero-bg">
-        <img
-          src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1600&q=80"
-          alt="City skyline at night"
-        />
-      </div>
-      <div className="hero-overlay" />
-      <div className="hero-content">
-        <h1 className="text-h1">Find the Best Local Businesses Near You</h1>
-        <p className="text-body-lg fw-light">
-          Restaurants, plumbers, doctors, and more — discover top-rated businesses in your city.
+    <section className="hero" id="hero" style={{ position: 'relative', background: 'linear-gradient(135deg, #18181b 0%, #27272a 40%, #3f3f46 100%)', padding: '100px 24px 90px', height: 'auto', minHeight: '360px', overflow: 'hidden' }}>
+      {/* Decorative Radial Backgrounds */}
+      <div style={{ position: 'absolute', top: '-50%', right: '-25%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(255, 126, 103, 0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-30%', left: '-15%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(255, 158, 141, 0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      
+      <div className="hero-content" style={{ position: 'relative', zIndex: 2, maxWidth: '850px', margin: '0 auto', textAlign: 'center' }}>
+        <h1 className="text-h1" style={{ color: '#ffffff', fontSize: 'clamp(2.8rem, 6vw, 4.8rem)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '20px', lineHeight: 1.1 }}>
+          DoersMarketing:<br />Real Finds, Nearby
+        </h1>
+        <p className="text-body-lg" style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.15rem', lineHeight: '1.6', maxWidth: '720px', margin: '0 auto 36px', fontWeight: 300 }}>
+          We sort out the clutter so you don't have to, helping you find everyday spots, trusted services, and verified picks near you.
         </p>
-        <form className="hero-search glass" onSubmit={handleSearch} style={{ padding: '0 0 0 24px', maxWidth: '800px' }}>
-          <div className="hero-search-input">
+        <form className="hero-search" onSubmit={handleSearch} style={{ padding: '6px 6px 6px 24px', maxWidth: '720px', background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(255, 126, 103, 0.2)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)', borderRadius: '100px', display: 'flex', alignItems: 'center', margin: '0 auto' }}>
+          <div className="hero-search-input" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="search-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
             </span>
             <input 
               type="text" 
-              placeholder="Restaurants, plumbers, doctors..." 
+              placeholder="What are you looking for?" 
               id="hero-search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="text-body-lg fw-medium"
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', color: '#18181b' }}
             />
           </div>
-          <div className="hero-search-divider" />
-          <div className="hero-location-input">
+          <div className="hero-search-divider" style={{ width: '1px', height: '28px', background: 'rgba(255, 126, 103, 0.2)', margin: '0 16px' }} />
+          <div className="hero-location-input" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '200px' }}>
             <span className="location-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
             </span>
             <input 
               type="text" 
-              placeholder={loading ? 'Location...' : 'Kathmandu...'} 
+              placeholder={loading ? 'Location...' : 'Enter location...'} 
               id="hero-location-input" 
               value={locationValue}
               onChange={(e) => setLocationValue(e.target.value)}
               className="text-body-lg fw-medium"
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', color: '#18181b' }}
             />
           </div>
           <button 
@@ -169,11 +170,11 @@ export default function Hero() {
             className="btn-search hero-btn-search text-body fw-bold" 
             id="hero-btn-search"
             disabled={searching}
+            style={{ background: 'linear-gradient(135deg, #ff7e67, #e0533c)', color: '#fff', border: 'none', borderRadius: '100px', padding: '0 32px', height: '48px', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.3s' }}
           >
             {searching ? '...' : 'Search'}
           </button>
         </form>
-        
       </div>
     </section>
   );

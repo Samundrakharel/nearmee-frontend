@@ -7,9 +7,9 @@
 export default function Logo() {
   return (
     <svg
-      width="100"
+      width="220"
       height="35"
-      viewBox="0 0 110 40"
+      viewBox="0 0 240 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -19,23 +19,23 @@ export default function Logo() {
         fontFamily="Inter, sans-serif"
         fontWeight="800"
         fontSize="24"
-        fill="#3B82F6"
+        fill="#18181b"
         style={{ letterSpacing: '-1px' }}
       >
-        near
+        doers
       </text>
-      <circle cx="75" cy="20" r="18" fill="#3B82F6" />
       <text
-        x="60"
+        x="72"
         y="28"
         fontFamily="Inter, sans-serif"
         fontWeight="800"
         fontSize="24"
-        fill="white"
-        style={{ letterSpacing: '-1px' }}
+        fill="#ff7e67"
+        style={{ letterSpacing: '-0.5px' }}
       >
-        me
+        marketing
       </text>
+      <circle cx="204" cy="24" r="4" fill="#ff7e67" />
     </svg>
   );
 }

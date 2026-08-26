@@ -175,12 +175,8 @@ export default async function BusinessTabbedPage(props) {
       )}
       <BusinessPageClient
         slug={slug}
-        initialBusiness={shellBusiness}
-        initialTabPath={activeTabPath}
-        heroContent={!isFullPageTab ? <BusinessHero business={business} /> : null}
-      >
-        {content}
-      </BusinessPageClient>
+        initialBusiness={business}
+      />
     </>
   );
 }

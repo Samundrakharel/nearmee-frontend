@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Sign In | Nearmee',
-  description: 'Sign in to your Nearmee account to manage your listings and reviews.',
+  title: 'Sign In | DoersMarketing',
+  description: 'Sign in to your DoersMarketing account to manage your listings and reviews.',
   alternates: {
     canonical: 'https://www.nearmee.net/login',
   },

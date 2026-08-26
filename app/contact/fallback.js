@@ -9,14 +9,14 @@
  */
 export const CONTACT_FALLBACK = {
   slug: 'contact',
-  meta_title: 'Contact Us — Nearmee',
+  meta_title: 'Contact Us — DoersMarketing',
   meta_description:
-    'Get in touch with the Nearmee team. Report an out-of-date listing, ask ' +
+    'Get in touch with the DoersMarketing team. Report an out-of-date listing, ask ' +
     'about listing your business, or send us feedback.',
   hero_eyebrow: 'Contact Us',
   hero_heading: 'We would like to hear from you',
   hero_lead:
-    'Whether a listing needs correcting, you want your business on Nearmee, ' +
+    'Whether a listing needs correcting, you want your business on DoersMarketing, ' +
     'or something on the site is not working — send it over and a person ' +
     'will read it.',
   sections: [],

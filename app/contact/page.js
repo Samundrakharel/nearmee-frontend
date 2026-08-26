@@ -57,7 +57,7 @@ export async function generateMetadata() {
   const page = await loadPage();
 
   return {
-    title: page.meta_title || `${page.hero_heading} | Nearmee`,
+    title: page.meta_title || `${page.hero_heading} | DoersMarketing`,
     description: page.meta_description,
     alternates: {
       canonical: 'https://www.nearmee.net/contact',

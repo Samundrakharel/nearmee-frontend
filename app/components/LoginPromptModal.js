@@ -112,7 +112,7 @@ export default function LoginPromptModal({ isOpen, onClose, action = 'continue',
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                    background: 'linear-gradient(135deg, #fff5f2 0%, #ffebe6 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -142,7 +142,7 @@ export default function LoginPromptModal({ isOpen, onClose, action = 'continue',
                     lineHeight: '1.6',
                     marginBottom: '28px',
                 }}>
-                    Join the Nearmee community to share your experiences and help others discover great local businesses.
+                    Join the DoersMarketing community to share your experiences and help others discover great local businesses.
                 </p>
 
                 {/* CTA buttons */}

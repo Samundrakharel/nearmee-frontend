@@ -6,8 +6,8 @@ export async function generateMetadata(props) {
   const params = await props.searchParams;
   const q = params?.q?.trim() || '';
   return {
-    title: q ? `Search results for "${q}" — Nearmee` : 'Search Businesses — Nearmee',
-    description: q ? `Find businesses matching "${q}" on Nearmee.` : 'Search local businesses on Nearmee.',
+    title: q ? `Search results for "${q}" — DoersMarketing` : 'Search Businesses — DoersMarketing',
+    description: q ? `Find businesses matching "${q}" on DoersMarketing.` : 'Search local businesses on DoersMarketing.',
   };
 }
 

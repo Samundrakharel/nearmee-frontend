@@ -2,8 +2,8 @@
 const nextConfig = {
   output: 'standalone',
 
-  // Allow the app to be served from any subdomain of nearmee.net
-  // This is required for business subdomain routing (e.g. pizza-hut.nearmee.net)
+  // Allow the app to be served from any subdomain of doersmarketing.com
+  // This is required for business subdomain routing (e.g. pizza-hut.doersmarketing.com)
   async headers() {
     return [];
   },
@@ -26,11 +26,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'nearmee.net',
+        hostname: 'doersmarketing.com',
       },
       {
         protocol: 'https',
-        hostname: '**.nearmee.net',
+        hostname: '**.doersmarketing.com',
       },
       {
         protocol: 'http',

@@ -57,7 +57,7 @@ export default function Header() {
   const getHomeUrl = () => {
     if (typeof window === 'undefined') return '/';
     const hostname = window.location.hostname;
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
     const isSub = hostname !== baseDomain &&
                   hostname !== 'localhost' &&
                   hostname !== '127.0.0.1' &&
@@ -203,10 +203,10 @@ export default function Header() {
             }
           }}
         >
-          <svg width="100" height="35" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
-            <circle cx="75" cy="20" r="18" fill="#3B82F6" />
-            <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
+          <svg width="220" height="35" viewBox="0 0 240 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#18181b" style={{ letterSpacing: '-1px' }}>doers</text>
+            <text x="72" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#ff7e67" style={{ letterSpacing: '-0.5px' }}>marketing</text>
+            <circle cx="204" cy="24" r="4" fill="#ff7e67" />
           </svg>
         </a>
 
@@ -257,8 +257,8 @@ export default function Header() {
               onClick={() => setIsMobileSearchOpen(true)}
               style={{
                 display: 'none',
-                background: 'rgba(59, 130, 246, 0.1)',
-                color: '#3B82F6',
+                background: 'rgba(0, 0, 0, 0.1)',
+                color: '#000000',
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
@@ -342,7 +342,7 @@ export default function Header() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
           
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '24px', color: 'var(--color-text-dark)' }}>Search Nearmee</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '24px', color: 'var(--color-text-dark)' }}>Search DoersMarketing</h2>
           
           <form 
             onSubmit={(e) => {

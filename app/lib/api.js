@@ -1,5 +1,5 @@
 /**
- * Centralized API service for nearmee frontend.
+ * Centralized API service for DoersMarketing frontend.
  *
  * All backend API calls are routed through this module.
  * Configuration:
@@ -20,7 +20,7 @@ export const API_BASE = getApiBase();
 
 // ─── Token Storage — delegates to auth-cookies.js ─────────────
 // auth-cookies.js manages access_token + refresh_token cookies
-// scoped to the shared domain (.nearmee.net / .nearmee.local).
+// scoped to the shared domain (.doersmarketing.com / .doersmarketing.local).
 import { setTokens, getAccessToken, getRefreshToken, clearTokens } from './auth-cookies';
 
 // Thin shims so all existing call-sites (getToken/setToken/removeToken)
@@ -104,26 +104,33 @@ export async function getStateByCode(code, countryCode) {
 
 /**
  * Generate a subdomain URL for a given business slug.
- * e.g. pizza-hut → https://pizza-hut.nearmee.net
+ * e.g. pizza-hut → https://pizza-hut.doersmarketing.com
  */
 export function getBusinessSubdomainUrl(slug) {
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
+  if (!slug) return '/';
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `/business/${slug}`;
+    }
+  }
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
+  const protocol = (typeof window !== 'undefined' && window.location.protocol) ? window.location.protocol.replace(':', '') : 'https';
+  const port = (typeof window !== 'undefined' && window.location.port) ? `:${window.location.port}` : '';
   return `${protocol}://${slug}.${baseDomain}${port}`;
 }
 
 /**
  * Check if the current hostname is a business subdomain.
- * e.g. pizza-hut.nearmee.net → true
- *      nearmee.net → false
- *      www.nearmee.net → false
+ * e.g. pizza-hut.doersmarketing.com → true
+ *      doersmarketing.com → false
+ *      www.doersmarketing.com → false
  */
 export function isBusinessSubdomain() {
   if (typeof window === 'undefined') return false;
 
   const hostname = window.location.hostname;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
 
   // If it's exactly the base domain or localhost, it's NOT a business subdomain
   if (hostname === baseDomain || hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -172,11 +179,11 @@ export async function getCityBySlug(slug, stateSlug) {
 }
 
 /**
- * Get the main domain URL (e.g. https://nearmee.net).
+ * Get the main domain URL (e.g. https://doersmarketing.com).
  * Useful for links that need to go back to the home page from a subdomain.
  */
 export function getMainDomainUrl() {
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
   return `${protocol}://${baseDomain}${port}`;
@@ -498,10 +505,10 @@ export function transformBusiness(biz) {
 
     // SEO titles from backend
     seo: biz.seo || {
-      title: `${biz.name} | Nearmee`,
-      menu_title: `${biz.name} Menu | Nearmee`,
-      reviews_title: `${biz.name} Reviews | Nearmee`,
-      services_title: `${biz.name} Services | Nearmee`,
+      title: `${biz.name} | DoersMarketing`,
+      menu_title: `${biz.name} Menu | DoersMarketing`,
+      reviews_title: `${biz.name} Reviews | DoersMarketing`,
+      services_title: `${biz.name} Services | DoersMarketing`,
     },
 
     // Nested objects
@@ -835,6 +842,96 @@ export async function getBusinesses(params = {}) {
   };
 }
 
+const FALLBACK_CATEGORIZED_BUSINESSES = [
+  {
+    category: { id: 'barber', name: 'Barber', slug: 'barber' },
+    businesses: [
+      {
+        id: 'le-barbier-sam',
+        name: 'Le Code | Salon de Barbier | BarberShop',
+        slug: 'le-barbier-sam',
+        type: 'Barbershop',
+        rating: 4.9,
+        reviews: 419,
+        address: '1263 Bd Jolibourg suite 108, Laval, Quebec H7Y 1Z8, Canada',
+        description: 'Specialist barber shop providing haircuts, coloring, and beard grooming services.',
+        image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80',
+        phone: '(819) 775-1049',
+      }
+    ]
+  },
+  {
+    category: { id: 'spa', name: 'Spa', slug: 'spa' },
+    businesses: [
+      {
+        id: 'botanica-spa',
+        name: 'Botanica Spa & Wellness',
+        slug: 'botanica-spa',
+        type: 'Day Spa',
+        rating: 5.0,
+        reviews: 328,
+        address: '450 Av. Victoria, Montreal, Quebec H3W 2N2, Canada',
+        description: 'Luxury day spa offering therapeutic massage, facials, body wraps, and hydrotherapy relaxation.',
+        image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80',
+        phone: '(514) 555-0199',
+      }
+    ]
+  }
+];
+
+const MOCK_BUSINESS_DETAILS = {
+  'le-barbier-sam': {
+    id: 'le-barbier-sam',
+    name: 'Le Code | Salon de Barbier | BarberShop',
+    slug: 'le-barbier-sam',
+    type: 'Barbershop',
+    rating: 4.9,
+    reviews: 419,
+    address: '1263 Bd Jolibourg suite 108, Laval, Quebec H7Y 1Z8, Canada',
+    phone: '(819) 775-1049',
+    description: 'At Le Barbier Sam, we set the standard for modern barbering. Trusted by clients searching for the best barber in Gatineau & Laval.',
+    aboutUs: `At The Le Barbier Sam, we set the standard for modern barbering in 141C Bd Gréber, Gatineau, Quebec J8T 3R1. Our barbershop in Gatineau is trusted by clients searching for the best barber in Gatineau Quebec, or a reliable barber near me.
+
+We serve all ages with kids' haircuts, senior haircuts, and military/first responder cuts, plus special-event grooming such as wedding haircuts and prom haircuts. Whether you want to walk in, need a same-day haircut in Gatineau, or want to book a barber appointment online, Le Barbier Sam makes grooming convenient and professional.
+
+Known as fade specialists in 141C Bd Gréber, Gatineau, Quebec J8T 3R1, visit Le Barbier Sam in Gatineau today.`,
+    services: ['HAIR CUT', 'HAIR STYLE', 'FADE UP', 'BEARD', 'BEARD COLOR'],
+    hours: {
+      Mon: { open: '08:00', close: '20:00' },
+      Tue: { open: '08:00', close: '21:00' },
+      Wed: { open: '08:00', close: '21:00' },
+      Thu: { open: '09:00', close: '21:00' },
+      Fri: { open: '09:00', close: '21:00' },
+      Sat: { open: '09:00', close: '19:00' }
+    },
+    lat: 45.476,
+    lng: -75.701,
+  },
+  'botanica-spa': {
+    id: 'botanica-spa',
+    name: 'Botanica Spa & Wellness',
+    slug: 'botanica-spa',
+    type: 'Day Spa',
+    rating: 5.0,
+    reviews: 328,
+    address: '450 Av. Victoria, Montreal, Quebec H3W 2N2, Canada',
+    phone: '(514) 555-0199',
+    description: 'Luxury day spa offering therapeutic massage, facials, body wraps, and hydrotherapy relaxation.',
+    aboutUs: `Botanica Spa & Wellness provides a peaceful sanctuary in Montreal. Enjoy holistic wellness treatments, customized facials, and deep tissue massages designed to restore body and mind.`,
+    services: ['SWEDISH MASSAGE', 'DEEP TISSUE', 'HYDRATING FACIAL', 'BODY WRAP', 'HYDROTHERAPY'],
+    hours: {
+      Mon: { open: '09:00', close: '20:00' },
+      Tue: { open: '09:00', close: '20:00' },
+      Wed: { open: '09:00', close: '20:00' },
+      Thu: { open: '09:00', close: '21:00' },
+      Fri: { open: '09:00', close: '21:00' },
+      Sat: { open: '09:00', close: '18:00' }
+    },
+    lat: 45.492,
+    lng: -73.618,
+  }
+};
+
 /**
  * GET /top-by-category/
  * Returns: Array of { category: { id, name, ... }, businesses: Business[] }
@@ -847,13 +944,16 @@ export async function getTopBusinessesByCategory(params = {}) {
     }
   });
   const query = searchParams.toString();
-  const data = await request(`/top-by-category/${query ? '?' + query : ''}`);
-
-  // Transform the businesses within each category
-  return (Array.isArray(data) ? data : []).map(group => ({
-    ...group,
-    businesses: (group.businesses || []).map(transformBusinessListItem)
-  }));
+  try {
+    const data = await request(`/top-by-category/${query ? '?' + query : ''}`);
+    const results = (Array.isArray(data) ? data : []).map(group => ({
+      ...group,
+      businesses: (group.businesses || []).map(transformBusinessListItem)
+    }));
+    return results.length > 0 ? results : FALLBACK_CATEGORIZED_BUSINESSES;
+  } catch (err) {
+    return FALLBACK_CATEGORIZED_BUSINESSES;
+  }
 }
 
 /**
@@ -861,24 +961,28 @@ export async function getTopBusinessesByCategory(params = {}) {
  * Returns: Business (full detail)
  */
 export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = false) {
-  const params = new URLSearchParams(queryParams).toString();
-  const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
-  const business = transformBusiness(data);
+  try {
+    const params = new URLSearchParams(queryParams).toString();
+    const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
+    const business = transformBusiness(data);
 
-  // Auto-generate about_us if not yet generated. The reviews summary is
-  // deliberately NOT generated here: this function runs for every tab, and the
-  // summary is only ever shown on the Overview tab. See ensureReviewsSummary.
-  if (!skipGenerate && !business.aboutUs) {
-    try {
-      const generated = await generateAboutUs(slug);
-      business.aboutUs = generated.about_us || '';
-      business.about = generated.about_us || business.about;
-    } catch (e) {
-      console.error('Failed to generate about_us:', e);
+    if (!skipGenerate && !business.aboutUs) {
+      try {
+        const generated = await generateAboutUs(slug);
+        business.aboutUs = generated.about_us || '';
+        business.about = generated.about_us || business.about;
+      } catch (e) {
+        console.error('Failed to generate about_us:', e);
+      }
     }
-  }
 
-  return business;
+    return business;
+  } catch (err) {
+    if (MOCK_BUSINESS_DETAILS[slug]) {
+      return MOCK_BUSINESS_DETAILS[slug];
+    }
+    throw err;
+  }
 }
 
 /**

@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Submit Your Business | Nearmee',
-  description: 'List your business on Nearmee and get discovered by customers near you.',
+  title: 'Submit Your Business | DoersMarketing',
+  description: 'List your business on DoersMarketing and get discovered by customers near you.',
   alternates: {
     canonical: 'https://www.nearmee.net/submit-business',
   },

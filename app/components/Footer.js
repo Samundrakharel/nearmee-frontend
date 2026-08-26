@@ -14,8 +14,8 @@ import { isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
  * unreachable or nothing has been configured yet, so the footer is never blank.
  */
 const FALLBACK_TEXT =
-  'Discover the best local businesses within your city. From restaurants to ' +
-  'services, find everything you need near you.';
+  'Discover the best local marketing, beauty, and service businesses in your area. ' +
+  'Find top-rated professionals nearby.';
 
 const FALLBACK_COLUMNS = [
   {
@@ -47,7 +47,7 @@ function linkId(label) {
 }
 
 /**
- * A business subdomain (pizza-hut.nearmee.net) serves the same app, but the
+ * A business subdomain (pizza-hut.doersmarketing.com) serves the same app, but the
  * footer's site-wide destinations (About, Contact, Privacy, …) only exist on
  * the main domain, so a root-relative href would resolve against the business
  * host. Prefix those with the main origin and leave everything else alone:
@@ -77,7 +77,7 @@ export default function Footer() {
   const text = footer?.text || FALLBACK_TEXT;
   const columns = footer?.columns?.length ? footer.columns : FALLBACK_COLUMNS;
   const copyright =
-    footer?.copyright || `© ${new Date().getFullYear()} nearmee. All rights reserved.`;
+    footer?.copyright || `© ${new Date().getFullYear()} DoersMarketing. All rights reserved.`;
 
   return (
     <footer className="footer" id="footer" style={{ borderTop: '1px solid var(--color-border)', backgroundColor: '#fff' }}>
@@ -86,16 +86,16 @@ export default function Footer() {
           transition: color 0.2s ease;
         }
         .footer-col ul a:hover {
-          color: #3B82F6 !important;
+          color: #ff7e67 !important;
         }
       `}</style>
       <div className="footer-inner">
         <div className="footer-brand">
           <a href={toMainDomain('/', mainDomain)} className="logo">
-            <svg width="100" height="30" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#3B82F6" style={{ letterSpacing: '-1px' }}>near</text>
-              <circle cx="75" cy="20" r="18" fill="#3B82F6" />
-              <text x="60" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="white" style={{ letterSpacing: '-1px' }}>me</text>
+            <svg width="220" height="30" viewBox="0 0 240 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="0" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#18181b" style={{ letterSpacing: '-1px' }}>doers</text>
+              <text x="72" y="28" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="24" fill="#ff7e67" style={{ letterSpacing: '-0.5px' }}>marketing</text>
+              <circle cx="204" cy="24" r="4" fill="#ff7e67" />
             </svg>
           </a>
           <p style={{ color: 'var(--color-text-medium)', lineHeight: '1.6', maxWidth: '300px' }}>

@@ -32,13 +32,7 @@ const STATIC_HEAD_HTML = `
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
 
   <!-- 3. ANALYTICS -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-RYVZ90Z0JH');
-  </script>
+  <!-- Removed GA tracking ID -->
 
   <!-- 4. PRE-HYDRATION LOADER (critical inline CSS + script) -->
   <style>
@@ -74,9 +68,9 @@ const STATIC_HEAD_HTML = `
     }
     #page-progress-bar {
       position: fixed; top: 0; left: 0; height: 3px; width: 0%;
-      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      background: linear-gradient(90deg, #ff7e67, #18181b);
       z-index: 100000; transition: width 0.4s ease;
-      box-shadow: 0 0 10px rgba(59,130,246,0.6);
+      box-shadow: 0 0 10px rgba(255, 126, 103, 0.6);
     }
   </style>
   <script>
@@ -135,10 +129,10 @@ function scriptMarkup(script) {
 }
 
 export const metadata = {
-  title: 'Nearmee - Find the Best Local Businesses Near You',
-  description: 'Discover the best local businesses in your area. From restaurants to services, find everything you need near you.',
+  title: 'DoersMarketing - Real Finds, Nearby',
+  description: 'Discover the best local marketing, beauty, and service businesses in your area.',
   alternates: {
-    canonical: 'https://www.nearmee.net',
+    canonical: 'https://doersmarketing.com',
   },
   robots: {
     index: true,
@@ -226,9 +220,9 @@ export default async function RootLayout({ children }) {
           <div className="loader-logo">
             <svg
               className="loader-logo-svg"
-              width="120"
+              width="220"
               height="42"
-              viewBox="0 0 110 40"
+              viewBox="0 0 240 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -237,18 +231,18 @@ export default async function RootLayout({ children }) {
                 fontFamily="Inter, sans-serif"
                 fontWeight="800"
                 fontSize="24"
-                fill="#3B82F6"
+                fill="#18181b"
                 style={{ letterSpacing: '-1px' }}
-              >near</text>
-              <circle cx="75" cy="20" r="18" fill="#3B82F6" />
+              >doers</text>
               <text
-                x="60" y="28"
+                x="72" y="28"
                 fontFamily="Inter, sans-serif"
                 fontWeight="800"
                 fontSize="24"
-                fill="white"
-                style={{ letterSpacing: '-1px' }}
-              >me</text>
+                fill="#ff7e67"
+                style={{ letterSpacing: '-0.5px' }}
+              >marketing</text>
+              <circle cx="204" cy="24" r="4" fill="#ff7e67" />
             </svg>
           </div>
 
@@ -256,14 +250,14 @@ export default async function RootLayout({ children }) {
           <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z"
-              stroke="#3b82f6"
+              stroke="#ff7e67"
               strokeWidth="6"
               fill="none"
               opacity="0.2"
             />
             <path
               d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z"
-              stroke="#3b82f6"
+              stroke="#ff7e67"
               strokeWidth="6"
               strokeLinecap="round"
               fill="none"

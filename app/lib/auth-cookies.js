@@ -14,12 +14,12 @@ function getCookieDomain() {
     return '';
   }
 
-  // Matches nearmee.local AND any subdomain like hotel-yak-yeti.nearmee.local
-  if (hostname === 'nearmee.local' || hostname.endsWith('.nearmee.local')) {
-    return '.nearmee.local';
+  // Matches doersmarketing.local AND any subdomain like hotel-yak-yeti.doersmarketing.local
+  if (hostname === 'doersmarketing.local' || hostname.endsWith('.doersmarketing.local')) {
+    return '.doersmarketing.local';
   }
 
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
   if (hostname === baseDomain || hostname.endsWith(`.${baseDomain}`)) {
     return `.${baseDomain}`;
   }

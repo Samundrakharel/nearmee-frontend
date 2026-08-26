@@ -33,8 +33,8 @@ export async function generateMetadata(props) {
   const locStr = `${formatSegment(city)}, ${stateName}`;
 
   return {
-    title: `${formattedTitle} in ${locStr} | Nearmee`,
-    description: `Find the best ${formattedTitle.toLowerCase()} in ${locStr} on Nearmee. Read reviews, view menus, and more.`,
+    title: `${formattedTitle} in ${locStr} | DoersMarketing`,
+    description: `Find the best ${formattedTitle.toLowerCase()} in ${locStr} on DoersMarketing. Read reviews, view menus, and more.`,
     alternates: {
       // The flat /{category}-in-{city}/ form is the canonical URL for this
       // content — it is what the sitemaps list. This deeper route stays live
