@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
 
 /**
  * Receives submissions from the contact form on /contact.
  *
  * Validation and spam filtering happen here so the rules cannot be bypassed by
- * skipping the client-side form. Delivery is deliberately pluggable:
+ * skipping the client-side form. Delivery sends the message by email through
+ * Zoho Mail's SMTP relay (see ZOHO_SMTP_* below); CONTACT_WEBHOOK_URL is kept
+ * as an optional secondary notification (Slack, Zapier, etc.) alongside it.
  *
- *   - Set CONTACT_WEBHOOK_URL to forward each message as JSON (Slack incoming
- *     webhook, Zapier/Make catch hook, an internal endpoint — anything that
- *     accepts a POST). This is the quickest way to start actually receiving mail.
- *   - Or replace deliver() below with an SMTP send / a Django API call once
- *     there is an email backend to talk to.
- *
- * Until one of those is in place the message is logged server-side and the
- * request fails with 503, so the form shows its "email us directly" fallback
- * rather than telling a visitor their message was sent when it went nowhere.
+ * If neither is configured the message is logged server-side and the request
+ * fails with 503, so the form shows its "email us directly" fallback rather
+ * than telling a visitor their message was sent when it went nowhere.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -73,16 +70,63 @@ function validate(payload) {
   return { data: { name, email, subject, message } };
 }
 
-async function deliver(message) {
-  const webhook = process.env.CONTACT_WEBHOOK_URL;
+let cachedTransporter = null;
 
-  if (!webhook) {
-    console.warn(
-      '[contact] CONTACT_WEBHOOK_URL is not set — message logged only, not delivered:',
-      message
-    );
-    return false;
+/**
+ * Lazily builds (and caches) the Zoho SMTP transporter. Zoho requires the
+ * authenticated mailbox and the "from" address to match, so replies go out
+ * as CONTACT_TO_EMAIL / ZOHO_SMTP_USER with the visitor's address set as
+ * replyTo — hitting "reply" in the inbox goes straight back to them.
+ */
+function getTransporter() {
+  const user = process.env.ZOHO_SMTP_USER;
+  const pass = process.env.ZOHO_SMTP_PASS;
+  if (!user || !pass) return null;
+
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
+      port: Number(process.env.ZOHO_SMTP_PORT) || 465,
+      secure: true, // port 465 is implicit TLS
+      auth: { user, pass },
+    });
   }
+
+  return cachedTransporter;
+}
+
+async function deliverByEmail(message) {
+  const transporter = getTransporter();
+  if (!transporter) return false;
+
+  const mailbox = process.env.ZOHO_SMTP_USER;
+  const to = process.env.CONTACT_TO_EMAIL || mailbox;
+
+  await transporter.sendMail({
+    from: { name: 'Nearmee Contact Form', address: mailbox },
+    to,
+    replyTo: { name: message.name, address: message.email },
+    subject: `[Contact] ${message.subject} — ${message.name}`,
+    text: [
+      `Name: ${message.name}`,
+      `Email: ${message.email}`,
+      `Subject: ${message.subject}`,
+      '',
+      message.message,
+      '',
+      '---',
+      `Received: ${message.receivedAt}`,
+      `IP: ${message.ip || 'unknown'}`,
+      `User agent: ${message.userAgent || 'unknown'}`,
+    ].join('\n'),
+  });
+
+  return true;
+}
+
+async function deliverByWebhook(message) {
+  const webhook = process.env.CONTACT_WEBHOOK_URL;
+  if (!webhook) return false;
 
   const res = await fetch(webhook, {
     method: 'POST',
@@ -92,6 +136,21 @@ async function deliver(message) {
 
   if (!res.ok) {
     throw new Error(`Webhook responded ${res.status}`);
+  }
+
+  return true;
+}
+
+async function deliver(message) {
+  const emailed = await deliverByEmail(message);
+  const webhooked = await deliverByWebhook(message);
+
+  if (!emailed && !webhooked) {
+    console.warn(
+      '[contact] Neither ZOHO_SMTP_* nor CONTACT_WEBHOOK_URL is set — message logged only, not delivered:',
+      message
+    );
+    return false;
   }
 
   return true;
