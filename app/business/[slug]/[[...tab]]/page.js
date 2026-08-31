@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug, ensureReviewsSummary } from '../../../lib/api';
+import { getBusinessBySlug, ensureReviewsSummary, getBusinesses, getRestaurantCategories } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
 import BusinessOverview from '../../../components/BusinessOverview';
@@ -110,8 +110,11 @@ export default async function BusinessTabbedPage(props) {
   // So hand each tab only the fields it actually displays.
   const shellBusiness = { slug: business.slug, name: business.name };
 
+  const menuAboutText = business.menuAbout || business.about || business.description || '';
+
   const menuBusiness = {
     id: business.id,
+    slug: business.slug,
     name: business.name,
     address: business.address,
     phone: business.phone,
@@ -120,12 +123,7 @@ export default async function BusinessTabbedPage(props) {
     menuImages: business.menuImages,
     menuItems: business.menuItems,
     mustTryDishes: business.mustTryDishes,
-    // Descriptive copy is only shown as a fallback when there is no menu, so
-    // resolve it here and leave it empty when real menu items exist — that
-    // keeps about-us text out of the menu page source in the common case.
-    menuAbout: (business.menuItems && business.menuItems.length)
-      ? ''
-      : (business.menuAbout || business.about || business.description || ''),
+    menuAbout: menuAboutText,
   };
 
   const reviewsBusiness = {
@@ -141,7 +139,38 @@ export default async function BusinessTabbedPage(props) {
   if (activeTab === 'Reviews') {
     content = <BusinessFullReviews business={reviewsBusiness} />;
   } else if (activeTab === 'Menu') {
-    content = <BusinessMenu business={menuBusiness} />;
+    let relatedBusinesses = [];
+    let allCategories = [];
+    try {
+      const [bizesData, catsData] = await Promise.all([
+        getBusinesses({ page_size: 6 }).catch(() => ({ results: [] })),
+        getRestaurantCategories().catch(() => ({ results: [] })),
+      ]);
+      const results = bizesData.results || (Array.isArray(bizesData) ? bizesData : []);
+      relatedBusinesses = results.filter(b => b.slug !== business.slug).slice(0, 3);
+      allCategories = catsData.results || (Array.isArray(catsData) ? catsData : []);
+    } catch (e) {
+      console.error('Failed to fetch related menu data:', e);
+    }
+
+    const countryName = business.country?.name || 'Nepal';
+    const locationInfo = {
+      country: business.country?.name || '',
+      countryCode: business.country?.code || '',
+      state: business.state?.name || '',
+      stateCode: business.state?.code || '',
+      city: business.city?.name || '',
+    };
+
+    content = (
+      <BusinessMenu
+        business={menuBusiness}
+        relatedBusinesses={relatedBusinesses}
+        allCategories={allCategories}
+        countryName={countryName}
+        locationInfo={locationInfo}
+      />
+    );
   } else {
     // Overview — the only tab that renders the reviews summary, so it is also
     // the only one that pays to generate it. Awaiting here puts the summary in

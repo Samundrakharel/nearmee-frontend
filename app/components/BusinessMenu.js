@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCurrentMonthLabel } from '../lib/use-current-month';
+import { getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
+import AddPhotoButton from './AddPhotoButton';
 
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return '';
@@ -17,9 +20,6 @@ const ITEMS_PER_CARD = 5;
  * The order is deliberately left exactly as the API returned it — no
  * alphabetising, no sorting, no re-ordering of any kind. The cards are just
  * consecutive slices, so each one holds an arbitrary handful of the menu.
- * (Shuffling per render is avoided on purpose: this component is server
- * rendered, so a fresh random order on the client would not match the server's
- * HTML and React would throw a hydration mismatch.)
  */
 function chunkMenuItems(items) {
   const cards = [];
@@ -29,28 +29,190 @@ function chunkMenuItems(items) {
   return cards;
 }
 
-export default function BusinessMenu({ business }) {
+/* ─── Menu Image Carousel ───────────────────────────────────── */
+
+function MenuCarousel({ images }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="menu-carousel-wrapper">
+        <div className="menu-carousel-empty">
+          <span>No menu images available</span>
+        </div>
+      </div>
+    );
+  }
+
+  const goToPrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const currentImage = typeof images[currentIndex] === 'string'
+    ? images[currentIndex]
+    : images[currentIndex]?.image || images[currentIndex]?.url || '';
+
+  return (
+    <div className="menu-carousel-wrapper">
+      <img
+        src={currentImage}
+        alt={`Menu page ${currentIndex + 1}`}
+        className="menu-carousel-image"
+        loading="lazy"
+      />
+      {images.length > 1 && (
+        <>
+          <button
+            className="menu-carousel-btn prev"
+            onClick={goToPrev}
+            aria-label="Previous menu image"
+          >
+            ‹
+          </button>
+          <button
+            className="menu-carousel-btn next"
+            onClick={goToNext}
+            aria-label="Next menu image"
+          >
+            ›
+          </button>
+          <div className="menu-carousel-indicator">
+            {currentIndex + 1}/{images.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── Related Menu Searches ────────────────────────────────── */
+
+function RelatedMenuSearches({ businesses }) {
+  if (!businesses || businesses.length === 0) return null;
+
+  return (
+    <div className="menu-related-section">
+      <h2>Related Menu Searches</h2>
+      <div className="menu-related-grid">
+        {businesses.map((biz) => {
+          const link = getBusinessSubdomainUrl(biz.slug || biz.id);
+          const cats = Array.isArray(biz.categories)
+            ? biz.categories.map(c => typeof c === 'string' ? c : c.name)
+            : (biz.type ? [biz.type] : []);
+
+          return (
+            <a
+              key={biz.id || biz.slug}
+              href={`${link}/menu`}
+              className="menu-related-card"
+            >
+              {biz.image || biz.thumbnail || biz.coverImage ? (
+                <img
+                  src={biz.image || biz.thumbnail || biz.coverImage}
+                  alt={biz.name}
+                  className="menu-related-card-image"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="menu-related-card-image-placeholder">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </div>
+              )}
+              <div className="menu-related-card-body">
+                <h3 className="menu-related-card-name">{biz.name}</h3>
+                {cats.length > 0 && (
+                  <div className="menu-related-card-categories">
+                    {cats.map((cat, i) => (
+                      <span key={i}>
+                        {cat}
+                        {i < cats.length - 1 && (
+                          <span className="cat-separator">|</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {biz.address && (
+                  <div className="menu-related-card-address">{biz.address}</div>
+                )}
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Highly Searched ──────────────────────────────────────── */
+
+function HighlySearched({ categories, countryName, locationInfo }) {
+  if (!categories || categories.length === 0) return null;
+
+  const displayCountry = countryName || 'your area';
+
+  return (
+    <div className="menu-highly-searched">
+      <h2>Highly Searched in {displayCountry}</h2>
+      <ul className="menu-highly-searched-grid">
+        {categories.slice(0, 9).map((cat) => {
+          const catName = typeof cat === 'string' ? cat : (cat.name || '');
+          const catSlug = typeof cat === 'string'
+            ? cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            : (cat.slug || '');
+
+          const href = locationInfo
+            ? getCategoryRoute(catSlug, locationInfo)
+            : `/category/${catSlug}`;
+
+          return (
+            <li key={catSlug || catName}>
+              <a href={href}>
+                {catName} in {displayCountry}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/* ─── Main Component ───────────────────────────────────────── */
+
+export default function BusinessMenu({
+  business,
+  relatedBusinesses,
+  allCategories,
+  countryName,
+  locationInfo,
+}) {
   const pathname = usePathname();
   const basePath = pathname
     .replace(/\/(menu|reviews)\/?$/, '')
     .replace(/\/$/, '') || '';
 
   const menuItems = business.menuItems || [];
+  const menuImages = business.menuImages || [];
   const cards = chunkMenuItems(menuItems);
 
-  // Handle categories as either strings or objects
   const categories = business.categories || [];
-
   const updatedLabel = useCurrentMonthLabel();
+  const aboutText = business.menuAbout || business.about || business.description || '';
 
   return (
     <div className="business-menu-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
       <style>{`
-        /* Each card holds five menu items. */
         .menu-card-grid {
           display: grid;
-          /* min() keeps the track from forcing a floor wider than the screen
-             on narrow phones, which would push the page sideways. */
           grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
           gap: 20px;
           align-items: start;
@@ -61,8 +223,6 @@ export default function BusinessMenu({ business }) {
           border-radius: 12px;
           padding: 8px 20px;
           transition: border-color 0.2s, box-shadow 0.2s;
-          /* Grid items default to min-width:auto and would otherwise stretch
-             the track to fit the longest item name. */
           min-width: 0;
         }
         .menu-card:hover {
@@ -101,9 +261,6 @@ export default function BusinessMenu({ business }) {
           color: #0f172a;
           margin: 0;
           line-height: 1.4;
-          /* Scraped item names can be long unbroken strings. "anywhere" rather
-             than "break-word" because only anywhere shrinks the element's
-             min-content width, which is what the grid track measures. */
           min-width: 0;
           overflow-wrap: anywhere;
         }
@@ -129,7 +286,7 @@ export default function BusinessMenu({ business }) {
       `}</style>
       <div className="container">
         {/* Breadcrumb & Header Area */}
-        <div className="menu-header-area" style={{ marginBottom: '32px' }}>
+        <div className="menu-header-area" style={{ marginBottom: '8px' }}>
           <div className="breadcrumb" style={{ fontSize: '0.95rem', color: '#475569', marginBottom: '24px' }}>
             <a href={basePath || '/'} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }} onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}>{business.name}</a> &gt; <span style={{ color: '#cf8129', fontWeight: '500' }}>Menu</span>
           </div>
@@ -190,20 +347,50 @@ export default function BusinessMenu({ business }) {
           </div>
         </div>
 
-        {/* Menu Items */}
-        <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
-              {menuItems.length > 0 ? 'Menu Items' : 'About Menu'}
-            </h2>
-            {menuItems.length > 0 && (
-              <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                {menuItems.length} item{menuItems.length === 1 ? '' : 's'}
-              </span>
+        {/* ─── Section 1: About Menu + Menu Image Carousel ─── */}
+        <div className="menu-about-section">
+          <div className="menu-about-left">
+            <h2>About Menu</h2>
+            {aboutText && (
+              <p className="menu-about-text">{aboutText}</p>
             )}
+
+            {business.mustTryDishes && business.mustTryDishes.length > 0 && (
+              <>
+                <h3 className="menu-must-try-heading">Must-Try Dishes:</h3>
+                <ul className="menu-must-try-list">
+                  {business.mustTryDishes.map((dish, idx) => (
+                    <li key={idx}>
+                      - <strong>{dish.name}:</strong> {dish.description}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <div style={{ marginTop: 'auto' }}>
+              <AddPhotoButton
+                businessId={business.id}
+                businessSlug={business.slug}
+              />
+            </div>
           </div>
 
-          {menuItems.length > 0 ? (
+          <div>
+            <MenuCarousel images={menuImages} />
+          </div>
+        </div>
+
+        {/* ─── Section 2: Menu Items ─── */}
+        {menuItems.length > 0 && (
+          <div className="menu-items-section">
+            <div className="menu-items-section-header">
+              <h2>Menu Items</h2>
+              <span className="menu-items-count">
+                {menuItems.length} item{menuItems.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
             <div className="menu-card-grid">
               {cards.map((cardItems, cardIdx) => (
                 <div className="menu-card" key={cardIdx}>
@@ -233,25 +420,18 @@ export default function BusinessMenu({ business }) {
                 </div>
               ))}
             </div>
-          ) : (
-            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.6' }}>
-              {business.menuAbout || 'Menu information coming soon.'}
-            </p>
-          )}
+          </div>
+        )}
 
-          {business.mustTryDishes && business.mustTryDishes.length > 0 && (
-            <div style={{ marginTop: '32px' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: '500', color: '#475569', marginBottom: '16px' }}>Must-Try Dishes:</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {business.mustTryDishes.map((dish, idx) => (
-                  <li key={idx} style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                    - <span style={{ fontWeight: '500' }}>{dish.name}:</span> {dish.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        {/* ─── Section 3: Related Menu Searches ─── */}
+        <RelatedMenuSearches businesses={relatedBusinesses} />
+
+        {/* ─── Section 4: Highly Searched ─── */}
+        <HighlySearched
+          categories={allCategories}
+          countryName={countryName}
+          locationInfo={locationInfo}
+        />
       </div>
     </div>
   );
