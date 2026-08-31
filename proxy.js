@@ -14,6 +14,14 @@ const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp
 
 const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
 
+// Top-level routes that only exist on the main site. The business tab
+// catch-all ([[...tab]]) only recognizes overview/reviews/menu, so rewriting
+// these into /business/{slug}/... would 404 — redirect to the main domain
+// instead (e.g. pizza-hut.nearmee.net/login → nearmee.net/login).
+const MAIN_SITE_ONLY_SEGMENTS = new Set([
+  'login', 'signup', 'forgot-password', 'account', 'search', 'category', 'about', 'contact', 'submit-business',
+]);
+
 // Main domains (root domain — no subdomain routing)
 const MAIN_DOMAINS = new Set([
   'nearmee.net',
@@ -71,6 +79,17 @@ export function proxy(request) {
   // Prevent infinite rewrite loop
   if (pathname.startsWith('/business')) {
     return NextResponse.next(withPathname);
+  }
+
+  // Send main-site-only routes back to the main domain instead of rewriting
+  // them into a business tab that doesn't exist.
+  const firstSegment = pathname.split('/')[1] || '';
+  if (MAIN_SITE_ONLY_SEGMENTS.has(firstSegment)) {
+    const mainHost = isNearmeeNet ? BASE_DOMAIN : 'nearmee.local';
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.hostname = mainHost;
+    redirectUrl.port = hostname.includes(':') ? hostname.split(':')[1] : '';
+    return NextResponse.redirect(redirectUrl);
   }
 
   // robots.txt/sitemap.xml/ads.txt are per-origin (RFC 9309) and served by
