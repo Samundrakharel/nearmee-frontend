@@ -205,13 +205,11 @@ export default async function RootLayout({ children }) {
     '<meta charSet="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     STATIC_HEAD_HTML,
-    byPlacement.head.join('\n'),
   ].join('\n');
   const bodyStartHtml = byPlacement.body_start.join('\n');
   const bodyEndHtml = byPlacement.body_end.join('\n');
-  // Handed to PageScriptLoader so it doesn't re-inject (and re-execute) on
-  // the client anything that's already present from this server render.
-  const initialScriptIds = matchedScripts.map((script) => script.id);
+  // Handed to PageScriptLoader so it injects any CMS head/body scripts cleanly on client mount.
+  const initialScriptIds = [];
 
   return (
     <html lang="en" suppressHydrationWarning>

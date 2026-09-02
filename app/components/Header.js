@@ -26,15 +26,17 @@ export default function Header() {
   const [searching, setSearching] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       setCurrentPath(window.location.pathname + window.location.search);
     }
   }, [pathname]);
 
   const getLoginHref = () => {
-    if (typeof window === 'undefined') return '/login';
+    if (!mounted || typeof window === 'undefined') return '/login';
     const isSub = isBusinessSubdomain();
     if (isSub) {
       return `${getMainDomainUrl()}/login?next=${encodeURIComponent(window.location.href)}`;
@@ -44,7 +46,7 @@ export default function Header() {
   };
 
   const getSignupHref = () => {
-    if (typeof window === 'undefined') return '/signup';
+    if (!mounted || typeof window === 'undefined') return '/signup';
     const isSub = isBusinessSubdomain();
     if (isSub) {
       return `${getMainDomainUrl()}/signup?next=${encodeURIComponent(window.location.href)}`;
@@ -316,7 +318,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              {typeof window !== 'undefined' && isBusinessSubdomain() ? (
+              {mounted && isBusinessSubdomain() ? (
                 <>
                   <a href={getLoginHref()} className="btn-login" id="btn-login">Login</a>
                   <a href={getSignupHref()} className="btn-signup" id="btn-signup">Sign Up</a>

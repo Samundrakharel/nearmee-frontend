@@ -1152,7 +1152,7 @@ export async function getPageContent(slug) {
 export async function getPageScripts(path, host) {
   const params = new URLSearchParams({ url_path: path });
   if (host) params.set('host', host);
-  return request(`/page-scripts/?${params.toString()}`);
+  return request(`/page-scripts/?${params.toString()}`).catch(() => []);
 }
 
 // ─── Legacy aliases ────────────────────────────────────────

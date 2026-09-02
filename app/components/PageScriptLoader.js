@@ -115,7 +115,7 @@ export default function PageScriptLoader({ initialPathname, initialScriptIds } =
       cancelled = true;
       // Cleanup previous page's scripts
       injectedElements.forEach((el) => {
-        if (el.parentNode) {
+        if (el && el.parentNode) {
           el.parentNode.removeChild(el);
         }
       });

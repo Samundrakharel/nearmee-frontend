@@ -190,10 +190,10 @@ function HighlySearched({ categories, countryName, locationInfo }) {
 
 export default function BusinessMenu({
   business,
-  relatedBusinesses,
-  allCategories,
-  countryName,
-  locationInfo,
+  relatedBusinesses = [],
+  allCategories = [],
+  countryName = '',
+  locationInfo = null,
 }) {
   const pathname = usePathname();
   const basePath = pathname
