@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import { useCurrentMonthLabel } from '../lib/use-current-month';
 import { getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
-import AddPhotoButton from './AddPhotoButton';
 
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return '';
@@ -153,7 +152,7 @@ export default function BusinessMenu({
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
           gap: 20px;
-          align-items: start;
+          align-items: stretch;
         }
         .menu-card {
           background: #fff;
@@ -162,10 +161,28 @@ export default function BusinessMenu({
           padding: 8px 20px;
           transition: border-color 0.2s, box-shadow 0.2s;
           min-width: 0;
+          height: 380px;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
         }
         .menu-card:hover {
           border-color: #cbd5e1;
           box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+        }
+        .menu-card::-webkit-scrollbar {
+          width: 5px;
+        }
+        .menu-card::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .menu-card::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 4px;
+        }
+        .menu-card::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
         }
 
         .menu-item {
@@ -219,7 +236,7 @@ export default function BusinessMenu({
 
         @media (max-width: 640px) {
           .menu-card-grid { grid-template-columns: 1fr; gap: 16px; }
-          .menu-card { padding: 4px 16px; }
+          .menu-card { padding: 4px 16px; height: 360px; }
         }
       `}</style>
       <div className="container">
@@ -305,13 +322,6 @@ export default function BusinessMenu({
                 </ul>
               </>
             )}
-
-            <div style={{ marginTop: '20px' }}>
-              <AddPhotoButton
-                businessId={business.id}
-                businessSlug={business.slug}
-              />
-            </div>
           </div>
         </div>
 

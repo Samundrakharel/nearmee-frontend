@@ -2878,8 +2878,7 @@ textarea.contact-input {
   font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 20px 0;
-  font-style: italic;
+  margin: 0 0 16px 0;
 }
 
 .menu-about-text {
@@ -2936,7 +2935,6 @@ textarea.contact-input {
   font-weight: 800;
   color: #0f172a;
   margin: 0;
-  font-style: italic;
 }
 
 .menu-items-count {
@@ -2954,9 +2952,8 @@ textarea.contact-input {
 .menu-related-section h2 {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #1a3a4a;
+  color: #0f172a;
   margin: 0 0 24px 0;
-  font-style: italic;
 }
 
 .menu-related-grid {
@@ -3047,7 +3044,7 @@ textarea.contact-input {
 .menu-highly-searched h2 {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #1a3a4a;
+  color: #0f172a;
   margin: 0 0 20px 0;
 }
 
