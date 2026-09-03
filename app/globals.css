@@ -2860,20 +2860,20 @@ textarea.contact-input {
 
 /* ===== Menu Page Redesign ===== */
 
-/* --- Section 1: About Menu + Carousel --- */
+/* --- Section 1: About Menu --- */
 .menu-about-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
   padding: 40px 0;
   border-bottom: 1px solid #e2e8f0;
 }
 
+.menu-about-content,
 .menu-about-left {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
+.menu-about-content h2,
 .menu-about-left h2 {
   font-size: 1.5rem;
   font-weight: 800;
@@ -2914,76 +2914,6 @@ textarea.contact-input {
 .menu-must-try-list li strong {
   color: #0f172a;
   font-weight: 600;
-}
-
-/* --- Menu Image Carousel --- */
-.menu-carousel-wrapper {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #f8fafc;
-  aspect-ratio: 4/3;
-  min-height: 350px;
-}
-
-.menu-carousel-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  background: #f1f5f9;
-}
-
-.menu-carousel-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  z-index: 2;
-}
-
-.menu-carousel-btn:hover {
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-  transform: translateY(-50%) scale(1.05);
-}
-
-.menu-carousel-btn.prev { left: 12px; }
-.menu-carousel-btn.next { right: 12px; }
-
-.menu-carousel-indicator {
-  position: absolute;
-  bottom: 12px;
-  right: 16px;
-  background: rgba(15, 23, 42, 0.7);
-  color: #fff;
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
-  z-index: 2;
-  font-variant-numeric: tabular-nums;
-}
-
-.menu-carousel-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #94a3b8;
-  font-size: 0.95rem;
 }
 
 /* --- Section 2: Menu Items (keeps existing card grid but wrapped) --- */
@@ -3148,11 +3078,6 @@ textarea.contact-input {
 
 /* --- Menu Page Responsive --- */
 @media (max-width: 900px) {
-  .menu-about-section {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
   .menu-related-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -3166,10 +3091,6 @@ textarea.contact-input {
 @media (max-width: 640px) {
   .menu-about-section {
     padding: 24px 0;
-  }
-
-  .menu-carousel-wrapper {
-    min-height: 260px;
   }
 
   .menu-items-section,

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCurrentMonthLabel } from '../lib/use-current-month';
 import { getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
@@ -27,66 +26,6 @@ function chunkMenuItems(items) {
     cards.push(items.slice(i, i + ITEMS_PER_CARD));
   }
   return cards;
-}
-
-/* ─── Menu Image Carousel ───────────────────────────────────── */
-
-function MenuCarousel({ images }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  if (!images || images.length === 0) {
-    return (
-      <div className="menu-carousel-wrapper">
-        <div className="menu-carousel-empty">
-          <span>No menu images available</span>
-        </div>
-      </div>
-    );
-  }
-
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  const currentImage = typeof images[currentIndex] === 'string'
-    ? images[currentIndex]
-    : images[currentIndex]?.image || images[currentIndex]?.url || '';
-
-  return (
-    <div className="menu-carousel-wrapper">
-      <img
-        src={currentImage}
-        alt={`Menu page ${currentIndex + 1}`}
-        className="menu-carousel-image"
-        loading="lazy"
-      />
-      {images.length > 1 && (
-        <>
-          <button
-            className="menu-carousel-btn prev"
-            onClick={goToPrev}
-            aria-label="Previous menu image"
-          >
-            ‹
-          </button>
-          <button
-            className="menu-carousel-btn next"
-            onClick={goToNext}
-            aria-label="Next menu image"
-          >
-            ›
-          </button>
-          <div className="menu-carousel-indicator">
-            {currentIndex + 1}/{images.length}
-          </div>
-        </>
-      )}
-    </div>
-  );
 }
 
 /* ─── Related Menu Searches ────────────────────────────────── */
@@ -201,7 +140,6 @@ export default function BusinessMenu({
     .replace(/\/$/, '') || '';
 
   const menuItems = business.menuItems || [];
-  const menuImages = business.menuImages || [];
   const cards = chunkMenuItems(menuItems);
 
   const categories = business.categories || [];
@@ -347,9 +285,9 @@ export default function BusinessMenu({
           </div>
         </div>
 
-        {/* ─── Section 1: About Menu + Menu Image Carousel ─── */}
+        {/* ─── Section 1: About Menu ─── */}
         <div className="menu-about-section">
-          <div className="menu-about-left">
+          <div className="menu-about-content">
             <h2>About Menu</h2>
             {aboutText && (
               <p className="menu-about-text">{aboutText}</p>
@@ -368,16 +306,12 @@ export default function BusinessMenu({
               </>
             )}
 
-            <div style={{ marginTop: 'auto' }}>
+            <div style={{ marginTop: '20px' }}>
               <AddPhotoButton
                 businessId={business.id}
                 businessSlug={business.slug}
               />
             </div>
-          </div>
-
-          <div>
-            <MenuCarousel images={menuImages} />
           </div>
         </div>
 
