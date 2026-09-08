@@ -11,13 +11,13 @@ import { useLocation } from '../context/LocationContext';
 // Each entry has a label, icon, and optional sub-categories that expand on hover.
 const NAV_CATEGORIES = [
   {
-    label: 'RESTAURANT',
+    label: 'CATEGORIES',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
       </svg>
     ),
-    slug: 'restaurant',
+    slug: 'all',
   },
 ];
 
@@ -62,16 +62,7 @@ export default function Header() {
       .then((data) => {
         if (cancelled) return;
         const cats = (data.results || []).filter((c) => c.is_active !== false);
-        // Group categories by slug-prefix or just list them all under each nav group
-        const grouped = {};
-        NAV_CATEGORIES.forEach((nav) => {
-          grouped[nav.slug] = cats.filter((c) => {
-            const name = c.name.toLowerCase();
-            if (nav.slug === 'restaurant') return name.includes('restaurant') || name.includes('food') || name.includes('dining') || name.includes('pizza') || name.includes('burger') || name.includes('sushi') || name.includes('bbq') || name.includes('steak') || name.includes('seafood') || name.includes('mexican') || name.includes('italian') || name.includes('chinese') || name.includes('indian') || name.includes('thai') || name.includes('vegan') || name.includes('vegetarian') || name.includes('bakery') || name.includes('breakfast') || name.includes('brunch');
-            return false;
-          }).slice(0, 10); // Limit dropdown items
-        });
-        setSubCategories(grouped);
+        setSubCategories({ all: cats });
       })
       .catch(() => {});
     return () => { cancelled = true; };
