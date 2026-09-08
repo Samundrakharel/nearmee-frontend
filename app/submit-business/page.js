@@ -16,6 +16,25 @@ const DEFAULT_HOURS = DAYS.reduce((acc, d) => {
 
 const STEPS = ['Basic Info', 'Contact', 'Location', 'Hours & Pricing', 'Photos', 'Social'];
 
+// Defined at module scope rather than inside the component: a component
+// declared inside another component's body is a new function on every
+// render, so React treats it as a different element type each time and
+// remounts its subtree — which reset the focus of any input inside it
+// after every keystroke.
+const FErr = ({ field, errors }) => errors[field]
+    ? <p style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px', marginBottom: 0 }}>{errors[field]}</p>
+    : null;
+
+const Label = ({ children, required }) => (
+    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.92rem' }}>
+        {children} {required && <span style={{ color: '#ef4444' }}>*</span>}
+    </label>
+);
+
+const Field = ({ children, style }) => (
+    <div style={{ marginBottom: '18px', ...style }}>{children}</div>
+);
+
 export default function SubmitBusinessPage() {
     const router = useRouter();
     const [step, setStep] = useState(0);
@@ -185,20 +204,6 @@ export default function SubmitBusinessPage() {
         background: fieldErrors[field] ? '#fff7f7' : '#fff',
     });
 
-    const FErr = ({ field }) => fieldErrors[field]
-        ? <p style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px', marginBottom: 0 }}>{fieldErrors[field]}</p>
-        : null;
-
-    const Label = ({ children, required }) => (
-        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.92rem' }}>
-            {children} {required && <span style={{ color: '#ef4444' }}>*</span>}
-        </label>
-    );
-
-    const Field = ({ children, style }) => (
-        <div style={{ marginBottom: '18px', ...style }}>{children}</div>
-    );
-
     // ─── Step Content ──────────────────────────────────────
     const renderStep = () => {
         switch (step) {
@@ -209,7 +214,7 @@ export default function SubmitBusinessPage() {
                         <Label required>Business Name</Label>
                         <input type="text" value={form.business_name} onChange={e => setField('business_name', e.target.value)}
                             placeholder="e.g., The Green Spoon" maxLength={255} style={inputStyle('business_name')} />
-                        <FErr field="business_name" />
+                        <FErr field="business_name" errors={fieldErrors} />
                     </Field>
 
                     <Field>
@@ -223,7 +228,7 @@ export default function SubmitBusinessPage() {
                             <option value="retail">Retail Store</option>
                             <option value="other">Other</option>
                         </select>
-                        <FErr field="business_type" />
+                        <FErr field="business_type" errors={fieldErrors} />
                     </Field>
 
                     <Field>
@@ -231,7 +236,7 @@ export default function SubmitBusinessPage() {
                         <textarea value={form.description} onChange={e => setField('description', e.target.value)}
                             rows={5} placeholder="Tell us about your business, what makes it special..."
                             style={{ ...inputStyle('description'), resize: 'vertical', fontFamily: 'inherit' }} />
-                        <FErr field="description" />
+                        <FErr field="description" errors={fieldErrors} />
                     </Field>
 
                     {categories.length > 0 && (
@@ -273,20 +278,20 @@ export default function SubmitBusinessPage() {
                             <Label required>Phone</Label>
                             <input type="tel" value={form.phone} onChange={e => setField('phone', e.target.value)}
                                 placeholder="+1-555-123-4567" maxLength={30} style={inputStyle('phone')} />
-                            <FErr field="phone" />
+                            <FErr field="phone" errors={fieldErrors} />
                         </Field>
                         <Field>
                             <Label required>Email</Label>
                             <input type="email" value={form.email} onChange={e => setField('email', e.target.value)}
                                 placeholder="hello@business.com" style={inputStyle('email')} />
-                            <FErr field="email" />
+                            <FErr field="email" errors={fieldErrors} />
                         </Field>
                     </div>
                     <Field>
                         <Label>Website</Label>
                         <input type="url" value={form.website} onChange={e => setField('website', e.target.value)}
                             placeholder="https://yourbusiness.com" style={inputStyle('website')} />
-                        <FErr field="website" />
+                        <FErr field="website" errors={fieldErrors} />
                     </Field>
                 </div>
             );
@@ -298,20 +303,20 @@ export default function SubmitBusinessPage() {
                         <Label required>Street Address</Label>
                         <input type="text" value={form.address} onChange={e => setField('address', e.target.value)}
                             placeholder="123 Main Street" maxLength={500} style={inputStyle('address')} />
-                        <FErr field="address" />
+                        <FErr field="address" errors={fieldErrors} />
                     </Field>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <Field>
                             <Label required>City</Label>
                             <input type="text" value={form.city} onChange={e => setField('city', e.target.value)}
                                 placeholder="Austin" maxLength={100} style={inputStyle('city')} />
-                            <FErr field="city" />
+                            <FErr field="city" errors={fieldErrors} />
                         </Field>
                         <Field>
                             <Label required>State / Province</Label>
                             <input type="text" value={form.state} onChange={e => setField('state', e.target.value)}
                                 placeholder="Texas" maxLength={100} style={inputStyle('state')} />
-                            <FErr field="state" />
+                            <FErr field="state" errors={fieldErrors} />
                         </Field>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
@@ -319,13 +324,13 @@ export default function SubmitBusinessPage() {
                             <Label required>Country</Label>
                             <input type="text" value={form.country} onChange={e => setField('country', e.target.value)}
                                 placeholder="United States" maxLength={100} style={inputStyle('country')} />
-                            <FErr field="country" />
+                            <FErr field="country" errors={fieldErrors} />
                         </Field>
                         <Field>
                             <Label>ZIP / Postal Code</Label>
                             <input type="text" value={form.zip_code} onChange={e => setField('zip_code', e.target.value)}
                                 placeholder="78701" maxLength={20} style={inputStyle('zip_code')} />
-                            <FErr field="zip_code" />
+                            <FErr field="zip_code" errors={fieldErrors} />
                         </Field>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -333,13 +338,13 @@ export default function SubmitBusinessPage() {
                             <Label>Latitude <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional GPS)</span></Label>
                             <input type="number" step="any" value={form.lat} onChange={e => setField('lat', e.target.value)}
                                 placeholder="30.267153" style={inputStyle('lat')} />
-                            <FErr field="lat" />
+                            <FErr field="lat" errors={fieldErrors} />
                         </Field>
                         <Field>
                             <Label>Longitude <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional GPS)</span></Label>
                             <input type="number" step="any" value={form.lng} onChange={e => setField('lng', e.target.value)}
                                 placeholder="-97.743057" style={inputStyle('lng')} />
-                            <FErr field="lng" />
+                            <FErr field="lng" errors={fieldErrors} />
                         </Field>
                     </div>
                 </div>
@@ -453,7 +458,7 @@ export default function SubmitBusinessPage() {
                             {logoCover.logo ? logoCover.logo.name : 'Choose Logo'}
                             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFileChange('logo', e)} />
                         </label>
-                        <FErr field="logo" />
+                        <FErr field="logo" errors={fieldErrors} />
                     </Field>
 
                     <Field>
@@ -475,7 +480,7 @@ export default function SubmitBusinessPage() {
                             {logoCover.cover ? logoCover.cover.name : 'Choose Cover Photo'}
                             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFileChange('cover', e)} />
                         </label>
-                        <FErr field="cover_photo" />
+                        <FErr field="cover_photo" errors={fieldErrors} />
                     </Field>
                 </div>
             );
@@ -496,7 +501,7 @@ export default function SubmitBusinessPage() {
                                 placeholder="https://facebook.com/yourbusiness"
                                 style={{ ...inputStyle('facebook_url'), borderRadius: '0 8px 8px 0' }} />
                         </div>
-                        <FErr field="facebook_url" />
+                        <FErr field="facebook_url" errors={fieldErrors} />
                     </Field>
                     <Field>
                         <Label>Instagram URL</Label>
@@ -508,7 +513,7 @@ export default function SubmitBusinessPage() {
                                 placeholder="https://instagram.com/yourbusiness"
                                 style={{ ...inputStyle('instagram_url'), borderRadius: '0 8px 8px 0' }} />
                         </div>
-                        <FErr field="instagram_url" />
+                        <FErr field="instagram_url" errors={fieldErrors} />
                     </Field>
                     <Field>
                         <Label>Twitter / X URL</Label>
@@ -520,7 +525,7 @@ export default function SubmitBusinessPage() {
                                 placeholder="https://x.com/yourbusiness"
                                 style={{ ...inputStyle('twitter_url'), borderRadius: '0 8px 8px 0' }} />
                         </div>
-                        <FErr field="twitter_url" />
+                        <FErr field="twitter_url" errors={fieldErrors} />
                     </Field>
                 </div>
             );
