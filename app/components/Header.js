@@ -19,33 +19,6 @@ const NAV_CATEGORIES = [
     ),
     slug: 'restaurant',
   },
-  {
-    label: 'HOTELS & TRAVEL',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h.01"/><path d="M9 13h.01"/><path d="M9 17h.01"/>
-      </svg>
-    ),
-    slug: 'hotels-travel',
-  },
-  {
-    label: 'COFFEE & TEA',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 8h1a4 4 0 110 8h-1"/><path d="M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/>
-      </svg>
-    ),
-    slug: 'coffee-tea',
-  },
-  {
-    label: 'OTHER',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
-      </svg>
-    ),
-    slug: 'other',
-  },
 ];
 
 export default function Header() {
@@ -95,9 +68,7 @@ export default function Header() {
           grouped[nav.slug] = cats.filter((c) => {
             const name = c.name.toLowerCase();
             if (nav.slug === 'restaurant') return name.includes('restaurant') || name.includes('food') || name.includes('dining') || name.includes('pizza') || name.includes('burger') || name.includes('sushi') || name.includes('bbq') || name.includes('steak') || name.includes('seafood') || name.includes('mexican') || name.includes('italian') || name.includes('chinese') || name.includes('indian') || name.includes('thai') || name.includes('vegan') || name.includes('vegetarian') || name.includes('bakery') || name.includes('breakfast') || name.includes('brunch');
-            if (nav.slug === 'hotels-travel') return name.includes('hotel') || name.includes('travel') || name.includes('resort') || name.includes('motel') || name.includes('hostel') || name.includes('lodge') || name.includes('inn') || name.includes('airbnb') || name.includes('vacation');
-            if (nav.slug === 'coffee-tea') return name.includes('coffee') || name.includes('tea') || name.includes('cafe') || name.includes('café') || name.includes('bubble');
-            return true; // "other" catches everything
+            return false;
           }).slice(0, 8); // Limit dropdown items
         });
         setSubCategories(grouped);
