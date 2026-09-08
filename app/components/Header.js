@@ -69,7 +69,7 @@ export default function Header() {
             const name = c.name.toLowerCase();
             if (nav.slug === 'restaurant') return name.includes('restaurant') || name.includes('food') || name.includes('dining') || name.includes('pizza') || name.includes('burger') || name.includes('sushi') || name.includes('bbq') || name.includes('steak') || name.includes('seafood') || name.includes('mexican') || name.includes('italian') || name.includes('chinese') || name.includes('indian') || name.includes('thai') || name.includes('vegan') || name.includes('vegetarian') || name.includes('bakery') || name.includes('breakfast') || name.includes('brunch');
             return false;
-          }).slice(0, 8); // Limit dropdown items
+          }).slice(0, 10); // Limit dropdown items
         });
         setSubCategories(grouped);
       })

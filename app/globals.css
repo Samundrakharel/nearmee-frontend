@@ -469,14 +469,17 @@ input {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 220px;
+  min-width: 480px;
   background: var(--color-bg-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  padding: 8px 0;
+  padding: 12px;
   z-index: 200;
   animation: dropdownSlideIn 0.2s ease-out;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
 }
 
 @keyframes dropdownSlideIn {
