@@ -6,14 +6,15 @@ import { SiteContentProvider } from './context/SiteContentContext';
 import PageScriptLoader from './components/PageScriptLoader';
 import { getFooterContent, getPageScripts } from './lib/api';
 
-// Static head markup (analytics + pre-hydration loader) as a plain string so it
-// can be concatenated with admin-managed PageScript markup and rendered via a
-// single <head dangerouslySetInnerHTML>. Splitting this across a literal <head>
-// AND a dangerouslySetInnerHTML head would make React throw ("Can only set one
-// of `children` or `props.dangerouslySetInnerHTML`"), and admin script content
-// (arbitrary <meta>/<script> snippets) must land as real head children — not
-// inside a wrapper element — or the browser's HTML parser foster-parents it
-// out of <head> entirely.
+// Resource hints only (no <script> tags) — this is the only markup allowed to
+// stay in the literal <head> below. Next.js always appends its own
+// auto-managed head tags (the page's per-route <title>/<meta>/<link
+// rel="canonical"> from each route's `metadata` export) AFTER whatever is in
+// a literal <head> override, with no way to reorder that — so any <script>
+// left in this string would render, in view-source, ahead of the page's SEO
+// tags. Analytics and the pre-hydration loader script live in
+// STATIC_BODY_SCRIPTS instead, rendered at the very start of <body>, which
+// keeps them just as early without pushing them ahead of <head>'s metadata.
 const STATIC_HEAD_HTML = `
   <!-- 1. RESOURCE HINTS -->
   <!-- Preconnect before the stylesheet link below so the connection to
@@ -31,16 +32,8 @@ const STATIC_HEAD_HTML = `
        with every other head resource. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
 
-  <!-- 3. ANALYTICS -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-RYVZ90Z0JH');
-  </script>
-
-  <!-- 4. PRE-HYDRATION LOADER (critical inline CSS + script) -->
+  <!-- 3. PRE-HYDRATION LOADER (critical inline CSS only — the matching
+       script is in STATIC_BODY_SCRIPTS, see note above) -->
   <style>
     #page-loader {
       position: fixed; inset: 0; z-index: 99999;
@@ -79,6 +72,58 @@ const STATIC_HEAD_HTML = `
       box-shadow: 0 0 10px rgba(59,130,246,0.6);
     }
   </style>
+  <script>
+    (function () {
+      // Inject a top progress bar
+      var bar = document.createElement('div');
+      bar.id = 'page-progress-bar';
+      document.documentElement.appendChild(bar);
+
+      // Grow the bar while loading
+      var width = 10;
+      var interval = setInterval(function () {
+        width = Math.min(width + Math.random() * 10, 85);
+        bar.style.width = width + '%';
+      }, 300);
+
+      function finish() {
+        clearInterval(interval);
+        bar.style.width = '100%';
+        setTimeout(function () { bar.style.opacity = '0'; }, 400);
+        setTimeout(function () { bar.remove(); }, 800);
+
+        var loader = document.getElementById('page-loader');
+        if (loader) {
+          loader.classList.add('hidden');
+          // Removed loader.remove() to prevent React "node to be removed is not a child" errors during client-side navigation.
+        }
+      }
+
+      // Hide on full page load OR after React hydration fires
+      if (document.readyState === 'complete') {
+        finish();
+      } else {
+        window.addEventListener('load', finish, { once: true });
+      }
+    })();
+  </script>
+`;
+
+// <script> tags kept out of STATIC_HEAD_HTML (see note there) so they render
+// at the top of <body> instead of inside <head>, ahead of nothing that
+// matters for SEO — analytics and the progress-bar script don't need to be
+// literally inside <head> to fire early.
+const STATIC_BODY_SCRIPTS = `
+  <!-- ANALYTICS -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-RYVZ90Z0JH');
+  </script>
+
+  <!-- PRE-HYDRATION LOADER SCRIPT (styles are in STATIC_HEAD_HTML) -->
   <script>
     (function () {
       // Inject a top progress bar
@@ -182,34 +227,34 @@ export default async function RootLayout({ children }) {
     }
   });
 
-  // 0. CHARSET & VIEWPORT — must be first. Next always appends its own
-  //    auto-managed head tags (charset, viewport, the page's per-route
-  //    <title>/<meta>/<link> from each route's `metadata` export, framework
-  //    chunks) AFTER whatever is in this literal <head> element — there is
-  //    no way, short of dropping the literal <head> override entirely (which
-  //    would break arbitrary admin <meta>/<script>/<style> injection), to
-  //    make our content render after them instead. Restating charset+
-  //    viewport here (a harmless duplicate — browsers use whichever comes
-  //    first) at least keeps sections 1-5 below from being the very first
-  //    bytes of <head>, ahead of even the charset declaration.
+  // CHARSET & VIEWPORT — must be first. Next always appends its own
+  // auto-managed head tags (charset, viewport, the page's per-route
+  // <title>/<meta>/<link> from each route's `metadata` export, framework
+  // chunks) AFTER whatever is in this literal <head> element — there is no
+  // way, short of dropping the literal <head> override entirely (which would
+  // break arbitrary admin <link>/<style> injection), to make our content
+  // render after them instead. STATIC_HEAD_HTML deliberately contains no
+  // <script> tags for this reason (see its own comment) — only resource
+  // hints and styles land here, so the page's SEO tags are the first
+  // <script>-free content Next appends after this block in view-source.
   //
-  //    SEO tags (title, description, robots, canonical) are deliberately
-  //    NOT duplicated here: each route supplies its own dynamic `metadata`
-  //    export (business name, city, etc.), and Next renders those further
-  //    down in this same <head> — hand-authoring them here would either go
-  //    stale or fight the per-route values.
-  //
-  // 5. ADDITIONAL SCRIPTS & STYLES (admin/CMS-managed, placement="head")
-  //    Appended last, after the static sections above — see byPlacement.head.
+  // SEO tags (title, description, robots, canonical) are deliberately NOT
+  // duplicated here: each route supplies its own dynamic `metadata` export
+  // (business name, city, etc.), and Next renders those further down in this
+  // same <head> — hand-authoring them here would either go stale or fight
+  // the per-route values.
   const headHtml = [
     '<meta charSet="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     STATIC_HEAD_HTML,
   ].join('\n');
-  const bodyStartHtml = byPlacement.body_start.join('\n');
+  // Admin/CMS scripts saved with placement="head" render here too, not in
+  // <head> itself — same reasoning as STATIC_BODY_SCRIPTS above.
+  const bodyStartHtml = [STATIC_BODY_SCRIPTS, ...byPlacement.head, ...byPlacement.body_start].join('\n');
   const bodyEndHtml = byPlacement.body_end.join('\n');
-  // Handed to PageScriptLoader so it injects any CMS head/body scripts cleanly on client mount.
-  const initialScriptIds = [];
+  // Handed to PageScriptLoader so it can skip re-injecting (and re-executing)
+  // scripts that are already part of this SSR'd markup, on the same pathname.
+  const initialScriptIds = matchedScripts.map((script) => script.id);
 
   return (
     <html lang="en" suppressHydrationWarning>
