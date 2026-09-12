@@ -177,8 +177,13 @@ export default async function RootLayout({ children }) {
   const byPlacement = { head: [], body_start: [], body_end: [] };
   matchedScripts.forEach((script) => {
     const markup = scriptMarkup(script);
-    if (markup && byPlacement[script.placement]) {
-      byPlacement[script.placement].push(markup);
+    const placement = script.placement || 'head';
+    if (markup) {
+      if (byPlacement[placement]) {
+        byPlacement[placement].push(markup);
+      } else {
+        byPlacement.head.push(markup);
+      }
     }
   });
 
@@ -205,11 +210,12 @@ export default async function RootLayout({ children }) {
     '<meta charSet="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     STATIC_HEAD_HTML,
-  ].join('\n');
+    byPlacement.head.join('\n')
+  ].filter(Boolean).join('\n');
   const bodyStartHtml = byPlacement.body_start.join('\n');
   const bodyEndHtml = byPlacement.body_end.join('\n');
   // Handed to PageScriptLoader so it injects any CMS head/body scripts cleanly on client mount.
-  const initialScriptIds = [];
+  const initialScriptIds = matchedScripts.map(s => s.id);
 
   return (
     <html lang="en" suppressHydrationWarning>

@@ -65,12 +65,12 @@ export default function PageScriptLoader({ initialPathname, initialScriptIds } =
         el.setAttribute('data-page-script-id', String(script.id));
         el.setAttribute('data-injected-script', 'true');
 
-        if (script.placement === 'head') {
-          document.head.appendChild(el);
-        } else if (script.placement === 'body_start') {
+        if (script.placement === 'body_start') {
           document.body.insertBefore(el, document.body.firstChild);
-        } else {
+        } else if (script.placement === 'body_end') {
           document.body.appendChild(el);
+        } else {
+          document.head.appendChild(el);
         }
         injectedElements.push(el);
       });
