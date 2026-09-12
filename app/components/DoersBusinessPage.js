@@ -15,6 +15,7 @@ export default function DoersBusinessPage({ business }) {
   const categories = business.categories || [];
   const rating = business.rating || 4.7;
   const reviewCount = business.reviewCount || business.reviews?.length || 0;
+  const heroImage = business.coverImage || business.thumbnail || null;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -123,6 +124,19 @@ export default function DoersBusinessPage({ business }) {
           padding: 100px 24px 90px;
           text-align: center;
           overflow: hidden;
+        }
+        .dbp-hero-image {
+          position: absolute;
+          inset: 0;
+          background-size: cover;
+          background-position: center;
+          z-index: 0;
+        }
+        .dbp-hero-scrim {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(24, 24, 27, 0.82) 0%, rgba(39, 39, 42, 0.78) 40%, rgba(63, 63, 70, 0.75) 100%);
+          z-index: 1;
         }
         .dbp-hero::before {
           content: '';
@@ -559,6 +573,12 @@ export default function DoersBusinessPage({ business }) {
 
         {/* ─── HERO ─── */}
         <section id="hero" className="dbp-hero">
+          {heroImage && (
+            <>
+              <div className="dbp-hero-image" style={{ backgroundImage: `url(${heroImage})` }} />
+              <div className="dbp-hero-scrim" />
+            </>
+          )}
           <div className="dbp-hero-inner">
             <div className="dbp-hero-badge">
               <span className="dbp-hero-badge-dot" />
