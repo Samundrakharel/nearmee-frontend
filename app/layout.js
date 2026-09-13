@@ -4,7 +4,7 @@ import { LocationProvider } from './context/LocationContext';
 import { AuthProvider } from './context/AuthContext';
 import { SiteContentProvider } from './context/SiteContentContext';
 import PageScriptLoader from './components/PageScriptLoader';
-import { getFooterContent, getPageScripts } from './lib/api';
+import { getFooterContent, getPageScripts, isBusinessSubdomain } from './lib/api';
 
 // Resource hints only (no <script> tags) — this is the only markup allowed to
 // stay in the literal <head> below. Next.js always appends its own
@@ -255,8 +255,13 @@ export default async function RootLayout({ children }) {
     byPlacement.head.join('\n')
   ].filter(Boolean).join('\n');
 
+  // Merge any body_start scripts into head for subdomain compatibility
+  if (isBusinessSubdomain() && byPlacement.body_start.length) {
+    headHtml += '\n' + byPlacement.body_start.join('\n');
+  }
+
   // STATIC_BODY_SCRIPTS renders at the top of <body>.
-  const bodyStartHtml = [STATIC_BODY_SCRIPTS, ...byPlacement.body_start].join('\n');
+  const bodyStartHtml = STATIC_BODY_SCRIPTS;
   const bodyEndHtml = byPlacement.body_end.join('\n');
   
   // Handed to PageScriptLoader so it can skip re-injecting (and re-executing)
