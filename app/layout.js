@@ -248,7 +248,7 @@ export default async function RootLayout({ children }) {
   // (business name, city, etc.), and Next renders those further down in this
   // same <head> — hand-authoring them here would either go stale or fight
   // the per-route values.
-  const headHtml = [
+  let headHtml = [
     '<meta charSet="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
     STATIC_HEAD_HTML,
