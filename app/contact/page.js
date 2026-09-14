@@ -83,7 +83,14 @@ export default async function ContactPage() {
       <main>
         <section className="page-hero" id="contact-hero">
           <div className="page-hero-inner">
-            {page.hero_eyebrow && <span className="eyebrow">{page.hero_eyebrow}</span>}
+            {page.hero_eyebrow && (
+              <span className="eyebrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {page.hero_eyebrow}
+              </span>
+            )}
             <h1>{page.hero_heading}</h1>
             {page.hero_lead && <p className="page-hero-lead">{page.hero_lead}</p>}
           </div>
@@ -91,32 +98,55 @@ export default async function ContactPage() {
 
         <section className="static-section" id="contact-main">
           <div className="container contact-layout">
-            <div className="contact-channels">
-              {channels.map((channel) => (
-                <div className="contact-channel" key={channel.id}>
-                  <div className="contact-channel-icon">{ICONS[channel.icon] || ICONS.mail}</div>
-                  <div>
-                    <h3>{channel.heading}</h3>
-                    <p>
-                      {channel.link_url && channel.link_label && (
-                        <>
-                          <a href={channel.link_url}>{channel.link_label}</a>
-                          {channel.body && <br />}
-                        </>
-                      )}
-                      {channel.body}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="contact-channels-wrapper">
+              <div className="contact-channels-header">
+                <span className="static-section-badge">Direct Communication</span>
+                <h2>Get in Touch Directly</h2>
+                <p>We're here to answer questions, resolve listing issues, or assist with business onboarding.</p>
+              </div>
 
-              <p style={{ fontSize: '0.95rem', color: 'var(--color-text-medium)', lineHeight: 1.7, margin: 0 }}>
-                Want to be listed? You can{' '}
-                <Link href="/signup?next=/submit-business" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                  add your business yourself
-                </Link>{' '}
-                in a few minutes — no need to email us first.
-              </p>
+              <div className="contact-channels">
+                {channels.map((channel) => (
+                  <div className="contact-channel" key={channel.id || channel.heading}>
+                    <div className="contact-channel-icon">{ICONS[channel.icon] || ICONS.mail}</div>
+                    <div className="contact-channel-content">
+                      <h3>{channel.heading}</h3>
+                      {channel.body && <p className="contact-channel-body">{channel.body}</p>}
+                      {channel.link_url && channel.link_label && (
+                        <div className="contact-channel-link-wrap">
+                          <a href={channel.link_url} className="contact-action-btn">
+                            <span>{channel.link_label}</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="7" y1="17" x2="17" y2="7" />
+                              <polyline points="7 7 17 7 17 17" />
+                            </svg>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="contact-business-callout">
+                <div className="contact-business-callout-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
+                </div>
+                <div>
+                  <p>
+                    <strong>Own a local business?</strong> You can{' '}
+                    <Link href="/signup?next=/submit-business">
+                      claim or list your business for free
+                    </Link>{' '}
+                    in just a couple of minutes without waiting for email reply.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <ContactForm fallbackEmail={fallbackEmail} />

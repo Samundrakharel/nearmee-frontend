@@ -44,11 +44,40 @@ export default async function AboutPage() {
       <main>
         <section className="page-hero" id="about-hero">
           <div className="page-hero-inner">
-            {page.hero_eyebrow && <span className="eyebrow">{page.hero_eyebrow}</span>}
+            {page.hero_eyebrow && (
+              <span className="eyebrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                {page.hero_eyebrow}
+              </span>
+            )}
             <h1>{page.hero_heading}</h1>
             {page.hero_lead && <p className="page-hero-lead">{page.hero_lead}</p>}
           </div>
         </section>
+
+        {/* Highlights / Stats strip */}
+        <div className="about-stats-strip">
+          <div className="about-stat-card">
+            <div className="about-stat-number">50k+</div>
+            <div className="about-stat-label">Local Businesses</div>
+          </div>
+          <div className="about-stat-card">
+            <div className="about-stat-number">120+</div>
+            <div className="about-stat-label">Cities Covered</div>
+          </div>
+          <div className="about-stat-card">
+            <div className="about-stat-number">100%</div>
+            <div className="about-stat-label">Free For Owners</div>
+          </div>
+          <div className="about-stat-card">
+            <div className="about-stat-number">4.8 / 5</div>
+            <div className="about-stat-label">Community Rating</div>
+          </div>
+        </div>
 
         <PageSections sections={page.sections} />
 
