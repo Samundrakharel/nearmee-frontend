@@ -499,6 +499,7 @@ export function transformBusiness(biz) {
     // SEO titles from backend
     seo: biz.seo || {
       title: `${biz.name} | Nearmee`,
+      description: `View reviews and menus for ${biz.name} on Nearmee.`,
       menu_title: `${biz.name} Menu | Nearmee`,
       reviews_title: `${biz.name} Reviews | Nearmee`,
       services_title: `${biz.name} Services | Nearmee`,
@@ -522,7 +523,12 @@ export function transformBusiness(biz) {
     menuItems: menuItems,
     menu: menuItems.length > 0 ? [{ category: 'Menu', items: menuItems.map(item => ({ name: item.name, price: item.price ? `$${item.price}` : '', description: item.description || '' })) }] : [],
     mustTryDishes: [],
-    menuAbout: biz.description || '',
+    // The Overview page shows about_us when present, else description. So
+    // `description` is only safe as a Menu-page fallback when about_us
+    // exists (Overview isn't using it) — otherwise both pages would render
+    // the same description and the Menu page renders nothing instead until
+    // menu_about is backfilled (see generate_menu_about management command).
+    menuAbout: biz.menu_about || (aboutUs ? biz.description : '') || '',
 
     // Reviews
     reviews: {
@@ -548,8 +554,13 @@ export function transformBusiness(biz) {
     // For business list cards (shorthand)
     image: biz.cover_image || (images.length > 0 ? images[0] : ''),
 
-    // SEO Schema (JSON-LD)
+    // SEO Schema (JSON-LD) — homepage/overview is always auto-generated
+    // (never admin-editable); menu/reviews fall back to the same
+    // auto-generated graph unless an admin has set a raw override for that
+    // page (Business.menu_schema_override / reviews_schema_override).
     schema: biz.schema || null,
+    menuSchema: biz.menu_schema || biz.schema || null,
+    reviewsSchema: biz.reviews_schema || biz.schema || null,
   };
 }
 

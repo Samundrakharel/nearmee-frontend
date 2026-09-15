@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useCurrentMonthLabel } from '../lib/use-current-month';
 import { getBusinessSubdomainUrl, getCategoryRoute } from '../lib/api';
+import AddPhotoButton from './AddPhotoButton';
 
 function formatPrice(price) {
   if (price === null || price === undefined || price === '') return '';
@@ -143,7 +144,7 @@ export default function BusinessMenu({
 
   const categories = business.categories || [];
   const updatedLabel = useCurrentMonthLabel();
-  const aboutText = business.menuAbout || business.about || business.description || '';
+  const aboutText = business.menuAbout || '';
 
   return (
     <div className="business-menu-fullpage" style={{ padding: '32px 0', background: '#fff', minHeight: '100vh' }}>
@@ -321,6 +322,17 @@ export default function BusinessMenu({
                   ))}
                 </ul>
               </>
+            )}
+
+            {menuItems.length === 0 && (
+              <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '20px', marginTop: '16px' }}>
+                <AddPhotoButton
+                  businessId={business.id}
+                  businessSlug={business.slug}
+                  buttonLabel="Add Menu"
+                  buttonId="btn-add-menu"
+                />
+              </div>
             )}
           </div>
         </div>

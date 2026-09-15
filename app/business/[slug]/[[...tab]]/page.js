@@ -66,12 +66,19 @@ export async function generateMetadata(props) {
 
   const seo = biz.seo || {};
   let seoTitle = seo.title || `${biz.name} | Nearmee`;
+  let description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
 
-  // Customize title based on tab
-  if (activeTabPath === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
-  else if (activeTabPath === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
+  // Customize title/description based on tab — each can be overridden
+  // independently by admin (Business.menu_meta_title/reviews_meta_title/etc.,
+  // see BusinessDetailSerializer.get_seo()).
+  if (activeTabPath === 'reviews') {
+    seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
+    description = seo.reviews_description || description;
+  } else if (activeTabPath === 'menu') {
+    seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
+    description = seo.menu_description || description;
+  }
 
-  const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
   const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTabPath !== 'overview' ? `/${activeTabPath}` : ''}`;
   const robots = seo.robots || { index: true, follow: true };
 
@@ -110,7 +117,10 @@ export default async function BusinessTabbedPage(props) {
   // So hand each tab only the fields it actually displays.
   const shellBusiness = { slug: business.slug, name: business.name };
 
-  const menuAboutText = business.menuAbout || business.about || business.description || '';
+  // Deliberately not falling back to business.about/description here — those
+  // hold the Overview page's About Us text, and showing it on the Menu page
+  // too is exactly the duplication this field exists to avoid.
+  const menuAboutText = business.menuAbout || '';
 
   const menuBusiness = {
     id: business.id,
@@ -194,12 +204,20 @@ export default async function BusinessTabbedPage(props) {
     );
   }
 
+  // Each page/tab can carry its own JSON-LD graph — homepage/overview is
+  // always auto-generated; menu/reviews use an admin-editable override when
+  // one is set (Business.menu_schema_override / reviews_schema_override, see
+  // BusinessDetailSerializer), else the same auto-generated graph.
+  let pageSchema = business.schema;
+  if (activeTab === 'Menu') pageSchema = business.menuSchema;
+  else if (activeTab === 'Reviews') pageSchema = business.reviewsSchema;
+
   return (
     <>
-      {business.schema && (
+      {pageSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(business.schema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
         />
       )}
       <BusinessPageClient

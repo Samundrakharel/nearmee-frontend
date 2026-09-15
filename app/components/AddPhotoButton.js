@@ -6,7 +6,7 @@ import { isLoggedIn, uploadMenuPhoto } from '../lib/api';
 import Modal from './Modal';
 import LoginPromptModal from './LoginPromptModal';
 
-export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded }) {
+export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded, buttonLabel = 'Add Photo', buttonId = 'btn-add-photo' }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -141,7 +141,7 @@ export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded 
             />
             <button
                 onClick={handleOpen}
-                id="btn-add-photo"
+                id={buttonId}
                 style={{
                     padding: '12px 24px',
                     background: '#fff',
@@ -162,7 +162,7 @@ export default function AddPhotoButton({ businessId, businessSlug, onPhotoAdded 
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                 </svg>
-                Add Photo
+                {buttonLabel}
             </button>
 
             <Modal isOpen={isModalOpen} onClose={handleClose} title="Add Menu Photos">

@@ -69,7 +69,7 @@ export default function BusinessMenuPreview({ business }) {
           </div>
         ) : (
           <p style={{ color: '#64748b', fontSize: '1rem', marginTop: '16px' }}>
-            {business.menuAbout || business.about || business.description || 'Menu information available.'}
+            {business.menuAbout || 'Menu information available.'}
           </p>
         )}
 

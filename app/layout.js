@@ -1,4 +1,5 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import { LocationProvider } from './context/LocationContext';
 import { AuthProvider } from './context/AuthContext';
@@ -6,113 +7,22 @@ import { SiteContentProvider } from './context/SiteContentContext';
 import PageScriptLoader from './components/PageScriptLoader';
 import { getFooterContent, getPageScripts, isBusinessSubdomain } from './lib/api';
 
-// Resource hints only (no <script> tags) — this is the only markup allowed to
-// stay in the literal <head> below. Next.js always appends its own
-// auto-managed head tags (the page's per-route <title>/<meta>/<link
-// rel="canonical"> from each route's `metadata` export) AFTER whatever is in
-// a literal <head> override, with no way to reorder that — so any <script>
-// left in this string would render, in view-source, ahead of the page's SEO
-// tags. Analytics and the pre-hydration loader script live in
-// STATIC_BODY_SCRIPTS instead, rendered at the very start of <body>, which
-// keeps them just as early without pushing them ahead of <head>'s metadata.
-const STATIC_HEAD_HTML = `
-  <!-- 1. RESOURCE HINTS -->
-  <!-- Preconnect before the stylesheet link below so the connection to
-       both Google Fonts hosts is already warm by the time the font
-       stylesheet is requested, instead of the browser discovering the
-       cross-origin hosts only after parsing that response. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+// next/font self-hosts the font files and injects its own <link>/<style>
+// tags via Next's normal head-management pipeline (the same one that renders
+// title/description/robots/canonical), instead of a manual <link> that would
+// require a literal <head> override — see the note on `headHtml` below for
+// why that override is avoided.
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
-  <!-- 2. FONTS -->
-  <!-- Moved here from an @import in globals.css: an @import forces the
-       browser to fetch and parse the whole stylesheet before it even
-       discovers the font request, turning one round trip into a serial
-       chain. A <link> in <head> is discovered immediately, in parallel
-       with every other head resource. -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
-
-  <!-- 3. PRE-HYDRATION LOADER (critical inline CSS only — the matching
-       script is in STATIC_BODY_SCRIPTS, see note above) -->
-  <style>
-    #page-loader {
-      position: fixed; inset: 0; z-index: 99999;
-      background: #fff;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 24px;
-      transition: opacity 0.35s ease, visibility 0.35s ease;
-    }
-    #page-loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loader-hex-path {
-      animation: _hexDash 2s linear infinite;
-    }
-    @keyframes _hexDash {
-      0%   { stroke-dashoffset: 300; }
-      100% { stroke-dashoffset: 0; }
-    }
-    .loader-logo-svg { animation: _pulse 1.6s ease-in-out infinite; }
-    .loader-label {
-      font-family: Inter, system-ui, sans-serif;
-      font-size: 0.92rem; font-weight: 500;
-      color: #64748b; letter-spacing: 0.04em;
-      animation: _fade 1.6s ease-in-out infinite;
-    }
-    @keyframes _pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.7; transform: scale(0.95); }
-    }
-    @keyframes _fade {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-    #page-progress-bar {
-      position: fixed; top: 0; left: 0; height: 3px; width: 0%;
-      background: linear-gradient(90deg, #3b82f6, #60a5fa);
-      z-index: 100000; transition: width 0.4s ease;
-      box-shadow: 0 0 10px rgba(59,130,246,0.6);
-    }
-  </style>
-  <script>
-    (function () {
-      // Inject a top progress bar
-      var bar = document.createElement('div');
-      bar.id = 'page-progress-bar';
-      document.documentElement.appendChild(bar);
-
-      // Grow the bar while loading
-      var width = 10;
-      var interval = setInterval(function () {
-        width = Math.min(width + Math.random() * 10, 85);
-        bar.style.width = width + '%';
-      }, 300);
-
-      function finish() {
-        clearInterval(interval);
-        bar.style.width = '100%';
-        setTimeout(function () { bar.style.opacity = '0'; }, 400);
-        setTimeout(function () { bar.remove(); }, 800);
-
-        var loader = document.getElementById('page-loader');
-        if (loader) {
-          loader.classList.add('hidden');
-          // Removed loader.remove() to prevent React "node to be removed is not a child" errors during client-side navigation.
-        }
-      }
-
-      // Hide on full page load OR after React hydration fires
-      if (document.readyState === 'complete') {
-        finish();
-      } else {
-        window.addEventListener('load', finish, { once: true });
-      }
-    })();
-  </script>
-`;
-
-// <script> tags kept out of STATIC_HEAD_HTML (see note there) so they render
-// at the top of <body> instead of inside <head>, ahead of nothing that
-// matters for SEO — analytics and the progress-bar script don't need to be
-// literally inside <head> to fire early.
+// Pre-hydration loader CSS lives in globals.css (#page-loader etc.) and the
+// matching script renders at the top of <body> below — neither needs to be
+// literally inside <head>, which is what lets the root layout avoid a manual
+// <head> override (see note on `headHtml`).
 const STATIC_BODY_SCRIPTS = `
   <!-- ANALYTICS -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
@@ -123,7 +33,7 @@ const STATIC_BODY_SCRIPTS = `
     gtag('config', 'G-RYVZ90Z0JH');
   </script>
 
-  <!-- PRE-HYDRATION LOADER SCRIPT (styles are in STATIC_HEAD_HTML) -->
+  <!-- PRE-HYDRATION LOADER SCRIPT (styles are in globals.css) -->
   <script>
     (function () {
       // Inject a top progress bar
@@ -232,32 +142,27 @@ export default async function RootLayout({ children }) {
     }
   });
 
-  // CHARSET & VIEWPORT — must be first. Next always appends its own
-  // auto-managed head tags (charset, viewport, the page's per-route
-  // <title>/<meta>/<link> from each route's `metadata` export, framework
-  // chunks) AFTER whatever is in this literal <head> element — there is no
-  // way, short of dropping the literal <head> override entirely (which would
-  // break arbitrary admin <link>/<style> injection), to make our content
-  // render after them instead. STATIC_HEAD_HTML deliberately contains no
-  // <script> tags for this reason (see its own comment) — only resource
-  // hints and styles land here, so the page's SEO tags are the first
-  // <script>-free content Next appends after this block in view-source.
+  // Next.js always appends its own auto-managed <head> tags — charset,
+  // viewport, and each route's `metadata`/`generateMetadata` output
+  // (title, description, robots, canonical) — AFTER whatever a root layout
+  // renders in a literal <head> element, with no way to reorder that. So the
+  // root layout below renders NO <head> of its own (fonts moved to
+  // next/font, the loader styles to globals.css) unless an admin has
+  // actually configured a "head"-placement PageScript for this request —
+  // only then do we fall back to a manual <head>, and only that admin
+  // content (not our own markup) ends up ahead of the SEO tags for that one
+  // page, exactly mirroring what the CMS field promises ("insert this before
+  // </head>").
   //
   // SEO tags (title, description, robots, canonical) are deliberately NOT
   // duplicated here: each route supplies its own dynamic `metadata` export
-  // (business name, city, etc.), and Next renders those further down in this
-  // same <head> — hand-authoring them here would either go stale or fight
-  // the per-route values.
-  let headHtml = [
-    '<meta charSet="utf-8" />',
-    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
-    STATIC_HEAD_HTML,
-    byPlacement.head.join('\n')
-  ].filter(Boolean).join('\n');
+  // (business name, city, etc.), and Next renders those into the <head> it
+  // manages itself.
+  let headHtml = byPlacement.head.join('\n');
 
   // Merge any body_start scripts into head for subdomain compatibility
   if (isBusinessSubdomain() && byPlacement.body_start.length) {
-    headHtml += '\n' + byPlacement.body_start.join('\n');
+    headHtml += (headHtml ? '\n' : '') + byPlacement.body_start.join('\n');
   }
 
   // STATIC_BODY_SCRIPTS renders at the top of <body>.
@@ -269,8 +174,10 @@ export default async function RootLayout({ children }) {
   const initialScriptIds = matchedScripts.map((script) => script.id);
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: headHtml }} />
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      {headHtml && (
+        <head suppressHydrationWarning dangerouslySetInnerHTML={{ __html: headHtml }} />
+      )}
       <body>
         {/*
           The pre-hydration loader — visible immediately from the first byte of HTML.
