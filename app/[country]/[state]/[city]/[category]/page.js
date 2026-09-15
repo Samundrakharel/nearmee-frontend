@@ -39,7 +39,7 @@ export async function generateMetadata(props) {
       // The flat /{category}-in-{city}/ form is the canonical URL for this
       // content — it is what the sitemaps list. This deeper route stays live
       // for existing links but must not compete for the same listing.
-      canonical: `https://www.nearmee.net/${category}-in-${city}/`,
+      canonical: `https://www.doersmarketing.net/${category}-in-${city}/`,
     },
     robots: {
       index: true,

@@ -85,7 +85,7 @@ function SignUpPageContent() {
     try {
       const parsed = new URL(urlStr);
       const hostname = parsed.hostname.toLowerCase();
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.net';
       const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
       const isNearmeeDomain = hostname === baseDomain || hostname.endsWith(`.${baseDomain}`) || hostname === 'nearmee.local' || hostname.endsWith('.nearmee.local');
       if (isLocalhost || isNearmeeDomain) {

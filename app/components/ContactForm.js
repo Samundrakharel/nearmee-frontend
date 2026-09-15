@@ -16,7 +16,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const EMPTY = { name: '', email: '', subject: SUBJECTS[0], message: '' };
 
-export default function ContactForm({ fallbackEmail = 'hello@nearmee.net' }) {
+export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net' }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | sending | sent | failed

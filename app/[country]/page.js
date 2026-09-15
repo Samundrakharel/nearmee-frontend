@@ -113,7 +113,7 @@ export async function generateMetadata(props) {
       title: page.meta_title || `${page.hero_heading || page.title} | DoersMarketing`,
       description: page.meta_description,
       alternates: {
-        canonical: `https://www.nearmee.net/${page.slug}`,
+        canonical: `https://www.doersmarketing.net/${page.slug}`,
       },
       robots: { index: true, follow: true },
     };
@@ -129,7 +129,7 @@ export async function generateMetadata(props) {
     title: `${categoryName} in ${where} | DoersMarketing`,
     description: `Find the best ${categoryName.toLowerCase()} in ${where} on DoersMarketing. Read reviews, view menus, opening hours and more.`,
     alternates: {
-      canonical: `https://www.nearmee.net/${segment}/`,
+      canonical: `https://www.doersmarketing.net/${segment}/`,
     },
     robots: { index: true, follow: true },
   };

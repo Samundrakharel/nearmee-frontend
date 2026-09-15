@@ -60,7 +60,7 @@ export async function generateMetadata() {
     title: page.meta_title || `${page.hero_heading} | DoersMarketing`,
     description: page.meta_description,
     alternates: {
-      canonical: 'https://www.nearmee.net/contact',
+      canonical: 'https://www.doersmarketing.net/contact',
     },
     robots: {
       index: true,
@@ -75,7 +75,7 @@ export default async function ContactPage() {
 
   // Used by the form's failure message, so it always offers a real address.
   const firstEmail = channels.find(c => c.link_url?.startsWith('mailto:'));
-  const fallbackEmail = firstEmail?.link_label || 'hello@nearmee.net';
+  const fallbackEmail = firstEmail?.link_label || 'hello@doersmarketing.net';
 
   return (
     <>

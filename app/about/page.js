@@ -26,7 +26,7 @@ export async function generateMetadata() {
     title: page.meta_title || `${page.hero_heading} | DoersMarketing`,
     description: page.meta_description,
     alternates: {
-      canonical: 'https://www.nearmee.net/about',
+      canonical: 'https://www.doersmarketing.net/about',
     },
     robots: {
       index: true,

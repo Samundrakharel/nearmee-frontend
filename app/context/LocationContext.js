@@ -310,7 +310,7 @@ export function LocationProvider({ children }) {
     // ONLY if we are NOT on a business subdomain
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.net';
       const isSub = hostname !== baseDomain && 
                     hostname !== 'localhost' && 
                     hostname !== '127.0.0.1' && 
