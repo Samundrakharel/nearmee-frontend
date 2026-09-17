@@ -24,7 +24,7 @@ const BUSINESS_SUBJECTS = [
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default function ContactForm({
-  fallbackEmail = 'hello@doersmarketing.net',
+  fallbackEmail = 'hello@doersmarketing.com',
   businessSlug = null,
   businessName = null,
 }) {

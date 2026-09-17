@@ -12,7 +12,7 @@ export async function generateMetadata(props) {
     title: `${formattedTitle} Near You | Nearmee`,
     description: `Find the best ${formattedTitle.toLowerCase()} near you on Nearmee. Read reviews, view menus, and more.`,
     alternates: {
-      canonical: `https://www.doersmarketing.net/category/${params.slug}`,
+      canonical: `https://www.doersmarketing.com/category/${params.slug}`,
     },
     robots: {
       index: true,

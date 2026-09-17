@@ -6,7 +6,7 @@ import ContactForm from './ContactForm';
 
 // `page` picks which of the microsite's sections this URL renders on its own:
 // 'home' is the full single-page site, 'about' and 'contact' are the standalone
-// pages served at <business>.doersmarketing.net/about and /contact.
+// pages served at <business>.doersmarketing.com/about and /contact.
 export default function DoersBusinessPage({ business, page = 'home' }) {
   const [activeNav, setActiveNav] = useState(page === 'home' ? 'home' : page);
   const [scrolled, setScrolled] = useState(false);
@@ -774,7 +774,7 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
               <ContactForm
                 businessSlug={business.slug}
                 businessName={shortName}
-                fallbackEmail={business.email || 'hello@doersmarketing.net'}
+                fallbackEmail={business.email || 'hello@doersmarketing.com'}
               />
             </div>
           )}

@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Sign In | DoersMarketing',
   description: 'Sign in to your DoersMarketing account to manage your listings and reviews.',
   alternates: {
-    canonical: 'https://www.doersmarketing.net/login',
+    canonical: 'https://www.doersmarketing.com/login',
   },
   robots: {
     index: false,

@@ -18,7 +18,7 @@ const PATH_TO_TAB = {
   'contact': 'Contact',
 };
 
-// A business subdomain (foo.doersmarketing.net) rewrites to /business/foo here (see
+// A business subdomain (foo.doersmarketing.com) rewrites to /business/foo here (see
 // proxy.js). A 404 from the API means the slug doesn't exist — surfaced with
 // notFound() so it renders the styled app/not-found.js page under a real 404
 // status instead of a 200 "not found" div, and so subdomains get the same
@@ -84,7 +84,7 @@ export async function generateMetadata(props) {
   // Each tab is its own URL with its own content, so the canonical has to carry
   // the tab too — pointing them all at the business root would tell search
   // engines these pages are duplicates and drop them from the index.
-  const canonicalRoot = (seo.canonical || `https://${params.slug}.doersmarketing.net`).replace(/\/$/, '');
+  const canonicalRoot = (seo.canonical || `https://${params.slug}.doersmarketing.com`).replace(/\/$/, '');
   const canonical = activeTabPath === 'overview' ? canonicalRoot : `${canonicalRoot}/${activeTabPath}`;
   const robots = seo.robots || { index: true, follow: true };
 
