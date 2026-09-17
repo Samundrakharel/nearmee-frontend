@@ -44,27 +44,29 @@ const STATIC_HEAD_HTML = `
       transition: opacity 0.35s ease, visibility 0.35s ease;
     }
     #page-loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loader-hex-path {
-      animation: _hexDash 2s linear infinite;
+    .loader-ring {
+      transform-origin: 50px 50px;
+      animation: _ripple 1.8s ease-out infinite;
     }
-    @keyframes _hexDash {
-      0%   { stroke-dashoffset: 300; }
-      100% { stroke-dashoffset: 0; }
+    .loader-ring.r2 { animation-delay: 0.6s; }
+    .loader-ring.r3 { animation-delay: 1.2s; }
+    .loader-dot {
+      transform-origin: 50px 50px;
+      animation: _dot 1.8s ease-in-out infinite;
+    }
+    @keyframes _ripple {
+      0%   { transform: scale(0.28); opacity: 0.5; }
+      70%  { opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    @keyframes _dot {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(0.78); }
     }
     .loader-logo-svg { animation: _pulse 1.6s ease-in-out infinite; }
-    .loader-label {
-      font-family: Inter, system-ui, sans-serif;
-      font-size: 0.92rem; font-weight: 500;
-      color: #64748b; letter-spacing: 0.04em;
-      animation: _fade 1.6s ease-in-out infinite;
-    }
     @keyframes _pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.7; transform: scale(0.95); }
-    }
-    @keyframes _fade {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
     }
     #page-progress-bar {
       position: fixed; top: 0; left: 0; height: 3px; width: 0%;
@@ -216,7 +218,7 @@ export default async function RootLayout({ children }) {
           Rendered as plain HTML so it shows even before JS loads.
         */}
         <div id="page-loader" aria-hidden="true" suppressHydrationWarning>
-          {/* near me logo — on top */}
+          {/* DoersMarketing wordmark — on top */}
           <div className="loader-logo">
             <svg
               className="loader-logo-svg"
@@ -246,28 +248,13 @@ export default async function RootLayout({ children }) {
             </svg>
           </div>
 
-          {/* Snake-crawling hexagon — below logo */}
-          <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z"
-              stroke="#ff7e67"
-              strokeWidth="6"
-              fill="none"
-              opacity="0.2"
-            />
-            <path
-              d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z"
-              stroke="#ff7e67"
-              strokeWidth="6"
-              strokeLinecap="round"
-              fill="none"
-              strokeDasharray="100 200"
-              className="loader-hex-path"
-            />
+          {/* Brand dot rippling outwards — below logo */}
+          <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle className="loader-ring" cx="50" cy="50" r="44" stroke="#ff7e67" strokeWidth="6" />
+            <circle className="loader-ring r2" cx="50" cy="50" r="44" stroke="#ff7e67" strokeWidth="6" />
+            <circle className="loader-ring r3" cx="50" cy="50" r="44" stroke="#ff7e67" strokeWidth="6" />
+            <circle className="loader-dot" cx="50" cy="50" r="12" fill="#ff7e67" />
           </svg>
-
-          {/* Label */}
-          <span className="loader-label">Almost there…</span>
         </div>
 
         {bodyStartHtml && (

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../lib/api';
 import { getRecaptchaToken } from '../lib/recaptcha';
-import { HexagonOverlay } from '../components/HexagonLoader';
+import { BrandOverlay } from '../components/BrandLoader';
 import { useLocation } from '../context/LocationContext';
 import Logo from '../components/Logo';
 
@@ -253,7 +253,7 @@ function SignUpPageContent() {
 
   return (
     <div className="auth-page">
-      {loading && <HexagonOverlay label="Creating Account…" />}
+      {loading && <BrandOverlay label="Creating Account…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

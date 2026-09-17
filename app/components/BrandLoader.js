@@ -3,13 +3,16 @@
 import { LoadingIcon } from './LoadingIcon';
 
 /**
- * HexagonLoader — used as the loading state for all pages.
- * Uses the existing LoadingIcon (snake-crawling hexagon) in the site's primary black.
+ * BrandLoader — the loading state for all pages: the wordmark above the brand
+ * dot rippling outwards.
+ *
+ * `label` is only rendered when a caller supplies one. There is no default
+ * because a generic "Almost there…" claims progress the loader cannot know;
+ * callers that can say something true ("Signing In…") pass it in.
  */
-export default function HexagonLoader({ label = 'Almost there…' }) {
+export default function BrandLoader({ label }) {
   return (
-    <div className="hex-loader-wrap">
-      {/* DoersMarketing wordmark — on top */}
+    <div className="brand-loader-wrap">
       <svg
         width="220"
         height="35"
@@ -37,15 +40,14 @@ export default function HexagonLoader({ label = 'Almost there…' }) {
         <circle cx="204" cy="24" r="4" fill="#ff7e67" />
       </svg>
 
-      {/* Hexagon loading icon — below logo */}
-      <LoadingIcon size={64} className="hex-icon" />
+      <LoadingIcon size={56} className="brand-loader-icon" />
 
-      <span className="hex-loader-label">{label}</span>
+      {label && <span className="brand-loader-label">{label}</span>}
     </div>
   );
 }
 
-export function HexagonOverlay({ label = 'Almost there…' }) {
+export function BrandOverlay({ label }) {
   return (
     <div style={{
       position: 'fixed',
@@ -60,7 +62,7 @@ export function HexagonOverlay({ label = 'Almost there…' }) {
       backdropFilter: 'blur(2px)',
       zIndex: 9999
     }}>
-      <HexagonLoader label={label} />
+      <BrandLoader label={label} />
     </div>
   );
 }

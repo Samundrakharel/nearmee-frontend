@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { HexagonOverlay } from '../components/HexagonLoader';
+import { BrandOverlay } from '../components/BrandLoader';
 import Logo from '../components/Logo';
 
 function LoginPageContent() {
@@ -67,7 +67,7 @@ function LoginPageContent() {
 
   return (
     <div className="auth-page">
-      {loading && <HexagonOverlay label="Signing In…" />}
+      {loading && <BrandOverlay label="Signing In…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

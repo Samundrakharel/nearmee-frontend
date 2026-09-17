@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import { getBusinesses, getBusinessSubdomainUrl } from '../lib/api';
 import { BusinessCardSkeleton } from '../components/Skeleton';
-import { HexagonOverlay } from '../components/HexagonLoader';
+import { BrandOverlay } from '../components/BrandLoader';
 import '../category/category.css';
 
 const RATINGS = ['4', '3', '2'];
@@ -210,7 +210,7 @@ export default function SearchPageClient({
             )}
           </div>
 
-          {loading && <HexagonOverlay label="Searching…" />}
+          {loading && <BrandOverlay label="Searching…" />}
 
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>

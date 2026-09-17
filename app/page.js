@@ -7,7 +7,7 @@ import Businesses from './components/Businesses';
 import CTA from './components/CTA';
 import Footer from './components/Footer';
 import { BusinessCardSkeleton } from './components/Skeleton';
-import { HexagonOverlay } from './components/HexagonLoader';
+import { BrandOverlay } from './components/BrandLoader';
 
 export default async function Home() {
   const catData = await getRestaurantCategories().catch(() => ({ results: [] }));
@@ -31,7 +31,7 @@ export default async function Home() {
                 ))}
               </div>
             </div>
-            <HexagonOverlay label="Loading Top Businesses…" />
+            <BrandOverlay label="Loading Top Businesses…" />
           </>
         }>
           <Businesses initialCategorizedBusinesses={initialBusinesses} />

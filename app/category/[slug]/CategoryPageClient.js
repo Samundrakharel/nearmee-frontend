@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import { getCategoryBySlug, getBusinessesByCategorySlug, getBusinessSubdomainUrl, getCategoryRoute } from '../../lib/api';
 import { useLocation } from '../../context/LocationContext';
-import { HexagonOverlay } from '../../components/HexagonLoader';
+import { BrandOverlay } from '../../components/BrandLoader';
 import { BusinessCardSkeleton } from '../../components/Skeleton';
 import '../category.css';
 
@@ -184,7 +184,7 @@ export default function CategoryPageClient({
             </span>
           </div>
 
-          {loading && <HexagonOverlay label="Finding businesses…" />}
+          {loading && <BrandOverlay label="Finding businesses…" />}
 
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
