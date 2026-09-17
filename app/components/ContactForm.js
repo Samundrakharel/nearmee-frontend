@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { getRecaptchaToken } from '../lib/recaptcha';
 
-const SUBJECTS = [
+const SITE_SUBJECTS = [
   'General enquiry',
   'List my business',
   'Correct or remove a listing',
@@ -12,11 +12,25 @@ const SUBJECTS = [
   'Partnership',
 ];
 
+// A visitor writing to a business wants to book or ask about that business —
+// the site-wide options (listing corrections, partnerships) make no sense there.
+const BUSINESS_SUBJECTS = [
+  'General enquiry',
+  'Booking or appointment',
+  'Pricing and availability',
+  'Feedback',
+];
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const EMPTY = { name: '', email: '', subject: SUBJECTS[0], message: '' };
+export default function ContactForm({
+  fallbackEmail = 'hello@doersmarketing.net',
+  businessSlug = null,
+  businessName = null,
+}) {
+  const subjects = businessSlug ? BUSINESS_SUBJECTS : SITE_SUBJECTS;
+  const EMPTY = { name: '', email: '', subject: subjects[0], message: '' };
 
-export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net' }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | sending | sent | failed
@@ -59,6 +73,7 @@ export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net'
           email: form.email.trim(),
           subject: form.subject,
           message: form.message.trim(),
+          businessSlug,
           // Honeypot — left empty by humans, filled in by naive bots.
           website: e.target.website?.value || '',
           recaptchaToken,
@@ -82,8 +97,14 @@ export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net'
 
   return (
     <div className="contact-form-card">
-      <h2 className="contact-form-title">Send Us a Message</h2>
-      <p className="contact-form-sub">Have a question or request? Fill in the details below and we will get back to you.</p>
+      <h2 className="contact-form-title">
+        {businessName ? `Message ${businessName}` : 'Send Us a Message'}
+      </h2>
+      <p className="contact-form-sub">
+        {businessName
+          ? `Send an enquiry straight to ${businessName} and they will get back to you.`
+          : 'Have a question or request? Fill in the details below and we will get back to you.'}
+      </p>
 
       {status === 'sent' && (
         <div className="contact-alert success" role="status">
@@ -183,7 +204,7 @@ export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net'
             className="contact-input"
             style={{ cursor: 'pointer', background: '#fff' }}
           >
-            {SUBJECTS.map(subject => (
+            {subjects.map(subject => (
               <option key={subject} value={subject}>{subject}</option>
             ))}
           </select>
@@ -199,7 +220,9 @@ export default function ContactForm({ fallbackEmail = 'hello@doersmarketing.net'
             rows={5}
             value={form.message}
             onChange={e => setField('message', e.target.value)}
-            placeholder="Write your message here. If it involves a specific business or location, mentioning the name and city is very helpful."
+            placeholder={businessName
+              ? `Write your message to ${businessName} here. Mentioning dates or times helps them answer properly.`
+              : 'Write your message here. If it involves a specific business or location, mentioning the name and city is very helpful.'}
             maxLength={4000}
             className={`contact-input${errors.message ? ' invalid' : ''}`}
             aria-invalid={errors.message ? 'true' : undefined}

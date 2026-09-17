@@ -1,16 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import ContactForm from './ContactForm';
 
-export default function DoersBusinessPage({ business }) {
-  const [activeNav, setActiveNav] = useState('home');
+// `page` picks which of the microsite's sections this URL renders on its own:
+// 'home' is the full single-page site, 'about' and 'contact' are the standalone
+// pages served at <business>.doersmarketing.net/about and /contact.
+export default function DoersBusinessPage({ business, page = 'home' }) {
+  const [activeNav, setActiveNav] = useState(page === 'home' ? 'home' : page);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname() || '/';
+
+  // Links have to work both on a business subdomain (/about) and on the main
+  // domain's rewrite target (/business/<slug>/about), so strip the page segment
+  // off the current path and rebuild from whatever prefix is left.
+  const isHome = page === 'home';
+  const basePath = pathname.replace(/\/(about|contact|menu|reviews)\/?$/, '').replace(/\/$/, '');
+  const hrefFor = (id) => {
+    if (id === 'home') return basePath || '/';
+    if (id === 'services') return `${basePath}/#services`;
+    return `${basePath}/${id}`;
+  };
 
   const bizName = business.name || 'Le Barbier Sam';
   const shortName = bizName.split('|')[0].trim();
   const address = business.address || '141C Bd Gréber, Gatineau, Quebec J8T 3R1';
   const phone = business.phone || '(819) 775-1049';
-  const aboutText = business.aboutUs || business.description || `At ${shortName}, we set the standard for modern services in ${address.split(',').slice(-2).join(',').trim()}. Trusted by clients searching for reliable professionals, we combine skill, passion, and attention to detail in everything we do.\n\nWhether you're a regular or visiting for the first time, we deliver a premium experience every single time.`;
+  const aboutText = business.about || business.aboutUs || business.description || `At ${shortName}, we set the standard for modern services in ${address.split(',').slice(-2).join(',').trim()}. Trusted by clients searching for reliable professionals, we combine skill, passion, and attention to detail in everything we do.\n\nWhether you're a regular or visiting for the first time, we deliver a premium experience every single time.`;
   const services = business.services?.length ? business.services : ['HAIR CUT', 'HAIR STYLE', 'FADE UP', 'BEARD', 'BEARD COLOR'];
   const categories = business.categories || [];
   const rating = business.rating || 4.7;
@@ -113,6 +130,9 @@ export default function DoersBusinessPage({ business }) {
           border-radius: 8px;
           transition: all 0.25s ease;
           font-family: inherit;
+          text-decoration: none;
+          display: inline-block;
+          line-height: 1.4;
         }
         .dbp-nav-btn:hover { background: #fff5f2; color: #ff7e67; }
         .dbp-nav-btn.active { background: #ff7e67; color: #ffffff; font-weight: 600; }
@@ -438,6 +458,8 @@ export default function DoersBusinessPage({ business }) {
           transition: all 0.3s ease;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
           font-family: inherit;
+          text-decoration: none;
+          display: inline-block;
         }
         .dbp-cta-btn:hover {
           transform: translateY(-2px);
@@ -492,6 +514,12 @@ export default function DoersBusinessPage({ business }) {
           flex-shrink: 0;
         }
         .dbp-contact-icon svg { width: 18px; height: 18px; color: #ff7e67; }
+        .dbp-contact-form {
+          max-width: 1100px;
+          margin: 64px auto 0;
+        }
+        .dbp-contact-detail a { color: inherit; text-decoration: none; }
+        .dbp-contact-detail a:hover { color: #ff7e67; text-decoration: underline; }
         .dbp-hours-title {
           font-size: 0.88rem;
           font-weight: 700;
@@ -560,18 +588,27 @@ export default function DoersBusinessPage({ business }) {
           </div>
           <nav className="dbp-nav">
             {['home', 'about', 'services', 'contact'].map((id) => (
-              <button
+              <a
                 key={id}
+                href={hrefFor(id)}
                 className={`dbp-nav-btn ${activeNav === id ? 'active' : ''}`}
-                onClick={() => scrollToSection(id === 'home' ? 'hero' : id)}
+                // About and Contact are their own pages, so they always navigate.
+                // Home and Services have no page of their own — on the one-page
+                // home view their targets are already on screen, so scroll there.
+                onClick={(e) => {
+                  if (page !== 'home' || id === 'about' || id === 'contact') return;
+                  e.preventDefault();
+                  scrollToSection(id === 'home' ? 'hero' : id);
+                }}
               >
                 {id.charAt(0).toUpperCase() + id.slice(1)}
-              </button>
+              </a>
             ))}
           </nav>
         </header>
 
         {/* ─── HERO ─── */}
+        {isHome && (
         <section id="hero" className="dbp-hero">
           {heroImage && (
             <>
@@ -607,8 +644,10 @@ export default function DoersBusinessPage({ business }) {
             </button>
           </div>
         </section>
+        )}
 
         {/* ─── FEATURES ─── */}
+        {isHome && (
         <section className="dbp-features">
           {featureCards.map((card, i) => (
             <div key={i} className="dbp-feature-card">
@@ -618,8 +657,10 @@ export default function DoersBusinessPage({ business }) {
             </div>
           ))}
         </section>
+        )}
 
         {/* ─── ABOUT ─── */}
+        {(isHome || page === 'about') && (
         <section id="about" className="dbp-about">
           <div className="dbp-about-inner">
             <div className="dbp-about-eyebrow">Our Story</div>
@@ -627,8 +668,10 @@ export default function DoersBusinessPage({ business }) {
             <p>{aboutText}</p>
           </div>
         </section>
+        )}
 
         {/* ─── SERVICES ─── */}
+        {isHome && (
         <section id="services" className="dbp-services">
           <div className="dbp-services-inner">
             <div className="dbp-services-eyebrow">What We Offer</div>
@@ -650,19 +693,23 @@ export default function DoersBusinessPage({ business }) {
             </div>
           </div>
         </section>
+        )}
 
         {/* ─── CTA ─── */}
+        {isHome && (
         <section className="dbp-cta">
           <div className="dbp-cta-inner">
             <h2>Ready to Experience the Difference?</h2>
             <p className="dbp-cta-desc">We deliver passion, precision, and care — every visit.</p>
-            <button className="dbp-cta-btn" onClick={() => scrollToSection('contact')}>
+            <a className="dbp-cta-btn" href={hrefFor('contact')}>
               BOOK NOW
-            </button>
+            </a>
           </div>
         </section>
+        )}
 
         {/* ─── CONTACT ─── */}
+        {(isHome || page === 'contact') && (
         <section id="contact" className="dbp-contact">
           <div className="dbp-contact-inner">
             <div>
@@ -675,7 +722,7 @@ export default function DoersBusinessPage({ business }) {
                     <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
                   </svg>
                 </div>
-                {phone}
+                <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{phone}</a>
               </div>
 
               <div className="dbp-contact-detail">
@@ -687,6 +734,18 @@ export default function DoersBusinessPage({ business }) {
                 </div>
                 {address}
               </div>
+
+              {business.email && (
+                <div className="dbp-contact-detail">
+                  <div className="dbp-contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                  </div>
+                  <a href={`mailto:${business.email}`}>{business.email}</a>
+                </div>
+              )}
 
               <h3 className="dbp-hours-title">Business Hours</h3>
               <div>
@@ -709,7 +768,18 @@ export default function DoersBusinessPage({ business }) {
               />
             </div>
           </div>
+
+          {page === 'contact' && (
+            <div className="dbp-contact-form">
+              <ContactForm
+                businessSlug={business.slug}
+                businessName={shortName}
+                fallbackEmail={business.email || 'hello@doersmarketing.net'}
+              />
+            </div>
+          )}
         </section>
+        )}
 
         {/* ─── FOOTER ─── */}
         <footer className="dbp-footer">
