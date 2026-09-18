@@ -413,13 +413,14 @@ export function transformBusiness(biz) {
     : [];
 
   const images = Array.isArray(biz.images)
-    ? biz.images.map(img => (typeof img === 'string' ? img : (img.image || img.google_photo_reference))).filter(Boolean)
+    ? biz.images.map(img => (typeof img === 'string' ? img : (img.image_url || img.image || img.google_photo_reference))).filter(Boolean)
     : [];
 
   // Add thumbnail to the photos array if it exists
   const allPhotos = [];
-  if (biz.thumbnail) {
-    allPhotos.push(biz.thumbnail);
+  const thumbnailUrl = biz.thumbnail_url || biz.thumbnail;
+  if (thumbnailUrl) {
+    allPhotos.push(thumbnailUrl);
   }
   if (images.length > 0) {
     allPhotos.push(...images);
@@ -485,8 +486,8 @@ export function transformBusiness(biz) {
     phone: biz.phone || '',
     website: biz.website || '',
     email: biz.email || '',
-    thumbnail: biz.thumbnail || '',
-    coverImage: biz.cover_image || '',
+    thumbnail: biz.thumbnail_url || biz.thumbnail || '',
+    coverImage: biz.cover_image_url || biz.cover_image || '',
     rating: avgRating,
     totalReviews: totalReviews,
     isFeatured: biz.is_featured || false,
@@ -553,7 +554,7 @@ export function transformBusiness(biz) {
     extensions: safeParse(biz.extensions, {}),
 
     // For business list cards (shorthand)
-    image: biz.cover_image || (images.length > 0 ? images[0] : ''),
+    image: biz.cover_image_url || biz.cover_image || (images.length > 0 ? images[0] : ''),
 
     // SEO Schema (JSON-LD)
     schema: biz.schema || null,
@@ -573,9 +574,9 @@ export function transformBusinessListItem(biz) {
     reviews: biz.total_reviews || 0,
     address: biz.address || '',
     description: biz.description || '',
-    image: biz.thumbnail || biz.cover_image || '',
-    thumbnail: biz.thumbnail || '',
-    coverImage: biz.cover_image || '',
+    image: biz.thumbnail_url || biz.cover_image_url || biz.thumbnail || biz.cover_image || '',
+    thumbnail: biz.thumbnail_url || biz.thumbnail || '',
+    coverImage: biz.cover_image_url || biz.cover_image || '',
     isFeatured: biz.is_featured || false,
     cityName: biz.city_name || '',
     priceRange: biz.price_range || '',
