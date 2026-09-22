@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { requestPasswordReset } from '../lib/api';
-import { HexagonOverlay } from '../components/HexagonLoader';
+import { BrandOverlay } from '../components/BrandLoader';
 import Logo from '../components/Logo';
 
 export default function ForgotPasswordPage() {
@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-page">
-      {loading && <HexagonOverlay label="Sending Request…" />}
+      {loading && <BrandOverlay label="Sending Request…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

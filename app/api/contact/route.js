@@ -59,6 +59,7 @@ function validate(payload) {
   const email = (payload.email || '').trim();
   const subject = (payload.subject || 'General enquiry').trim();
   const message = (payload.message || '').trim();
+  const businessSlug = (payload.businessSlug || '').trim();
 
   if (!name) return { error: 'Please tell us your name.' };
   if (!email) return { error: 'An email address is required so we can reply.' };
@@ -70,7 +71,11 @@ function validate(payload) {
     return { error: 'One of the fields is longer than we can accept.' };
   }
 
-  return { data: { name, email, subject, message } };
+  if (businessSlug && !/^[a-z0-9-]{1,255}$/i.test(businessSlug)) {
+    return { error: 'That business could not be identified.' };
+  }
+
+  return { data: { name, email, subject, message, businessSlug } };
 }
 
 async function deliver(message) {
@@ -95,6 +100,7 @@ async function deliver(message) {
         email: message.email,
         subject: message.subject,
         message: message.message,
+        business_slug: message.businessSlug || '',
       }),
     });
 

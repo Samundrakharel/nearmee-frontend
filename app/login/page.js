@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { HexagonOverlay } from '../components/HexagonLoader';
+import { BrandOverlay } from '../components/BrandLoader';
 import Logo from '../components/Logo';
 
 function LoginPageContent() {
@@ -22,7 +22,7 @@ function LoginPageContent() {
     try {
       const parsed = new URL(urlStr);
       const hostname = parsed.hostname.toLowerCase();
-      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.net';
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
       const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
       const isNearmeeDomain = hostname === baseDomain || hostname.endsWith(`.${baseDomain}`) || hostname === 'nearmee.local' || hostname.endsWith('.nearmee.local');
       if (isLocalhost || isNearmeeDomain) {
@@ -67,7 +67,7 @@ function LoginPageContent() {
 
   return (
     <div className="auth-page">
-      {loading && <HexagonOverlay label="Signing In…" />}
+      {loading && <BrandOverlay label="Signing In…" />}
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">

@@ -14,9 +14,11 @@ const PATH_TO_TAB = {
   'overview': 'Overview',
   'reviews': 'Reviews',
   'menu': 'Menu',
+  'about': 'About',
+  'contact': 'Contact',
 };
 
-// A business subdomain (foo.doersmarketing.net) rewrites to /business/foo here (see
+// A business subdomain (foo.doersmarketing.com) rewrites to /business/foo here (see
 // proxy.js). A 404 from the API means the slug doesn't exist — surfaced with
 // notFound() so it renders the styled app/not-found.js page under a real 404
 // status instead of a 200 "not found" div, and so subdomains get the same
@@ -52,8 +54,8 @@ export async function generateMetadata(props) {
   } catch (e) {
     console.error('generateMetadata failed:', e.message);
     return {
-      title: 'Business | Nearmee',
-      description: 'Find local businesses on Nearmee.',
+      title: 'Business | DoersMarketing',
+      description: 'Find local businesses on DoersMarketing.',
       robots: { index: false, follow: false },
     };
   }
@@ -65,14 +67,25 @@ export async function generateMetadata(props) {
   if (!biz) notFound();
 
   const seo = biz.seo || {};
-  let seoTitle = seo.title || `${biz.name} | Nearmee`;
+  let seoTitle = seo.title || `${biz.name} | DoersMarketing`;
 
   // Customize title based on tab
-  if (activeTabPath === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | Nearmee`;
-  else if (activeTabPath === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | Nearmee`;
+  if (activeTabPath === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | DoersMarketing`;
+  else if (activeTabPath === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | DoersMarketing`;
+  else if (activeTabPath === 'about') seoTitle = seo.about_title || `About ${biz.name}`;
+  else if (activeTabPath === 'contact') seoTitle = seo.contact_title || `Contact ${biz.name}`;
 
-  const description = seo.description || biz.description || `View reviews and menus for ${biz.name} on Nearmee.`;
-  const canonical = seo.canonical || `https://${params.slug}.doersmarketing.net${activeTabPath !== 'overview' ? `/${activeTabPath}` : ''}`;
+  let description = seo.description || biz.description || `View reviews and menus for ${biz.name} on DoersMarketing.`;
+  if (activeTabPath === 'about') {
+    description = (biz.about || biz.description || `Learn more about ${biz.name}.`).slice(0, 300);
+  } else if (activeTabPath === 'contact') {
+    description = `Contact ${biz.name}${biz.address ? ` at ${biz.address}` : ''}. Phone, opening hours and enquiry form.`.slice(0, 300);
+  }
+  // Each tab is its own URL with its own content, so the canonical has to carry
+  // the tab too — pointing them all at the business root would tell search
+  // engines these pages are duplicates and drop them from the index.
+  const canonicalRoot = (seo.canonical || `https://${params.slug}.doersmarketing.com`).replace(/\/$/, '');
+  const canonical = activeTabPath === 'overview' ? canonicalRoot : `${canonicalRoot}/${activeTabPath}`;
   const robots = seo.robots || { index: true, follow: true };
 
   return {
@@ -176,6 +189,7 @@ export default async function BusinessTabbedPage(props) {
       <BusinessPageClient
         slug={slug}
         initialBusiness={business}
+        page={['about', 'contact'].includes(activeTabPath) ? activeTabPath : 'home'}
       />
     </>
   );

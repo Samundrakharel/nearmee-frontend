@@ -3,11 +3,11 @@ import { NextResponse } from 'next/server';
 /**
  * Subdomain Routing Proxy
  * 
- * Handles rewriting business subdomains (e.g., pizza-hut.doersmarketing.net)
+ * Handles rewriting business subdomains (e.g., pizza-hut.doersmarketing.com)
  * to internal routes (/business/pizza-hut).
  */
 
-const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.net';
+const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
 
 // Subdomains that should NOT be treated as business slugs
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging']);
@@ -16,8 +16,8 @@ const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
 
 // Main domains (root domain — no subdomain routing)
 const MAIN_DOMAINS = new Set([
-  'doersmarketing.net',
-  'www.doersmarketing.net',
+  'doersmarketing.com',
+  'www.doersmarketing.com',
   'localhost',
   'localhost:3000',
   'nearmee.local',
@@ -39,7 +39,7 @@ export function proxy(request) {
   requestHeaders.set('x-pathname', pathname);
   const withPathname = { request: { headers: requestHeaders } };
 
-  // Strip port (e.g. pizza-hut.doersmarketing.net:3000 → pizza-hut.doersmarketing.net)
+  // Strip port (e.g. pizza-hut.doersmarketing.com:3000 → pizza-hut.doersmarketing.com)
   const hostWithoutPort = hostname.split(':')[0];
 
   // Pass through if this is the root domain (no subdomain)
@@ -47,7 +47,7 @@ export function proxy(request) {
     return NextResponse.next(withPathname);
   }
 
-  // Check if this is a subdomain of doersmarketing.net or nearmee.local
+  // Check if this is a subdomain of doersmarketing.com or nearmee.local
   const isNearmeeNet = hostWithoutPort.endsWith(`.${BASE_DOMAIN}`);
   const isNearmeeLocal = hostWithoutPort.endsWith('.nearmee.local');
 

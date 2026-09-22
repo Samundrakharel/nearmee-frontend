@@ -1,7 +1,7 @@
 'use client';
 
 import Logo from './Logo';
-import HexagonLoader, { HexagonOverlay } from './HexagonLoader';
+import BrandLoader, { BrandOverlay } from './BrandLoader';
 export default function Skeleton({ width, height, borderRadius, style, className = '' }) {
   return (
     <div
@@ -150,7 +150,7 @@ function FilterSidebarSkeleton() {
 export function CategoryResultsSkeleton() {
   return (
     <>
-      <HexagonOverlay label="Finding businesses…" />
+      <BrandOverlay label="Finding businesses…" />
     </>
   );
 }
@@ -199,8 +199,8 @@ export function BusinessDetailSkeleton() {
         </div>
       </main>
 
-      {/* Hexagon loader overlay */}
-      <HexagonOverlay label="Loading business…" />
+      {/* Brand loader overlay */}
+      <BrandOverlay label="Loading business…" />
     </div>
   );
 }

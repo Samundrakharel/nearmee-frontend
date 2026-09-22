@@ -43,14 +43,18 @@ export default function Header() {
     return `/login?next=${encodeURIComponent(currentPath)}`;
   };
 
-  const getSignupHref = () => {
-    if (typeof window === 'undefined') return '/signup';
-    const isSub = isBusinessSubdomain();
-    if (isSub) {
-      return `${getMainDomainUrl()}/signup?next=${encodeURIComponent(window.location.href)}`;
-    }
-    if (pathname === '/login' || pathname === '/signup') return '/signup';
-    return `/signup?next=${encodeURIComponent(currentPath)}`;
+  const loginIcon = (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+
+  const getBusinessHref = () => {
+    if (typeof window === 'undefined') return '/submit-business';
+    return isBusinessSubdomain()
+      ? `${getMainDomainUrl()}/submit-business`
+      : '/submit-business';
   };
 
   // Compute home URL once — avoids hydration race conditions
@@ -243,8 +247,19 @@ export default function Header() {
                 onChange={(e) => setLocationValue(e.target.value)}
               />
             </div>
-            <button type="submit" className="btn-search" id="btn-search" disabled={searching}>
-              {searching ? '...' : 'Search'}
+            <button
+              type="submit"
+              className="btn-search btn-search-icon"
+              id="btn-search"
+              disabled={searching}
+              aria-label="Search"
+            >
+              {searching ? '...' : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              )}
             </button>
           </form>
         )}
@@ -279,6 +294,9 @@ export default function Header() {
           `}</style>
           {isAuthenticated ? (
             <>
+              <a href={getBusinessHref()} className="btn-business" id="btn-business">
+                DoersMarketing for business
+              </a>
               <Link href="/account" style={{ textDecoration: 'none' }}>
                 <span style={{
                   display: 'flex',
@@ -316,16 +334,13 @@ export default function Header() {
             </>
           ) : (
             <>
+              <a href={getBusinessHref()} className="btn-business" id="btn-business">
+                DoersMarketing for business
+              </a>
               {typeof window !== 'undefined' && isBusinessSubdomain() ? (
-                <>
-                  <a href={getLoginHref()} className="btn-login" id="btn-login">Login</a>
-                  <a href={getSignupHref()} className="btn-signup" id="btn-signup">Sign Up</a>
-                </>
+                <a href={getLoginHref()} className="btn-login" id="btn-login">{loginIcon}Log in</a>
               ) : (
-                <>
-                  <Link href={getLoginHref()} className="btn-login" id="btn-login">Login</Link>
-                  <Link href={getSignupHref()} className="btn-signup" id="btn-signup">Sign Up</Link>
-                </>
+                <Link href={getLoginHref()} className="btn-login" id="btn-login">{loginIcon}Log in</Link>
               )}
             </>
           )}

@@ -1,7 +1,7 @@
 'use client';
 
 import Logo from './components/Logo';
-import HexagonLoader, { HexagonOverlay } from './components/HexagonLoader';
+import BrandLoader, { BrandOverlay } from './components/BrandLoader';
 import Skeleton, { CategoryCardSkeleton, BusinessCardSkeleton } from './components/Skeleton';
 
 export default function Loading() {
@@ -73,7 +73,7 @@ export default function Loading() {
         </div>
       </section>
 
-      <HexagonOverlay label="Loading…" />
+      <BrandOverlay label="Loading…" />
     </div>
   );
 }
