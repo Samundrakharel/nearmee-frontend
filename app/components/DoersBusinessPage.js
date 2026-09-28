@@ -33,6 +33,13 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
   const rating = business.rating || 4.7;
   const reviewCount = business.reviewCount || business.reviews?.length || 0;
   const heroImage = business.coverImage || business.thumbnail || null;
+  const type = business.type || '';
+  const priceRange = business.priceRange || '';
+
+  // The home page only teases the first paragraph of the About text; the
+  // standalone /about page shows all of it plus the extra sections below.
+  const aboutParagraphs = aboutText.split(/\n\s*\n/).filter(Boolean);
+  const aboutPreview = aboutParagraphs[0] || aboutText;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
@@ -52,15 +59,49 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
     { label: 'Local', title: 'COMMUNITY', subtitle: `SERVING ${address.split(',').slice(-2, -1)[0]?.trim()?.toUpperCase() || 'YOUR AREA'}` },
   ];
 
-  const businessHours = business.businessHours || [
-    { day: 'Monday', hours: '8:00 AM – 8:00 PM' },
-    { day: 'Tuesday', hours: '8:00 AM – 9:00 PM' },
-    { day: 'Wednesday', hours: '8:00 AM – 9:00 PM' },
-    { day: 'Thursday', hours: '9:00 AM – 9:00 PM' },
-    { day: 'Friday', hours: '9:00 AM – 9:00 PM' },
-    { day: 'Saturday', hours: '9:00 AM – 7:00 PM' },
-    { day: 'Sunday', hours: 'Closed' },
-  ];
+  // business.hours comes back keyed by day code (Mon..Sun) -> {open, close} in
+  // 24h "HH:MM" strings; fall back to a placeholder week when none is set.
+  const dayFullNames = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
+  const formatHourTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    let hrs = parseInt(h, 10);
+    const ampm = hrs >= 12 ? 'PM' : 'AM';
+    hrs = hrs % 12 || 12;
+    return `${hrs}:${m} ${ampm}`;
+  };
+  const rawHours = business.hours && typeof business.hours === 'object' ? business.hours : {};
+  const businessHours = Object.keys(rawHours).length > 0
+    ? Object.keys(dayFullNames).filter((code) => rawHours[code]).map((code) => {
+      const d = rawHours[code];
+      const hoursText = (d.open && d.close)
+        ? `${formatHourTime(d.open)} – ${formatHourTime(d.close)}`
+        : ((d.closed || d.isClosed) ? 'Closed' : 'N/A');
+      return { day: dayFullNames[code], hours: hoursText };
+    })
+    : [
+      { day: 'Monday', hours: '8:00 AM – 8:00 PM' },
+      { day: 'Tuesday', hours: '8:00 AM – 9:00 PM' },
+      { day: 'Wednesday', hours: '8:00 AM – 9:00 PM' },
+      { day: 'Thursday', hours: '9:00 AM – 9:00 PM' },
+      { day: 'Friday', hours: '9:00 AM – 9:00 PM' },
+      { day: 'Saturday', hours: '9:00 AM – 7:00 PM' },
+      { day: 'Sunday', hours: 'Closed' },
+    ];
+
+  // Amenity/feature groups (offerings, accessibility, atmosphere, ...) shown
+  // only on the standalone About page.
+  const extensions = business.extensions || {};
+  const amenityKeys = Object.keys(extensions).filter((k) => Array.isArray(extensions[k]) && extensions[k].length > 0);
+  const preferredAmenityKeys = ['offerings', 'accessibility', 'atmosphere'];
+  const amenitySections = (preferredAmenityKeys.filter((k) => amenityKeys.includes(k)).length > 0
+    ? preferredAmenityKeys.filter((k) => amenityKeys.includes(k))
+    : amenityKeys.slice(0, 3)
+  ).map((key) => ({
+    key,
+    label: key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+    items: extensions[key],
+  }));
 
   return (
     <>
@@ -350,6 +391,97 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           white-space: pre-line;
           font-weight: 300;
         }
+        .dbp-about-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 24px;
+          color: #ff9e8d;
+          font-size: 0.9rem;
+          font-weight: 600;
+          text-decoration: none;
+          letter-spacing: 0.03em;
+        }
+        .dbp-about-more:hover { color: #ff7e67; text-decoration: underline; }
+        .dbp-about-inner-wide { max-width: 920px; }
+
+        /* ─── ABOUT: quick facts (about page only) ─── */
+        .dbp-about-facts {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 32px;
+        }
+        .dbp-about-pill {
+          font-size: 0.8rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          padding: 7px 16px;
+          border-radius: 100px;
+        }
+        .dbp-about-pill-accent {
+          color: #ff9e8d;
+          background: rgba(255, 126, 103, 0.12);
+          border-color: rgba(255, 126, 103, 0.3);
+        }
+
+        /* ─── ABOUT: amenities (about page only) ─── */
+        .dbp-about-amenities {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 20px;
+          margin-top: 56px;
+          text-align: left;
+        }
+        .dbp-amenity-card {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 24px;
+        }
+        .dbp-amenity-card h3 {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #ff9e8d;
+          margin: 0 0 16px 0;
+        }
+        .dbp-amenity-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .dbp-amenity-card li {
+          font-size: 0.92rem;
+          color: rgba(255, 255, 255, 0.72);
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          font-weight: 300;
+        }
+        .dbp-amenity-card li::before { content: '✓'; color: #ff7e67; font-weight: 700; flex-shrink: 0; }
+
+        /* ─── ABOUT: hours (about page only) ─── */
+        .dbp-about-hours { margin-top: 56px; text-align: left; max-width: 460px; margin-left: auto; margin-right: auto; }
+        .dbp-about-hours-title {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #ff9e8d;
+          margin: 0 0 18px 0;
+          text-align: center;
+        }
+        .dbp-about-hour-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: 0.92rem;
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .dbp-about-hour-row:first-child { border-top: 1px solid rgba(255, 255, 255, 0.1); }
 
         /* ─── SERVICES ─── */
         .dbp-services {
@@ -662,10 +794,59 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         {/* ─── ABOUT ─── */}
         {(isHome || page === 'about') && (
         <section id="about" className="dbp-about">
-          <div className="dbp-about-inner">
+          <div className={`dbp-about-inner ${page === 'about' ? 'dbp-about-inner-wide' : ''}`}>
             <div className="dbp-about-eyebrow">Our Story</div>
             <h2>About {shortName}</h2>
-            <p>{aboutText}</p>
+            <p>{isHome ? aboutPreview : aboutText}</p>
+            {isHome && aboutParagraphs.length > 1 && (
+              <a className="dbp-about-more" href={hrefFor('about')}>
+                Read Our Full Story
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            )}
+
+            {page === 'about' && (
+              <>
+                {(type || categories.length > 0 || priceRange) && (
+                  <div className="dbp-about-facts">
+                    {type && <span className="dbp-about-pill">{type}</span>}
+                    {categories.slice(0, 6).map((cat, i) => (
+                      <span key={i} className="dbp-about-pill">{cat}</span>
+                    ))}
+                    {priceRange && <span className="dbp-about-pill dbp-about-pill-accent">{priceRange}</span>}
+                  </div>
+                )}
+
+                {amenitySections.length > 0 && (
+                  <div className="dbp-about-amenities">
+                    {amenitySections.map((sec) => (
+                      <div key={sec.key} className="dbp-amenity-card">
+                        <h3>{sec.label}</h3>
+                        <ul>
+                          {sec.items.slice(0, 6).map((item, i) => (
+                            <li key={i}>{typeof item === 'string' ? item : item.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="dbp-about-hours">
+                  <h3 className="dbp-about-hours-title">Hours</h3>
+                  <div>
+                    {businessHours.map((item, idx) => (
+                      <div key={idx} className="dbp-about-hour-row">
+                        <span>{item.day}</span>
+                        <span>{item.hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
         )}

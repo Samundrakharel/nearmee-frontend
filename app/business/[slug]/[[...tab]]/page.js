@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug, ensureReviewsSummary } from '../../../lib/api';
+import { getBusinessBySlug } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
 import BusinessOverview from '../../../components/BusinessOverview';
@@ -23,9 +23,9 @@ const PATH_TO_TAB = {
 // notFound() so it renders the styled app/not-found.js page under a real 404
 // status instead of a 200 "not found" div, and so subdomains get the same
 // 404 page as the main site.
-async function fetchBusiness(slug, queryParams, skipGenerate) {
+async function fetchBusiness(slug, queryParams) {
   try {
-    return await getBusinessBySlug(slug, queryParams, skipGenerate);
+    return await getBusinessBySlug(slug, queryParams);
   } catch (err) {
     if (err?.status === 404) return null;
     throw err;
@@ -50,7 +50,7 @@ export async function generateMetadata(props) {
 
   let biz;
   try {
-    biz = await fetchBusiness(params.slug, {}, true);
+    biz = await fetchBusiness(params.slug, {});
   } catch (e) {
     console.error('generateMetadata failed:', e.message);
     return {
@@ -105,12 +105,11 @@ export default async function BusinessTabbedPage(props) {
   const activeTabPath = resolveTabPath(tab);
   if (!activeTabPath) notFound();
 
-  // skipGenerate: About Us is never generated on render. This page is served
-  // to crawlers far more often than to people, and with tens of thousands of
-  // listings still ungenerated, one live LLM call per crawled business is
-  // unbounded spend driven by whoever happens to be crawling us. Backfill it
-  // deliberately instead: `python manage.py generate_about_us`.
-  const business = await fetchBusiness(slug, {}, true);
+  // About Us and the reviews summary are never generated on render — both are
+  // backfilled on a schedule by Celery, so this page only ever reads whatever
+  // is already in the database. See restaurants/tasks.py
+  // (backfill_about_us / backfill_reviews_summaries).
+  const business = await fetchBusiness(slug, {});
   if (!business) notFound();
 
   const activeTab = PATH_TO_TAB[activeTabPath];
@@ -156,11 +155,6 @@ export default async function BusinessTabbedPage(props) {
   } else if (activeTab === 'Menu') {
     content = <BusinessMenu business={menuBusiness} />;
   } else {
-    // Overview — the only tab that renders the reviews summary, so it is also
-    // the only one that pays to generate it. Awaiting here puts the summary in
-    // the server-rendered HTML, so crawlers see it too.
-    await ensureReviewsSummary(business);
-
     content = (
       <main className="business-main">
         <div className="container">

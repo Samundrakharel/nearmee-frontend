@@ -961,21 +961,16 @@ export async function getTopBusinessesByCategory(params = {}) {
  * GET /businesses/{slug}/
  * Returns: Business (full detail)
  */
-export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = false) {
+// About Us and the reviews summary are never generated from a request path —
+// both are backfilled on a schedule by Celery (restaurants.tasks.backfill_about_us
+// / backfill_reviews_summaries), so a business simply has empty copy until its
+// turn in the backfill comes up. This keeps crawler traffic from ever
+// triggering a billable LLM call.
+export async function getBusinessBySlug(slug, queryParams = {}) {
   try {
     const params = new URLSearchParams(queryParams).toString();
     const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
     const business = transformBusiness(data);
-
-    if (!skipGenerate && !business.aboutUs) {
-      try {
-        const generated = await generateAboutUs(slug);
-        business.aboutUs = generated.about_us || '';
-        business.about = generated.about_us || business.about;
-      } catch (e) {
-        console.error('Failed to generate about_us:', e);
-      }
-    }
 
     return business;
   } catch (err) {
@@ -984,32 +979,6 @@ export async function getBusinessBySlug(slug, queryParams = {}, skipGenerate = f
     }
     throw err;
   }
-}
-
-/**
- * Populate `business.reviewsSummary`, generating it if this is the first time
- * anyone has needed it.
- *
- * Call this only from the page that actually renders the summary (the Overview
- * tab). Keeping it out of getBusinessBySlug means visiting /menu or /reviews
- * costs no extra request, and mutating the passed-in business keeps the call
- * site to one line.
- *
- * No-ops when a summary already exists or the business has no reviews, so the
- * request only ever fires on a genuine first render.
- */
-export async function ensureReviewsSummary(business) {
-  if (!business || business.reviewsSummary) return business;
-  if ((business.reviews?.list?.length || 0) === 0) return business;
-
-  try {
-    const generated = await generateReviewsSummary(business.slug);
-    business.reviewsSummary = generated.reviews_summary || '';
-  } catch (e) {
-    console.error('Failed to generate reviews summary:', e);
-  }
-
-  return business;
 }
 
 /**
