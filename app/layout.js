@@ -20,19 +20,17 @@ const inter = Inter({
 });
 
 // Pre-hydration loader CSS lives in globals.css (#page-loader etc.) and the
-// matching script renders at the top of <body> below — neither needs to be
+// matching script renders at the top of <body> below — it doesn't need to be
 // literally inside <head>, which is what lets the root layout avoid a manual
 // <head> override (see note on `headHtml`).
+//
+// Google Analytics used to be hardcoded here, but GA wants to load from
+// <head>, and the client asked for it to be admin-editable rather than
+// baked into the frontend. It's now a "head"-placement PageScript managed
+// from the backend admin (see core/migrations for the seeded row), so it
+// flows through `byPlacement.head` / `headHtml` below like any other
+// admin-managed script.
 const STATIC_BODY_SCRIPTS = `
-  <!-- ANALYTICS -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYVZ90Z0JH"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-RYVZ90Z0JH');
-  </script>
-
   <!-- PRE-HYDRATION LOADER SCRIPT (styles are in globals.css) -->
   <script>
     (function () {
