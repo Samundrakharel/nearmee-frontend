@@ -104,18 +104,21 @@ export async function getStateByCode(code, countryCode) {
 
 /**
  * Generate a subdomain URL for a given business slug.
- * e.g. pizza-hut → https://pizza-hut.nearmee.net
+ * e.g. pizza-hut → https://www.pizza-hut.nearmee.net
+ *
+ * "www." is canonical here, mirroring www.nearmee.net for the main site.
  */
 export function getBusinessSubdomainUrl(slug) {
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
-  return `${protocol}://${slug}.${baseDomain}${port}`;
+  return `${protocol}://www.${slug}.${baseDomain}${port}`;
 }
 
 /**
  * Check if the current hostname is a business subdomain.
  * e.g. pizza-hut.nearmee.net → true
+ *      www.pizza-hut.nearmee.net → true
  *      nearmee.net → false
  *      www.nearmee.net → false
  */
@@ -130,17 +133,24 @@ export function isBusinessSubdomain() {
     return false;
   }
 
-  // Check against reserved subdomains
-  const parts = hostname.split('.');
-  const subdomain = parts[0];
-  const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media"];
-
-  if (reserved.includes(subdomain.toLowerCase())) {
+  // If it ends with the base domain and has a subdomain part, it's a business subdomain
+  if (!hostname.endsWith(`.${baseDomain}`)) {
     return false;
   }
 
-  // If it ends with the base domain and has a subdomain part, it's a business subdomain
-  return hostname.endsWith(`.${baseDomain}`);
+  // www.<slug>.nearmee.net is the canonical business subdomain form — strip
+  // the "www." label before checking it against the reserved list, so it
+  // isn't mistaken for the reserved "www" (main site) host.
+  let subject = hostname;
+  if (subject.startsWith('www.')) {
+    subject = subject.slice('www.'.length);
+    if (subject === baseDomain) return false;
+  }
+
+  const subdomain = subject.split('.')[0];
+  const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media", "auth-admin", "manage"];
+
+  return !reserved.includes(subdomain.toLowerCase());
 }
 
 /**

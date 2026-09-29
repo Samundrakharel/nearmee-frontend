@@ -79,7 +79,7 @@ export async function generateMetadata(props) {
     description = seo.menu_description || description;
   }
 
-  const canonical = seo.canonical || `https://${params.slug}.nearmee.net${activeTabPath !== 'overview' ? `/${activeTabPath}` : ''}`;
+  const canonical = seo.canonical || `https://www.${params.slug}.nearmee.net${activeTabPath !== 'overview' ? `/${activeTabPath}` : ''}`;
   const robots = seo.robots || { index: true, follow: true };
 
   return {

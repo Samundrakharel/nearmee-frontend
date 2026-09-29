@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'nearmee.net';
 
 // Subdomains that should NOT be treated as business slugs
-const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging']);
+const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging', 'auth-admin', 'manage']);
 
 const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
 
@@ -69,6 +69,13 @@ export function proxy(request) {
     slug = hostWithoutPort.slice(0, hostWithoutPort.length - BASE_DOMAIN.length - 1);
   } else if (isNearmeeLocal) {
     slug = hostWithoutPort.slice(0, hostWithoutPort.length - '.nearmee.local'.length);
+  }
+
+  // www.<slug>.nearmee.net is the canonical business subdomain form (mirroring
+  // www.nearmee.net for the main site) — strip the "www." label so the slug
+  // matches the business, not a literal "www.pizza-hut" that resolves to nothing.
+  if (slug.startsWith('www.')) {
+    slug = slug.slice('www.'.length);
   }
 
   // Ignore empty or reserved subdomains
