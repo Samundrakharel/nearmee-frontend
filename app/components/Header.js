@@ -1,11 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { getBusinesses, searchCategories, getBusinessSubdomainUrl, getCategoryRoute, isBusinessSubdomain, getMainDomainUrl } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
+
+// Wellness categories shown in the sub-nav. Slugs match the backend Category rows.
+const WELLNESS_CATEGORIES = [
+  { slug: 'hair-salon', name: 'Hair salon' },
+  { slug: 'nail-salon', name: 'Nail salon' },
+  { slug: 'barber-shop', name: 'Barber shop' },
+  { slug: 'spa', name: 'Spa' },
+  { slug: 'day-spa', name: 'Day spa' },
+  { slug: 'massage-spa', name: 'Massage spa' },
+  { slug: 'massage-therapist', name: 'Massage therapist' },
+  { slug: 'facial-spa', name: 'Facial spa' },
+  { slug: 'skin-care-clinic', name: 'Skin care clinic' },
+  { slug: 'eyelash-salon', name: 'Eyelash salon' },
+  { slug: 'waxing-hair-removal-service', name: 'Waxing' },
+  { slug: 'tanning-salon', name: 'Tanning salon' },
+  { slug: 'medical-spa', name: 'Medical spa' },
+  { slug: 'wellness-center', name: 'Wellness center' },
+  { slug: 'yoga-studio', name: 'Yoga studio' },
+];
 
 export default function Header() {
   const router = useRouter();
@@ -26,6 +45,27 @@ export default function Header() {
   const [searching, setSearching] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('');
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const categoriesRef = useRef(null);
+
+  useEffect(() => {
+    if (!categoriesOpen) return;
+    const close = (e) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target)) setCategoriesOpen(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setCategoriesOpen(false); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [categoriesOpen]);
+
+  // Category pages and search live on the main domain, not a business subdomain.
+  const mainHref = (path) => (
+    typeof window !== 'undefined' && isBusinessSubdomain() ? `${getMainDomainUrl()}${path}` : path
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -345,6 +385,51 @@ export default function Header() {
             </>
           )}
         </nav>
+      </div>
+
+      {/* Sub-nav: categories + write review */}
+      <div className="header-subnav">
+        <div className="header-subnav-inner">
+          <div className="subnav-categories" ref={categoriesRef}>
+            <button
+              type="button"
+              className="btn-categories"
+              aria-expanded={categoriesOpen}
+              aria-haspopup="true"
+              onClick={() => setCategoriesOpen((o) => !o)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                <path d="M6 1v3M10 1v3M14 1v3" />
+              </svg>
+              Categories
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            {categoriesOpen && (
+              <div className="categories-dropdown">
+                {WELLNESS_CATEGORIES.map((cat) => (
+                  <a
+                    key={cat.slug}
+                    href={mainHref(getCategoryRoute(cat.slug, { country, state, city, countryCode, stateCode }))}
+                    onClick={() => setCategoriesOpen(false)}
+                  >
+                    {cat.name}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+          <a href={mainHref('/search')} className="subnav-write-review">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            Write review
+          </a>
+        </div>
       </div>
 
       {/* Mobile Search Overlay */}

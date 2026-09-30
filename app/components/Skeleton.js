@@ -117,7 +117,7 @@ function FilterSidebarSkeleton() {
         alignSelf: 'start',
         // sticky so it scrolls with the content just like the real sidebar
         position: 'sticky',
-        top: 'calc(var(--header-height, 72px) + 24px)',
+        top: 'calc(var(--header-total-height, 118px) + 24px)',
       }}
     >
       {/* "Filters" heading */}

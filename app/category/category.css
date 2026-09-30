@@ -11,7 +11,7 @@
 /* --- Sidebar Filters --- */
 .filter-sidebar {
   position: sticky;
-  top: calc(var(--header-height) + 24px);
+  top: calc(var(--header-total-height) + 24px);
   align-self: start;
 }
 
