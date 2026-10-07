@@ -10,9 +10,17 @@ import { NextResponse } from 'next/server';
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
 
 // Subdomains that should NOT be treated as business slugs
-const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging']);
+const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp', 'staging', 'auth-admin', 'manage']);
 
 const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
+
+// Top-level routes that only exist on the main site. The business tab
+// catch-all ([[...tab]]) only recognizes overview/reviews/menu, so rewriting
+// these into /business/{slug}/... would 404 — redirect to the main domain
+// instead (e.g. pizza-hut.nearmee.net/login → nearmee.net/login).
+const MAIN_SITE_ONLY_SEGMENTS = new Set([
+  'login', 'signup', 'forgot-password', 'account', 'search', 'category', 'about', 'contact', 'submit-business',
+]);
 
 // Main domains (root domain — no subdomain routing)
 const MAIN_DOMAINS = new Set([
@@ -63,6 +71,13 @@ export function proxy(request) {
     slug = hostWithoutPort.slice(0, hostWithoutPort.length - '.nearmee.local'.length);
   }
 
+  // www.<slug>.nearmee.net is the canonical business subdomain form (mirroring
+  // www.nearmee.net for the main site) — strip the "www." label so the slug
+  // matches the business, not a literal "www.pizza-hut" that resolves to nothing.
+  if (slug.startsWith('www.')) {
+    slug = slug.slice('www.'.length);
+  }
+
   // Ignore empty or reserved subdomains
   if (!slug || RESERVED_SUBDOMAINS.has(slug)) {
     return NextResponse.next(withPathname);
@@ -71,6 +86,17 @@ export function proxy(request) {
   // Prevent infinite rewrite loop
   if (pathname.startsWith('/business')) {
     return NextResponse.next(withPathname);
+  }
+
+  // Send main-site-only routes back to the main domain instead of rewriting
+  // them into a business tab that doesn't exist.
+  const firstSegment = pathname.split('/')[1] || '';
+  if (MAIN_SITE_ONLY_SEGMENTS.has(firstSegment)) {
+    const mainHost = isNearmeeNet ? BASE_DOMAIN : 'nearmee.local';
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.hostname = mainHost;
+    redirectUrl.port = hostname.includes(':') ? hostname.split(':')[1] : '';
+    return NextResponse.redirect(redirectUrl);
   }
 
   // robots.txt/sitemap.xml/ads.txt are per-origin (RFC 9309) and served by

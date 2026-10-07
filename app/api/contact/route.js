@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
 
 /**
  * Receives submissions from the contact form on /contact.
  *
  * Validation and spam filtering happen here so the rules cannot be bypassed by
- * skipping the client-side form. Delivery is deliberately pluggable:
+ * skipping the client-side form. Delivery sends the message by email through
+ * Zoho Mail's SMTP relay (see ZOHO_SMTP_* below) and also stores it in the Django
+ * backend (/api/contact/, with business attribution); CONTACT_WEBHOOK_URL is
+ * kept as an optional notification (Slack, Zapier, etc.) alongside them.
  *
- *   - Set CONTACT_WEBHOOK_URL to forward each message as JSON (Slack incoming
- *     webhook, Zapier/Make catch hook, an internal endpoint — anything that
- *     accepts a POST). This is the quickest way to start actually receiving mail.
- *   - Or replace deliver() below with an SMTP send / a Django API call once
- *     there is an email backend to talk to.
- *
- * Until one of those is in place the message is logged server-side and the
- * request fails with 503, so the form shows its "email us directly" fallback
- * rather than telling a visitor their message was sent when it went nowhere.
+ * If none of them accepts the message it is logged server-side and the request
+ * fails with 503, so the form shows its "email us directly" fallback rather
+ * than telling a visitor their message was sent when it went nowhere.
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -78,18 +76,90 @@ function validate(payload) {
   return { data: { name, email, subject, message, businessSlug } };
 }
 
-async function deliver(message) {
-  let delivered = false;
+let cachedTransporter = null;
 
-  // 1. Try sending to Django Backend API
+/**
+ * Lazily builds (and caches) the Zoho SMTP transporter. Zoho requires the
+ * authenticated mailbox and the "from" address to match, so replies go out
+ * as CONTACT_TO_EMAIL / ZOHO_SMTP_USER with the visitor's address set as
+ * replyTo — hitting "reply" in the inbox goes straight back to them.
+ */
+function getTransporter() {
+  const user = process.env.ZOHO_SMTP_USER;
+  const pass = process.env.ZOHO_SMTP_PASS;
+  if (!user || !pass) return null;
+
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
+      port: Number(process.env.ZOHO_SMTP_PORT) || 465,
+      secure: true, // port 465 is implicit TLS
+      auth: { user, pass },
+    });
+  }
+
+  return cachedTransporter;
+}
+
+async function deliverByEmail(message) {
+  const transporter = getTransporter();
+  if (!transporter) return false;
+
+  const mailbox = process.env.ZOHO_SMTP_USER;
+  const to = process.env.CONTACT_TO_EMAIL || mailbox;
+
+  await transporter.sendMail({
+    from: { name: 'DoersMarketing Contact Form', address: mailbox },
+    to,
+    replyTo: { name: message.name, address: message.email },
+    subject: `[Contact] ${message.subject} — ${message.name}`,
+    text: [
+      `Name: ${message.name}`,
+      `Email: ${message.email}`,
+      `Subject: ${message.subject}`,
+      '',
+      message.message,
+      '',
+      '---',
+      `Received: ${message.receivedAt}`,
+      `IP: ${message.ip || 'unknown'}`,
+      `User agent: ${message.userAgent || 'unknown'}`,
+    ].join('\n'),
+  });
+
+  return true;
+}
+
+async function deliverByWebhook(message) {
+  const webhook = process.env.CONTACT_WEBHOOK_URL;
+  if (!webhook) return false;
+
+  const res = await fetch(webhook, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(message),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Webhook responded ${res.status}`);
+  }
+
+  return true;
+}
+
+/**
+ * Stores the message in the Django backend (/api/contact/), which attributes it
+ * to a business when `businessSlug` is set. Never throws: an unreachable backend
+ * must not stop the email / webhook channels from delivering.
+ */
+async function deliverByBackend(message) {
   const backendBase =
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
     'http://localhost:8000/api';
 
   try {
-    const backendUrl = `${backendBase.replace(/\/$/, '')}/contact/`;
-    const res = await fetch(backendUrl, {
+    const res = await fetch(`${backendBase.replace(/\/$/, '')}/contact/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,40 +174,31 @@ async function deliver(message) {
       }),
     });
 
-    if (res.ok) {
-      delivered = true;
-    } else {
+    if (!res.ok) {
       console.warn(`[contact] Backend responded with status ${res.status}`);
+      return false;
     }
+    return true;
   } catch (err) {
     console.warn('[contact] Could not reach backend /api/contact/:', err.message);
+    return false;
+  }
+}
+
+async function deliver(message) {
+  const emailed = await deliverByEmail(message);
+  const webhooked = await deliverByWebhook(message);
+  const stored = await deliverByBackend(message);
+
+  if (!emailed && !webhooked && !stored) {
+    console.warn(
+      '[contact] None of ZOHO_SMTP_*, CONTACT_WEBHOOK_URL or the backend accepted the message — logged only, not delivered:',
+      message
+    );
+    return false;
   }
 
-  // 2. Also forward to webhook if configured
-  const webhook = process.env.CONTACT_WEBHOOK_URL;
-  if (webhook) {
-    try {
-      const res = await fetch(webhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
-      });
-      if (res.ok) {
-        delivered = true;
-      }
-    } catch (err) {
-      console.warn('[contact] Webhook delivery failed:', err.message);
-    }
-  }
-
-  // If either backend accepted it, or in local development we log it safely
-  if (!delivered && !webhook) {
-    // If running in development without a live backend/webhook, log it so message isn't lost
-    console.log('[contact] Message recorded locally:', message);
-    return true;
-  }
-
-  return delivered;
+  return true;
 }
 
 export async function POST(request) {

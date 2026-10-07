@@ -100,13 +100,8 @@ export default function Header() {
   // Compute home URL once — avoids hydration race conditions
   const getHomeUrl = () => {
     if (typeof window === 'undefined') return '/';
-    const hostname = window.location.hostname;
-    const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
-    const isSub = hostname !== baseDomain &&
-                  hostname !== 'localhost' &&
-                  hostname !== '127.0.0.1' &&
-                  !hostname.startsWith('www.');
-    if (isSub) {
+    if (isBusinessSubdomain()) {
+      const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
       const protocol = window.location.protocol;
       const port = window.location.port ? `:${window.location.port}` : '';
       return `${protocol}//${baseDomain}${port}`;

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug } from '../../../lib/api';
+import { getBusinessBySlug, getBusinesses, getRestaurantCategories } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
 import BusinessOverview from '../../../components/BusinessOverview';
@@ -68,23 +68,29 @@ export async function generateMetadata(props) {
 
   const seo = biz.seo || {};
   let seoTitle = seo.title || `${biz.name} | DoersMarketing`;
+  let description = seo.description || biz.description || `View reviews and services for ${biz.name} on DoersMarketing.`;
 
-  // Customize title based on tab
-  if (activeTabPath === 'reviews') seoTitle = seo.reviews_title || `${biz.name} Reviews | DoersMarketing`;
-  else if (activeTabPath === 'menu') seoTitle = seo.menu_title || `${biz.name} Menu | DoersMarketing`;
-  else if (activeTabPath === 'about') seoTitle = seo.about_title || `About ${biz.name}`;
-  else if (activeTabPath === 'contact') seoTitle = seo.contact_title || `Contact ${biz.name}`;
-
-  let description = seo.description || biz.description || `View reviews and menus for ${biz.name} on DoersMarketing.`;
-  if (activeTabPath === 'about') {
+  // Customize title/description based on tab — reviews/menu can each be
+  // overridden independently by admin (Business.menu_meta_title/
+  // reviews_meta_title/etc., see BusinessDetailSerializer.get_seo()).
+  if (activeTabPath === 'reviews') {
+    seoTitle = seo.reviews_title || `${biz.name} Reviews | DoersMarketing`;
+    description = seo.reviews_description || description;
+  } else if (activeTabPath === 'menu') {
+    seoTitle = seo.menu_title || `${biz.name} Menu | DoersMarketing`;
+    description = seo.menu_description || description;
+  } else if (activeTabPath === 'about') {
+    seoTitle = seo.about_title || `About ${biz.name}`;
     description = (biz.about || biz.description || `Learn more about ${biz.name}.`).slice(0, 300);
   } else if (activeTabPath === 'contact') {
+    seoTitle = seo.contact_title || `Contact ${biz.name}`;
     description = `Contact ${biz.name}${biz.address ? ` at ${biz.address}` : ''}. Phone, opening hours and enquiry form.`.slice(0, 300);
   }
+
   // Each tab is its own URL with its own content, so the canonical has to carry
   // the tab too — pointing them all at the business root would tell search
   // engines these pages are duplicates and drop them from the index.
-  const canonicalRoot = (seo.canonical || `https://${params.slug}.doersmarketing.com`).replace(/\/$/, '');
+  const canonicalRoot = (seo.canonical || `https://www.${params.slug}.doersmarketing.com`).replace(/\/$/, '');
   const canonical = activeTabPath === 'overview' ? canonicalRoot : `${canonicalRoot}/${activeTabPath}`;
   const robots = seo.robots || { index: true, follow: true };
 
@@ -122,8 +128,14 @@ export default async function BusinessTabbedPage(props) {
   // So hand each tab only the fields it actually displays.
   const shellBusiness = { slug: business.slug, name: business.name };
 
+  // Deliberately not falling back to business.about/description here — those
+  // hold the Overview page's About Us text, and showing it on the Menu page
+  // too is exactly the duplication this field exists to avoid.
+  const menuAboutText = business.menuAbout || '';
+
   const menuBusiness = {
     id: business.id,
+    slug: business.slug,
     name: business.name,
     address: business.address,
     phone: business.phone,
@@ -132,12 +144,7 @@ export default async function BusinessTabbedPage(props) {
     menuImages: business.menuImages,
     menuItems: business.menuItems,
     mustTryDishes: business.mustTryDishes,
-    // Descriptive copy is only shown as a fallback when there is no menu, so
-    // resolve it here and leave it empty when real menu items exist — that
-    // keeps about-us text out of the menu page source in the common case.
-    menuAbout: (business.menuItems && business.menuItems.length)
-      ? ''
-      : (business.menuAbout || business.about || business.description || ''),
+    menuAbout: menuAboutText,
   };
 
   const reviewsBusiness = {
@@ -153,7 +160,38 @@ export default async function BusinessTabbedPage(props) {
   if (activeTab === 'Reviews') {
     content = <BusinessFullReviews business={reviewsBusiness} />;
   } else if (activeTab === 'Menu') {
-    content = <BusinessMenu business={menuBusiness} />;
+    let relatedBusinesses = [];
+    let allCategories = [];
+    try {
+      const [bizesData, catsData] = await Promise.all([
+        getBusinesses({ page_size: 6 }).catch(() => ({ results: [] })),
+        getRestaurantCategories().catch(() => ({ results: [] })),
+      ]);
+      const results = bizesData.results || (Array.isArray(bizesData) ? bizesData : []);
+      relatedBusinesses = results.filter(b => b.slug !== business.slug).slice(0, 3);
+      allCategories = catsData.results || (Array.isArray(catsData) ? catsData : []);
+    } catch (e) {
+      console.error('Failed to fetch related menu data:', e);
+    }
+
+    const countryName = business.country?.name || 'Nepal';
+    const locationInfo = {
+      country: business.country?.name || '',
+      countryCode: business.country?.code || '',
+      state: business.state?.name || '',
+      stateCode: business.state?.code || '',
+      city: business.city?.name || '',
+    };
+
+    content = (
+      <BusinessMenu
+        business={menuBusiness}
+        relatedBusinesses={relatedBusinesses}
+        allCategories={allCategories}
+        countryName={countryName}
+        locationInfo={locationInfo}
+      />
+    );
   } else {
     content = (
       <main className="business-main">
@@ -172,12 +210,20 @@ export default async function BusinessTabbedPage(props) {
     );
   }
 
+  // Each page/tab can carry its own JSON-LD graph — homepage/overview is
+  // always auto-generated; menu/reviews use an admin-editable override when
+  // one is set (Business.menu_schema_override / reviews_schema_override, see
+  // BusinessDetailSerializer), else the same auto-generated graph.
+  let pageSchema = business.schema;
+  if (activeTab === 'Menu') pageSchema = business.menuSchema;
+  else if (activeTab === 'Reviews') pageSchema = business.reviewsSchema;
+
   return (
     <>
-      {business.schema && (
+      {pageSchema && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(business.schema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
         />
       )}
       <BusinessPageClient

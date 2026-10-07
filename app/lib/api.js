@@ -104,25 +104,21 @@ export async function getStateByCode(code, countryCode) {
 
 /**
  * Generate a subdomain URL for a given business slug.
- * e.g. pizza-hut → https://pizza-hut.doersmarketing.com
+ * e.g. pizza-hut → https://www.pizza-hut.doersmarketing.com
+ *
+ * "www." is canonical here, matching Business.get_subdomain_url on the backend.
  */
 export function getBusinessSubdomainUrl(slug) {
-  if (!slug) return '/';
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `/business/${slug}`;
-    }
-  }
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
-  const protocol = (typeof window !== 'undefined' && window.location.protocol) ? window.location.protocol.replace(':', '') : 'https';
-  const port = (typeof window !== 'undefined' && window.location.port) ? `:${window.location.port}` : '';
-  return `${protocol}://${slug}.${baseDomain}${port}`;
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
+  return `${protocol}://www.${slug}.${baseDomain}${port}`;
 }
 
 /**
  * Check if the current hostname is a business subdomain.
  * e.g. pizza-hut.doersmarketing.com → true
+ *      www.pizza-hut.doersmarketing.com → true
  *      doersmarketing.com → false
  *      www.doersmarketing.com → false
  */
@@ -137,17 +133,24 @@ export function isBusinessSubdomain() {
     return false;
   }
 
-  // Check against reserved subdomains
-  const parts = hostname.split('.');
-  const subdomain = parts[0];
-  const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media"];
-
-  if (reserved.includes(subdomain.toLowerCase())) {
+  // If it ends with the base domain and has a subdomain part, it's a business subdomain
+  if (!hostname.endsWith(`.${baseDomain}`)) {
     return false;
   }
 
-  // If it ends with the base domain and has a subdomain part, it's a business subdomain
-  return hostname.endsWith(`.${baseDomain}`);
+  // www.<slug>.nearmee.net is the canonical business subdomain form — strip
+  // the "www." label before checking it against the reserved list, so it
+  // isn't mistaken for the reserved "www" (main site) host.
+  let subject = hostname;
+  if (subject.startsWith('www.')) {
+    subject = subject.slice('www.'.length);
+    if (subject === baseDomain) return false;
+  }
+
+  const subdomain = subject.split('.')[0];
+  const reserved = ["www", "api", "admin", "m", "blog", "shop", "static", "media", "auth-admin", "manage"];
+
+  return !reserved.includes(subdomain.toLowerCase());
 }
 
 /**
@@ -507,6 +510,7 @@ export function transformBusiness(biz) {
     // SEO titles from backend
     seo: biz.seo || {
       title: `${biz.name} | DoersMarketing`,
+      description: `View reviews and services for ${biz.name} on DoersMarketing.`,
       menu_title: `${biz.name} Menu | DoersMarketing`,
       reviews_title: `${biz.name} Reviews | DoersMarketing`,
       services_title: `${biz.name} Services | DoersMarketing`,
@@ -530,7 +534,12 @@ export function transformBusiness(biz) {
     menuItems: menuItems,
     menu: menuItems.length > 0 ? [{ category: 'Menu', items: menuItems.map(item => ({ name: item.name, price: item.price ? `$${item.price}` : '', description: item.description || '' })) }] : [],
     mustTryDishes: [],
-    menuAbout: biz.description || '',
+    // The Overview page shows about_us when present, else description. So
+    // `description` is only safe as a Menu-page fallback when about_us
+    // exists (Overview isn't using it) — otherwise both pages would render
+    // the same description and the Menu page renders nothing instead until
+    // menu_about is backfilled (see generate_menu_about management command).
+    menuAbout: biz.menu_about || (aboutUs ? biz.description : '') || '',
 
     // Reviews
     reviews: {
@@ -556,8 +565,13 @@ export function transformBusiness(biz) {
     // For business list cards (shorthand)
     image: biz.cover_image_url || biz.cover_image || (images.length > 0 ? images[0] : ''),
 
-    // SEO Schema (JSON-LD)
+    // SEO Schema (JSON-LD) — homepage/overview is always auto-generated
+    // (never admin-editable); menu/reviews fall back to the same
+    // auto-generated graph unless an admin has set a raw override for that
+    // page (Business.menu_schema_override / reviews_schema_override).
     schema: biz.schema || null,
+    menuSchema: biz.menu_schema || biz.schema || null,
+    reviewsSchema: biz.reviews_schema || biz.schema || null,
   };
 }
 
@@ -967,18 +981,9 @@ export async function getTopBusinessesByCategory(params = {}) {
 // turn in the backfill comes up. This keeps crawler traffic from ever
 // triggering a billable LLM call.
 export async function getBusinessBySlug(slug, queryParams = {}) {
-  try {
-    const params = new URLSearchParams(queryParams).toString();
-    const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
-    const business = transformBusiness(data);
-
-    return business;
-  } catch (err) {
-    if (MOCK_BUSINESS_DETAILS[slug]) {
-      return MOCK_BUSINESS_DETAILS[slug];
-    }
-    throw err;
-  }
+  const params = new URLSearchParams(queryParams).toString();
+  const data = await request(`/businesses/${slug}/${params ? '?' + params : ''}`);
+  return transformBusiness(data);
 }
 
 /**
@@ -1226,7 +1231,7 @@ export async function getPageContent(slug) {
 export async function getPageScripts(path, host) {
   const params = new URLSearchParams({ url_path: path });
   if (host) params.set('host', host);
-  return request(`/page-scripts/?${params.toString()}`);
+  return request(`/page-scripts/?${params.toString()}`).catch(() => []);
 }
 
 // ─── Legacy aliases ────────────────────────────────────────

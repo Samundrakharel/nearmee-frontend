@@ -1,7 +1,7 @@
-/* Inter is loaded via a <link rel="stylesheet"> + preconnect in
-   app/layout.js's head, not an @import here — @import blocks on fetching
-   and parsing this whole file before the browser even discovers the font
-   request, serializing what should be a parallel head resource. */
+/* Inter is loaded via next/font/google in app/layout.js, which self-hosts
+   the font files and exposes the resolved family through the --font-inter
+   custom property (see --font-family below) — no Google Fonts network
+   request, no manual <link>/preconnect needed. */
 
 /* ===== CSS Reset & Variables ===== */
 :root {
@@ -31,7 +31,7 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   --max-width: 1280px;
   --header-height: 72px;
   --subnav-height: 46px;
@@ -2179,9 +2179,6 @@ input {
 }
 
 @media (max-width: 900px) {
-  /* Padding deliberately not changed here: .container only narrows to 16px at
-     768px, so tightening the header earlier left the logo 8px inside the page
-     content below it. The 16px header padding lives in the 768px block. */
   .header-inner {
     gap: 8px;
   }
@@ -2472,7 +2469,11 @@ input {
 
 
 
-/* ===== PRE-HYDRATION PAGE LOADER ===== */
+/* ===== PRE-HYDRATION PAGE LOADER =====
+   Moved here from app/layout.js's inline STATIC_HEAD_HTML <style> block so
+   that block (and the manual <head> override it required) could be removed
+   — that override was what forced Next.js's per-route SEO <head> tags
+   (title/description/robots/canonical) to always render AFTER it. */
 #page-loader {
   position: fixed;
   inset: 0;
@@ -2483,7 +2484,7 @@ input {
   align-items: center;
   justify-content: center;
   gap: 24px;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
 #page-loader.hidden {
@@ -2492,14 +2493,31 @@ input {
   pointer-events: none;
 }
 
-/* Animated logo mark */
-#page-loader .loader-logo svg {
-  animation: loaderPulse 1.6s ease-in-out infinite;
+.loader-hex-path {
+  animation: _hexDash 2s linear infinite;
 }
 
-@keyframes loaderPulse {
+@keyframes _hexDash {
+  0%   { stroke-dashoffset: 300; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.loader-logo-svg {
+  animation: _pulse 1.6s ease-in-out infinite;
+}
+
+.loader-label {
+  font-family: var(--font-family);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  animation: _fade 1.6s ease-in-out infinite;
+}
+
+@keyframes _pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.7; transform: scale(0.96); }
+  50%       { opacity: 0.7; transform: scale(0.95); }
 }
 
 /* Spinner ring */
@@ -2516,6 +2534,11 @@ input {
   to { transform: rotate(360deg); }
 }
 
+@keyframes _fade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
 /* Top progress bar */
 #page-progress-bar {
   position: fixed;
@@ -2527,6 +2550,33 @@ input {
   z-index: 100000;
   transition: width 0.4s ease;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Doers loader (ripple + coral progress bar) — moved here from the inline
+   <style> that used to live in layout.js, so the root layout can stay free of
+   a manual <head> override. */
+.loader-ring {
+  transform-origin: 50px 50px;
+  animation: _ripple 1.8s ease-out infinite;
+}
+.loader-ring.r2 { animation-delay: 0.6s; }
+.loader-ring.r3 { animation-delay: 1.2s; }
+.loader-dot {
+  transform-origin: 50px 50px;
+  animation: _dot 1.8s ease-in-out infinite;
+}
+@keyframes _ripple {
+  0%   { transform: scale(0.28); opacity: 0.5; }
+  70%  { opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes _dot {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.78); }
+}
+#page-progress-bar {
+  background: linear-gradient(90deg, #ff7e67, #18181b);
+  box-shadow: 0 0 10px rgba(255, 126, 103, 0.6);
 }
 
 /* ===== STATIC CONTENT PAGES (About / Contact) ===== */
@@ -3139,4 +3189,256 @@ textarea.contact-input {
 @media (max-width: 768px) {
   .header-subnav-inner { padding: 0 16px; }
   .categories-dropdown { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== Menu Page Redesign ===== */
+
+/* --- Section 1: About Menu --- */
+.menu-about-section {
+  padding: 40px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.menu-about-content,
+.menu-about-left {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.menu-about-content h2,
+.menu-about-left h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.menu-about-text {
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: #475569;
+  margin: 0 0 28px 0;
+}
+
+.menu-must-try-heading {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.menu-must-try-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-must-try-list li {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.menu-must-try-list li strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* --- Section 2: Menu Items (keeps existing card grid but wrapped) --- */
+.menu-items-section {
+  padding: 40px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.menu-items-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.menu-items-section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.menu-items-count {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* --- Section 3: Related Menu Searches --- */
+.menu-related-section {
+  padding: 40px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.menu-related-section h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 24px 0;
+}
+
+.menu-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.menu-related-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.menu-related-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.menu-related-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  background: #f1f5f9;
+}
+
+.menu-related-card-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.menu-related-card-body {
+  padding: 16px;
+}
+
+.menu-related-card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-related-card-categories {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.menu-related-card-categories .cat-separator {
+  color: #cbd5e1;
+  margin: 0 4px;
+  font-size: 0.7rem;
+}
+
+.menu-related-card-address {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- Section 4: Highly Searched --- */
+.menu-highly-searched {
+  padding: 40px 0;
+}
+
+.menu-highly-searched h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+}
+
+.menu-highly-searched-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 40px;
+}
+
+.menu-highly-searched-grid li {
+  font-size: 0.95rem;
+  color: #1a5276;
+  line-height: 1.8;
+  list-style: disc;
+  margin-left: 18px;
+}
+
+.menu-highly-searched-grid li a {
+  color: #1a5276;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.menu-highly-searched-grid li a:hover {
+  color: #0d7377;
+  text-decoration: underline;
+}
+
+/* --- Menu Page Responsive --- */
+@media (max-width: 900px) {
+  .menu-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .menu-highly-searched-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .menu-about-section {
+    padding: 24px 0;
+  }
+
+  .menu-items-section,
+  .menu-related-section,
+  .menu-highly-searched {
+    padding: 24px 0;
+  }
+
+  .menu-related-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .menu-related-card-image {
+    height: 180px;
+  }
+
+  .menu-highly-searched-grid {
+    grid-template-columns: 1fr;
+  }
 }
