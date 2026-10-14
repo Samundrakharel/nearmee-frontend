@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import ContactForm from './ContactForm';
 
 // `page` picks which of the microsite's sections this URL renders on its own:
 // 'home' is the full single-page site, 'about' and 'contact' are the standalone
@@ -647,10 +646,6 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           flex-shrink: 0;
         }
         .dbp-contact-icon svg { width: 18px; height: 18px; color: #ff7e67; }
-        .dbp-contact-form {
-          max-width: 1100px;
-          margin: 64px auto 0;
-        }
         .dbp-contact-detail a { color: inherit; text-decoration: none; }
         .dbp-contact-detail a:hover { color: #ff7e67; text-decoration: underline; }
         .dbp-hours-title {
@@ -950,16 +945,6 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
               />
             </div>
           </div>
-
-          {page === 'contact' && (
-            <div className="dbp-contact-form">
-              <ContactForm
-                businessSlug={business.slug}
-                businessName={shortName}
-                fallbackEmail={business.email || 'hello@doersmarketing.com'}
-              />
-            </div>
-          )}
         </section>
         )}
 
