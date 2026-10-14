@@ -104,15 +104,17 @@ export async function getStateByCode(code, countryCode) {
 
 /**
  * Generate a subdomain URL for a given business slug.
- * e.g. pizza-hut → https://www.pizza-hut.doersmarketing.com
+ * e.g. pizzahut → https://pizzahut.doersmarketing.com
  *
- * "www." is canonical here, matching Business.get_subdomain_url on the backend.
+ * No "www." on doersmarketing: matches Business.get_subdomain_url with
+ * BUSINESS_SUBDOMAIN_WWW=False on the backend. www.<slug> still resolves, and
+ * nginx 301s it here.
  */
 export function getBusinessSubdomainUrl(slug) {
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'doersmarketing.com';
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const port = process.env.NODE_ENV === 'production' ? '' : ':3000';
-  return `${protocol}://www.${slug}.${baseDomain}${port}`;
+  return `${protocol}://${slug}.${baseDomain}${port}`;
 }
 
 /**
@@ -138,9 +140,9 @@ export function isBusinessSubdomain() {
     return false;
   }
 
-  // www.<slug>.nearmee.net is the canonical business subdomain form — strip
-  // the "www." label before checking it against the reserved list, so it
-  // isn't mistaken for the reserved "www" (main site) host.
+  // www.<slug> is an accepted (redirected) business subdomain form — strip the
+  // "www." label before checking it against the reserved list, so it isn't
+  // mistaken for the reserved "www" (main site) host.
   let subject = hostname;
   if (subject.startsWith('www.')) {
     subject = subject.slice('www.'.length);

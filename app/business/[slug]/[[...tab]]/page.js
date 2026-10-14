@@ -90,7 +90,7 @@ export async function generateMetadata(props) {
   // Each tab is its own URL with its own content, so the canonical has to carry
   // the tab too — pointing them all at the business root would tell search
   // engines these pages are duplicates and drop them from the index.
-  const canonicalRoot = (seo.canonical || `https://www.${params.slug}.doersmarketing.com`).replace(/\/$/, '');
+  const canonicalRoot = (seo.canonical || `https://${params.slug}.doersmarketing.com`).replace(/\/$/, '');
   const canonical = activeTabPath === 'overview' ? canonicalRoot : `${canonicalRoot}/${activeTabPath}`;
   const robots = seo.robots || { index: true, follow: true };
 

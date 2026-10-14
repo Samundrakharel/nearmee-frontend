@@ -71,9 +71,9 @@ export function proxy(request) {
     slug = hostWithoutPort.slice(0, hostWithoutPort.length - '.nearmee.local'.length);
   }
 
-  // www.<slug>.nearmee.net is the canonical business subdomain form (mirroring
-  // www.nearmee.net for the main site) — strip the "www." label so the slug
-  // matches the business, not a literal "www.pizza-hut" that resolves to nothing.
+  // www.<slug> is still accepted (nginx 301s it to <slug>, the canonical form
+  // here) — strip the "www." label so the slug matches the business, not a
+  // literal "www.pizza-hut" that resolves to nothing.
   if (slug.startsWith('www.')) {
     slug = slug.slice('www.'.length);
   }
