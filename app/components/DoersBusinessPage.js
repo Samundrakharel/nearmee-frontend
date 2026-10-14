@@ -88,6 +88,16 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
       { day: 'Sunday', hours: 'Closed' },
     ];
 
+  // Headline numbers for the standalone About page. Built from the raw fields
+  // (not the placeholder fallbacks above) so a business never shows made-up stats.
+  const openDays = businessHours.filter((d) => !/closed|n\/a/i.test(d.hours)).length;
+  const aboutStats = [
+    business.rating > 0 && { label: 'Rating', value: `${Number(business.rating).toFixed(1)}★` },
+    reviewCount > 0 && { label: 'Reviews', value: reviewCount },
+    Object.keys(rawHours).length > 0 && openDays > 0 && { label: 'Days Open', value: openDays },
+    priceRange && { label: 'Price Range', value: priceRange },
+  ].filter(Boolean);
+
   // Amenity/feature groups (offerings, accessibility, atmosphere, ...) shown
   // only on the standalone About page.
   const extensions = business.extensions || {};
@@ -402,85 +412,200 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           letter-spacing: 0.03em;
         }
         .dbp-about-more:hover { color: #ff7e67; text-decoration: underline; }
-        .dbp-about-inner-wide { max-width: 920px; }
 
-        /* ─── ABOUT: quick facts (about page only) ─── */
-        .dbp-about-facts {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 10px;
-          margin-top: 32px;
+        /* ─── ABOUT PAGE (standalone /about) ─── */
+        .dbp-ap-wrap { max-width: 1100px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+        .dbp-ap-eyebrow {
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #ff7e67;
+          margin-bottom: 14px;
         }
-        .dbp-about-pill {
+        .dbp-ap-intro {
+          background: #fff5f2;
+          padding: 72px 0 56px;
+          border-bottom: 1px solid rgba(255, 126, 103, 0.15);
+        }
+        .dbp-ap-intro h1 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(2.4rem, 5vw, 3.6rem);
+          font-weight: 600;
+          line-height: 1.1;
+          margin: 0;
+          color: #18181b;
+        }
+        .dbp-ap-address { margin-top: 14px; color: #71717a; font-size: 0.95rem; }
+        .dbp-ap-story {
+          display: grid;
+          grid-template-columns: 5fr 7fr;
+          gap: 72px;
+          align-items: center;
+          padding-top: 88px;
+          padding-bottom: 88px;
+        }
+        .dbp-ap-visual { position: relative; }
+        .dbp-ap-visual::before {
+          content: '';
+          position: absolute;
+          inset: 20px -20px -20px 20px;
+          border: 2px solid #ff7e67;
+          border-radius: 20px;
+        }
+        .dbp-ap-photo {
+          position: relative;
+          aspect-ratio: 4 / 5;
+          border-radius: 20px;
+          background-size: cover;
+          background-position: center;
+          box-shadow: 0 24px 60px rgba(24, 24, 27, 0.18);
+        }
+        .dbp-ap-monogram {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #ff7e67, #e0533c);
+          font-family: 'Playfair Display', serif;
+          font-size: 8rem;
+          color: #ffffff;
+        }
+        .dbp-ap-text p {
+          font-size: 1.08rem;
+          line-height: 1.85;
+          color: #3f3f46;
+          margin: 0 0 18px 0;
+        }
+        .dbp-ap-text p:first-child::first-letter {
+          font-family: 'Playfair Display', serif;
+          float: left;
+          font-size: 3.8rem;
+          line-height: 0.9;
+          color: #ff7e67;
+          padding: 6px 12px 0 0;
+        }
+        .dbp-ap-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+        .dbp-ap-pill {
           font-size: 0.8rem;
           font-weight: 600;
           letter-spacing: 0.04em;
-          color: rgba(255, 255, 255, 0.8);
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.14);
+          color: #e0533c;
+          background: #fff5f2;
+          border: 1px solid rgba(255, 126, 103, 0.3);
           padding: 7px 16px;
           border-radius: 100px;
         }
-        .dbp-about-pill-accent {
-          color: #ff9e8d;
-          background: rgba(255, 126, 103, 0.12);
-          border-color: rgba(255, 126, 103, 0.3);
-        }
-
-        /* ─── ABOUT: amenities (about page only) ─── */
-        .dbp-about-amenities {
+        .dbp-ap-pill-dark { color: #ffffff; background: #18181b; border-color: #18181b; }
+        .dbp-ap-stats { background: #18181b; padding: 56px 0; }
+        .dbp-ap-stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 20px;
-          margin-top: 56px;
-          text-align: left;
-        }
-        .dbp-amenity-card {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          padding: 24px;
-        }
-        .dbp-amenity-card h3 {
-          font-size: 0.82rem;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #ff9e8d;
-          margin: 0 0 16px 0;
-        }
-        .dbp-amenity-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-        .dbp-amenity-card li {
-          font-size: 0.92rem;
-          color: rgba(255, 255, 255, 0.72);
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          font-weight: 300;
-        }
-        .dbp-amenity-card li::before { content: '✓'; color: #ff7e67; font-weight: 700; flex-shrink: 0; }
-
-        /* ─── ABOUT: hours (about page only) ─── */
-        .dbp-about-hours { margin-top: 56px; text-align: left; max-width: 460px; margin-left: auto; margin-right: auto; }
-        .dbp-about-hours-title {
-          font-size: 0.82rem;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #ff9e8d;
-          margin: 0 0 18px 0;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 32px;
           text-align: center;
         }
-        .dbp-about-hour-row {
+        .dbp-ap-stat-value {
+          font-family: 'Playfair Display', serif;
+          font-size: 2.6rem;
+          color: #ff7e67;
+          line-height: 1.1;
+        }
+        .dbp-ap-stat-label {
+          margin-top: 8px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .dbp-ap-block { padding-top: 88px; padding-bottom: 88px; }
+        .dbp-ap-block h2 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+          font-weight: 600;
+          margin: 0 0 36px 0;
+        }
+        .dbp-ap-amenities {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 20px;
+        }
+        .dbp-ap-amenity {
+          background: #ffffff;
+          border: 1px solid #f4e4df;
+          border-top: 3px solid #ff7e67;
+          border-radius: 16px;
+          padding: 26px;
+          box-shadow: 0 8px 24px rgba(255, 126, 103, 0.06);
+        }
+        .dbp-ap-amenity h3 {
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #18181b;
+          margin: 0 0 16px 0;
+        }
+        .dbp-ap-amenity ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .dbp-ap-amenity li { font-size: 0.93rem; color: #52525b; display: flex; gap: 10px; }
+        .dbp-ap-amenity li::before { content: '✓'; color: #ff7e67; font-weight: 700; flex-shrink: 0; }
+        .dbp-ap-visit-band { background: #fff5f2; padding: 88px 0; }
+        .dbp-ap-visit { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: stretch; }
+        .dbp-ap-hours {
+          background: #ffffff;
+          border-radius: 20px;
+          padding: 36px;
+          border: 1px solid #f4e4df;
+        }
+        .dbp-ap-hours h3, .dbp-ap-cta h3 {
+          font-family: 'Playfair Display', serif;
+          font-size: 1.6rem;
+          font-weight: 600;
+          margin: 0 0 20px 0;
+        }
+        .dbp-ap-hour-row {
           display: flex;
           justify-content: space-between;
-          padding: 12px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          font-size: 0.92rem;
-          color: rgba(255, 255, 255, 0.75);
+          padding: 11px 0;
+          border-bottom: 1px dashed #f0d6cf;
+          font-size: 0.93rem;
+          color: #3f3f46;
         }
-        .dbp-about-hour-row:first-child { border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .dbp-ap-hour-row:last-child { border-bottom: none; }
+        .dbp-ap-cta {
+          background: linear-gradient(135deg, #ff7e67, #e0533c);
+          color: #ffffff;
+          border-radius: 20px;
+          padding: 36px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .dbp-ap-cta-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          opacity: 0.8;
+          margin-bottom: 12px;
+        }
+        .dbp-ap-cta p { margin: 0 0 8px 0; line-height: 1.6; opacity: 0.92; }
+        .dbp-ap-cta-phone { color: #ffffff; font-weight: 600; text-decoration: none; margin-bottom: 8px; }
+        .dbp-ap-cta-phone:hover { text-decoration: underline; }
+        .dbp-ap-cta-btn {
+          margin-top: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #18181b;
+          color: #ffffff;
+          padding: 14px 28px;
+          border-radius: 100px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-decoration: none;
+          transition: transform 0.2s ease;
+        }
+        .dbp-ap-cta-btn:hover { transform: translateY(-2px); }
 
         /* ─── SERVICES ─── */
         .dbp-services {
@@ -701,6 +826,12 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           .dbp-feature-card + .dbp-feature-card { border-left: none; border-top: 1px solid rgba(255, 126, 103, 0.12); }
           .dbp-contact-inner { grid-template-columns: 1fr; gap: 40px; }
           .dbp-map-wrap { height: 320px; }
+          .dbp-ap-intro { padding: 48px 0 40px; }
+          .dbp-ap-story { grid-template-columns: 1fr; gap: 48px; padding-top: 56px; padding-bottom: 56px; }
+          .dbp-ap-visual { max-width: 360px; margin-right: 20px; }
+          .dbp-ap-block, .dbp-ap-visit-band { padding-top: 56px; padding-bottom: 56px; }
+          .dbp-ap-visit { grid-template-columns: 1fr; }
+          .dbp-ap-hours, .dbp-ap-cta { padding: 28px; }
         }
       `}</style>
 
@@ -788,13 +919,13 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         )}
 
         {/* ─── ABOUT ─── */}
-        {(isHome || page === 'about') && (
+        {isHome && (
         <section id="about" className="dbp-about">
-          <div className={`dbp-about-inner ${page === 'about' ? 'dbp-about-inner-wide' : ''}`}>
+          <div className="dbp-about-inner">
             <div className="dbp-about-eyebrow">Our Story</div>
             <h2>About {shortName}</h2>
-            <p>{isHome ? aboutPreview : aboutText}</p>
-            {isHome && aboutParagraphs.length > 1 && (
+            <p>{aboutPreview}</p>
+            {aboutParagraphs.length > 1 && (
               <a className="dbp-about-more" href={hrefFor('about')}>
                 Read Our Full Story
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -802,47 +933,105 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
                 </svg>
               </a>
             )}
+          </div>
+        </section>
+        )}
 
-            {page === 'about' && (
-              <>
-                {(type || categories.length > 0 || priceRange) && (
-                  <div className="dbp-about-facts">
-                    {type && <span className="dbp-about-pill">{type}</span>}
-                    {categories.slice(0, 6).map((cat, i) => (
-                      <span key={i} className="dbp-about-pill">{cat}</span>
-                    ))}
-                    {priceRange && <span className="dbp-about-pill dbp-about-pill-accent">{priceRange}</span>}
-                  </div>
-                )}
+        {/* ─── ABOUT PAGE ─── */}
+        {/* The standalone /about page gets its own light, editorial layout so it
+            doesn't read as a copy of the dark About band on the home page. */}
+        {page === 'about' && (
+        <section id="about" className="dbp-ap">
+          <div className="dbp-ap-intro">
+            <div className="dbp-ap-wrap">
+              <div className="dbp-ap-eyebrow">Our Story</div>
+              <h1>About {shortName}</h1>
+              {business.address && <div className="dbp-ap-address">{business.address}</div>}
+            </div>
+          </div>
 
-                {amenitySections.length > 0 && (
-                  <div className="dbp-about-amenities">
-                    {amenitySections.map((sec) => (
-                      <div key={sec.key} className="dbp-amenity-card">
-                        <h3>{sec.label}</h3>
-                        <ul>
-                          {sec.items.slice(0, 6).map((item, i) => (
-                            <li key={i}>{typeof item === 'string' ? item : item.name}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="dbp-about-hours">
-                  <h3 className="dbp-about-hours-title">Hours</h3>
-                  <div>
-                    {businessHours.map((item, idx) => (
-                      <div key={idx} className="dbp-about-hour-row">
-                        <span>{item.day}</span>
-                        <span>{item.hours}</span>
-                      </div>
-                    ))}
-                  </div>
+          <div className="dbp-ap-wrap dbp-ap-story">
+            <div className="dbp-ap-visual">
+              {heroImage ? (
+                <div className="dbp-ap-photo" style={{ backgroundImage: `url(${heroImage})` }} role="img" aria-label={shortName} />
+              ) : (
+                <div className="dbp-ap-photo dbp-ap-monogram">{shortName.charAt(0)}</div>
+              )}
+            </div>
+            <div className="dbp-ap-text">
+              {aboutParagraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+              {(type || categories.length > 0 || priceRange) && (
+                <div className="dbp-ap-pills">
+                  {type && <span className="dbp-ap-pill dbp-ap-pill-dark">{type}</span>}
+                  {categories.slice(0, 6).map((cat, i) => (
+                    <span key={i} className="dbp-ap-pill">{cat}</span>
+                  ))}
+                  {priceRange && <span className="dbp-ap-pill">{priceRange}</span>}
                 </div>
-              </>
-            )}
+              )}
+            </div>
+          </div>
+
+          {aboutStats.length > 0 && (
+            <div className="dbp-ap-stats">
+              <div className="dbp-ap-wrap dbp-ap-stats-grid">
+                {aboutStats.map((stat) => (
+                  <div key={stat.label} className="dbp-ap-stat">
+                    <div className="dbp-ap-stat-value">{stat.value}</div>
+                    <div className="dbp-ap-stat-label">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {amenitySections.length > 0 && (
+            <div className="dbp-ap-wrap dbp-ap-block">
+              <div className="dbp-ap-eyebrow">Good To Know</div>
+              <h2>What to Expect</h2>
+              <div className="dbp-ap-amenities">
+                {amenitySections.map((sec) => (
+                  <div key={sec.key} className="dbp-ap-amenity">
+                    <h3>{sec.label}</h3>
+                    <ul>
+                      {sec.items.slice(0, 6).map((item, i) => (
+                        <li key={i}>{typeof item === 'string' ? item : item.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="dbp-ap-visit-band">
+            <div className="dbp-ap-wrap dbp-ap-visit">
+              <div className="dbp-ap-hours">
+                <h3>Opening Hours</h3>
+                {businessHours.map((item, idx) => (
+                  <div key={idx} className="dbp-ap-hour-row">
+                    <span>{item.day}</span>
+                    <span>{item.hours}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="dbp-ap-cta">
+                <div className="dbp-ap-cta-label">Visit Us</div>
+                <h3>Come see us at {shortName}</h3>
+                {business.address && <p>{business.address}</p>}
+                {business.phone && (
+                  <a className="dbp-ap-cta-phone" href={`tel:${business.phone.replace(/[^\d+]/g, '')}`}>{business.phone}</a>
+                )}
+                <a className="dbp-ap-cta-btn" href={hrefFor('contact')}>
+                  Contact Us
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            </div>
           </div>
         </section>
         )}
