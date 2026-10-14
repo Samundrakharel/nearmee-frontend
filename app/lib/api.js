@@ -857,96 +857,6 @@ export async function getBusinesses(params = {}) {
   };
 }
 
-const FALLBACK_CATEGORIZED_BUSINESSES = [
-  {
-    category: { id: 'barber', name: 'Barber', slug: 'barber' },
-    businesses: [
-      {
-        id: 'le-barbier-sam',
-        name: 'Le Code | Salon de Barbier | BarberShop',
-        slug: 'le-barbier-sam',
-        type: 'Barbershop',
-        rating: 4.9,
-        reviews: 419,
-        address: '1263 Bd Jolibourg suite 108, Laval, Quebec H7Y 1Z8, Canada',
-        description: 'Specialist barber shop providing haircuts, coloring, and beard grooming services.',
-        image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80',
-        phone: '(819) 775-1049',
-      }
-    ]
-  },
-  {
-    category: { id: 'spa', name: 'Spa', slug: 'spa' },
-    businesses: [
-      {
-        id: 'botanica-spa',
-        name: 'Botanica Spa & Wellness',
-        slug: 'botanica-spa',
-        type: 'Day Spa',
-        rating: 5.0,
-        reviews: 328,
-        address: '450 Av. Victoria, Montreal, Quebec H3W 2N2, Canada',
-        description: 'Luxury day spa offering therapeutic massage, facials, body wraps, and hydrotherapy relaxation.',
-        image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80',
-        phone: '(514) 555-0199',
-      }
-    ]
-  }
-];
-
-const MOCK_BUSINESS_DETAILS = {
-  'le-barbier-sam': {
-    id: 'le-barbier-sam',
-    name: 'Le Code | Salon de Barbier | BarberShop',
-    slug: 'le-barbier-sam',
-    type: 'Barbershop',
-    rating: 4.9,
-    reviews: 419,
-    address: '1263 Bd Jolibourg suite 108, Laval, Quebec H7Y 1Z8, Canada',
-    phone: '(819) 775-1049',
-    description: 'At Le Barbier Sam, we set the standard for modern barbering. Trusted by clients searching for the best barber in Gatineau & Laval.',
-    aboutUs: `At The Le Barbier Sam, we set the standard for modern barbering in 141C Bd Gréber, Gatineau, Quebec J8T 3R1. Our barbershop in Gatineau is trusted by clients searching for the best barber in Gatineau Quebec, or a reliable barber near me.
-
-We serve all ages with kids' haircuts, senior haircuts, and military/first responder cuts, plus special-event grooming such as wedding haircuts and prom haircuts. Whether you want to walk in, need a same-day haircut in Gatineau, or want to book a barber appointment online, Le Barbier Sam makes grooming convenient and professional.
-
-Known as fade specialists in 141C Bd Gréber, Gatineau, Quebec J8T 3R1, visit Le Barbier Sam in Gatineau today.`,
-    services: ['HAIR CUT', 'HAIR STYLE', 'FADE UP', 'BEARD', 'BEARD COLOR'],
-    hours: {
-      Mon: { open: '08:00', close: '20:00' },
-      Tue: { open: '08:00', close: '21:00' },
-      Wed: { open: '08:00', close: '21:00' },
-      Thu: { open: '09:00', close: '21:00' },
-      Fri: { open: '09:00', close: '21:00' },
-      Sat: { open: '09:00', close: '19:00' }
-    },
-    lat: 45.476,
-    lng: -75.701,
-  },
-  'botanica-spa': {
-    id: 'botanica-spa',
-    name: 'Botanica Spa & Wellness',
-    slug: 'botanica-spa',
-    type: 'Day Spa',
-    rating: 5.0,
-    reviews: 328,
-    address: '450 Av. Victoria, Montreal, Quebec H3W 2N2, Canada',
-    phone: '(514) 555-0199',
-    description: 'Luxury day spa offering therapeutic massage, facials, body wraps, and hydrotherapy relaxation.',
-    aboutUs: `Botanica Spa & Wellness provides a peaceful sanctuary in Montreal. Enjoy holistic wellness treatments, customized facials, and deep tissue massages designed to restore body and mind.`,
-    services: ['SWEDISH MASSAGE', 'DEEP TISSUE', 'HYDRATING FACIAL', 'BODY WRAP', 'HYDROTHERAPY'],
-    hours: {
-      Mon: { open: '09:00', close: '20:00' },
-      Tue: { open: '09:00', close: '20:00' },
-      Wed: { open: '09:00', close: '20:00' },
-      Thu: { open: '09:00', close: '21:00' },
-      Fri: { open: '09:00', close: '21:00' },
-      Sat: { open: '09:00', close: '18:00' }
-    },
-    lat: 45.492,
-    lng: -73.618,
-  }
-};
-
 /**
  * GET /top-by-category/
  * Returns: Array of { category: { id, name, ... }, businesses: Business[] }
@@ -965,9 +875,9 @@ export async function getTopBusinessesByCategory(params = {}) {
       ...group,
       businesses: (group.businesses || []).map(transformBusinessListItem)
     }));
-    return results.length > 0 ? results : FALLBACK_CATEGORIZED_BUSINESSES;
+    return results;
   } catch (err) {
-    return FALLBACK_CATEGORIZED_BUSINESSES;
+    return [];
   }
 }
 
