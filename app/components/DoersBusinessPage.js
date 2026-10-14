@@ -507,6 +507,7 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         }
         .dbp-services-desc {
           font-size: 1rem;
+          line-height: 1.8;
           color: #71717a;
           margin-bottom: 48px;
         }
@@ -858,7 +859,7 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
             <div className="dbp-services-eyebrow">What We Offer</div>
             <h2>Our Services</h2>
             <p className="dbp-services-desc">
-              Premium services tailored for you. Membership pricing and exclusive offers available.
+              {business.servicesDescription || 'Premium services tailored for you. Membership pricing and exclusive offers available.'}
             </p>
             <div>
               {services.map((srv, idx) => (

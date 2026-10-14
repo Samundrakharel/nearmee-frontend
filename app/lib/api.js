@@ -486,6 +486,7 @@ export function transformBusiness(biz) {
     slug: biz.slug,
     description: biz.description || '',
     about: aboutUs || biz.description || '',
+    servicesDescription: biz.services_description || '',
     // aboutUs: aboutUs, 
     address: biz.address || '',
     phone: biz.phone || '',

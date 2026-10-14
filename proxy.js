@@ -15,11 +15,14 @@ const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin', 'mail', 'smtp
 const WELL_KNOWN_FILES = new Set(['/robots.txt', '/sitemap.xml', '/ads.txt']);
 
 // Top-level routes that only exist on the main site. The business tab
-// catch-all ([[...tab]]) only recognizes overview/reviews/menu, so rewriting
-// these into /business/{slug}/... would 404 — redirect to the main domain
-// instead (e.g. pizza-hut.nearmee.net/login → nearmee.net/login).
+// catch-all ([[...tab]]) only recognizes overview/reviews/menu/about/contact,
+// so rewriting these into /business/{slug}/... would 404 — redirect to the
+// main domain instead (e.g. pizza-hut.nearmee.net/login → nearmee.net/login).
+// 'about' and 'contact' are business pages now (DoersBusinessPage), so they
+// must not be here: listing them sent a business's About link to the main
+// site's About page.
 const MAIN_SITE_ONLY_SEGMENTS = new Set([
-  'login', 'signup', 'forgot-password', 'account', 'search', 'category', 'about', 'contact', 'submit-business',
+  'login', 'signup', 'forgot-password', 'account', 'search', 'category', 'submit-business',
 ]);
 
 // Main domains (root domain — no subdomain routing)
