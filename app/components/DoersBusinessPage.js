@@ -30,7 +30,11 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
   const services = business.services?.length ? business.services : ['HAIR CUT', 'HAIR STYLE', 'FADE UP', 'BEARD', 'BEARD COLOR'];
   const categories = business.categories || [];
   const rating = business.rating || 4.7;
-  const reviewCount = business.reviewCount || business.reviews?.length || 0;
+  // business.reviews is the {summary, list} object from transformBusiness, not
+  // an array — the count comes from totalReviews.
+  const reviewsList = business.reviews?.list || [];
+  const reviewCount = business.totalReviews || reviewsList.length || 0;
+  const reviewsSummary = business.reviewsSummary || '';
   const heroImage = business.coverImage || business.thumbnail || null;
   const type = business.type || '';
   const priceRange = business.priceRange || '';
@@ -111,6 +115,39 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
     label: key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
     items: extensions[key],
   }));
+
+  // Reviews: the home page shows the summary plus a few reviews, /reviews shows
+  // every review on file. Average comes from the business's real rating, falling
+  // back to the loaded reviews — never the placeholder rating above.
+  const ratedReviews = reviewsList.filter((r) => r.rating >= 1 && r.rating <= 5);
+  const avgRating = Number(business.rating) > 0
+    ? Number(business.rating)
+    : (ratedReviews.length ? ratedReviews.reduce((s, r) => s + Number(r.rating), 0) / ratedReviews.length : 0);
+  const topReviews = reviewsList.slice(0, 3);
+  const hasReviewContent = reviewsList.length > 0 || !!reviewsSummary;
+  const starCounts = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: ratedReviews.filter((r) => Math.round(r.rating) === star).length,
+  }));
+  const renderStars = (value) => {
+    const filled = Math.max(0, Math.min(5, Math.round(Number(value) || 0)));
+    return '★'.repeat(filled) + '☆'.repeat(5 - filled);
+  };
+  const renderReviewCard = (review, idx, full) => (
+    <article key={review.id || idx} className="dbp-rv-card">
+      <div className="dbp-rv-card-head">
+        <div className="dbp-rv-avatar">{review.initials || 'A'}</div>
+        <div>
+          <div className="dbp-rv-author">{review.user}</div>
+          {review.date && <div className="dbp-rv-date">{review.date}</div>}
+        </div>
+      </div>
+      <div className="dbp-rv-stars" aria-label={`${review.rating} out of 5 stars`}>{renderStars(review.rating)}</div>
+      {review.comment && (
+        <p className={`dbp-rv-comment ${full ? '' : 'dbp-rv-clamp'}`}>{review.comment}</p>
+      )}
+    </article>
+  );
 
   return (
     <>
@@ -666,6 +703,163 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           transform: translateX(0);
         }
 
+        /* ─── REVIEWS ─── */
+        .dbp-reviews {
+          padding: 100px 24px;
+          background: #fff5f2;
+          text-align: center;
+        }
+        .dbp-reviews-inner { max-width: 1100px; margin: 0 auto; }
+        .dbp-reviews h2 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(2rem, 4vw, 2.8rem);
+          font-weight: 600;
+          color: #18181b;
+          margin: 0 0 20px 0;
+        }
+        .dbp-rv-score-row {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 28px;
+        }
+        .dbp-rv-score {
+          font-family: 'Playfair Display', serif;
+          font-size: 2.2rem;
+          color: #18181b;
+          line-height: 1;
+        }
+        .dbp-rv-score-stars { color: #ff7e67; letter-spacing: 2px; }
+        .dbp-rv-score-count { color: #71717a; font-size: 0.92rem; }
+        .dbp-rv-summary {
+          max-width: 760px;
+          margin: 0 auto;
+          font-size: 1.05rem;
+          line-height: 1.85;
+          color: #3f3f46;
+        }
+        .dbp-rv-summary-note {
+          margin: 12px 0 0 0;
+          font-size: 0.75rem;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #a1a1aa;
+        }
+        .dbp-rv-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          margin-top: 48px;
+          text-align: left;
+        }
+        .dbp-rv-card {
+          background: #ffffff;
+          border: 1px solid #f4e4df;
+          border-radius: 16px;
+          padding: 26px;
+          box-shadow: 0 8px 24px rgba(255, 126, 103, 0.06);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .dbp-rv-card-head { display: flex; align-items: center; gap: 12px; }
+        .dbp-rv-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #ff7e67, #e0533c);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .dbp-rv-author { font-weight: 600; color: #18181b; font-size: 0.95rem; }
+        .dbp-rv-date { color: #a1a1aa; font-size: 0.8rem; margin-top: 2px; }
+        .dbp-rv-stars { color: #ff7e67; letter-spacing: 2px; font-size: 0.9rem; }
+        .dbp-rv-comment {
+          margin: 0;
+          color: #52525b;
+          font-size: 0.95rem;
+          line-height: 1.7;
+          white-space: pre-line;
+        }
+        .dbp-rv-clamp {
+          display: -webkit-box;
+          -webkit-line-clamp: 5;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .dbp-rv-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 40px;
+          color: #e0533c;
+          font-size: 0.9rem;
+          font-weight: 600;
+          text-decoration: none;
+          letter-spacing: 0.03em;
+        }
+        .dbp-rv-more:hover { color: #ff7e67; text-decoration: underline; }
+        .dbp-rv-empty { color: #a1a1aa; margin: 24px 0 0 0; }
+
+        /* ─── REVIEWS PAGE (standalone /reviews) ─── */
+        .dbp-rp-overview {
+          display: grid;
+          grid-template-columns: 5fr 7fr;
+          gap: 48px;
+          align-items: start;
+          padding-top: 72px;
+          padding-bottom: 24px;
+        }
+        .dbp-rp-overview.no-summary { grid-template-columns: minmax(0, 520px); }
+        .dbp-rp-rating {
+          background: #18181b;
+          color: #ffffff;
+          border-radius: 20px;
+          padding: 36px;
+        }
+        .dbp-rp-rating-score {
+          font-family: 'Playfair Display', serif;
+          font-size: 3.6rem;
+          line-height: 1;
+          color: #ff7e67;
+        }
+        .dbp-rp-rating-stars { color: #ff7e67; letter-spacing: 3px; margin-top: 10px; }
+        .dbp-rp-rating-total { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; margin-top: 8px; }
+        .dbp-rp-bars { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+        .dbp-rp-bar-row { display: grid; grid-template-columns: 34px 1fr 28px; gap: 12px; align-items: center; font-size: 0.85rem; }
+        .dbp-rp-bar-label { color: rgba(255, 255, 255, 0.7); }
+        .dbp-rp-bar-track { height: 8px; border-radius: 100px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+        .dbp-rp-bar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, #ff7e67, #e0533c); }
+        .dbp-rp-bar-count { color: rgba(255, 255, 255, 0.55); text-align: right; }
+        .dbp-rp-bars-note { margin-top: 16px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); }
+        .dbp-rp-summary h2 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+          font-weight: 600;
+          margin: 0 0 20px 0;
+        }
+        .dbp-rp-summary p {
+          font-size: 1.08rem;
+          line-height: 1.85;
+          color: #3f3f46;
+          margin: 0;
+          white-space: pre-line;
+        }
+        .dbp-rp-list { padding-top: 64px; padding-bottom: 88px; }
+        .dbp-rp-list h2 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+          font-weight: 600;
+          margin: 0;
+        }
+        .dbp-rp-list .dbp-rv-grid { margin-top: 32px; }
+
         /* ─── CTA BANNER ─── */
         .dbp-cta {
           background: linear-gradient(135deg, #ff7e67 0%, #e0533c 100%);
@@ -820,7 +1014,8 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           .dbp-header { padding: 14px 20px; }
           .dbp-header.scrolled { padding: 10px 20px; }
           .dbp-nav { gap: 4px; }
-          .dbp-nav-btn { padding: 6px 12px; font-size: 0.82rem; }
+          .dbp-nav { gap: 2px; flex-wrap: wrap; justify-content: flex-end; }
+          .dbp-nav-btn { padding: 6px 8px; font-size: 0.8rem; }
           .dbp-hero { padding: 72px 20px 64px; }
           .dbp-features { grid-template-columns: 1fr; }
           .dbp-feature-card + .dbp-feature-card { border-left: none; border-top: 1px solid rgba(255, 126, 103, 0.12); }
@@ -832,6 +1027,11 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           .dbp-ap-block, .dbp-ap-visit-band { padding-top: 56px; padding-bottom: 56px; }
           .dbp-ap-visit { grid-template-columns: 1fr; }
           .dbp-ap-hours, .dbp-ap-cta { padding: 28px; }
+          .dbp-reviews { padding: 64px 20px; }
+          .dbp-rv-grid { grid-template-columns: 1fr; }
+          .dbp-rp-overview { grid-template-columns: 1fr; gap: 32px; padding-top: 48px; }
+          .dbp-rp-rating { padding: 28px; }
+          .dbp-rp-list { padding-top: 48px; padding-bottom: 56px; }
         }
       `}</style>
 
@@ -846,16 +1046,17 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
             <div className="dbp-header-name">{shortName}</div>
           </div>
           <nav className="dbp-nav">
-            {['home', 'about', 'services', 'contact'].map((id) => (
+            {['home', 'about', 'services', 'reviews', 'contact'].map((id) => (
               <a
                 key={id}
                 href={hrefFor(id)}
                 className={`dbp-nav-btn ${activeNav === id ? 'active' : ''}`}
-                // About and Contact are their own pages, so they always navigate.
-                // Home and Services have no page of their own — on the one-page
-                // home view their targets are already on screen, so scroll there.
+                // About, Reviews and Contact are their own pages, so they always
+                // navigate. Home and Services have no page of their own — on the
+                // one-page home view their targets are already on screen, so
+                // scroll there.
                 onClick={(e) => {
-                  if (page !== 'home' || id === 'about' || id === 'contact') return;
+                  if (page !== 'home' || ['about', 'reviews', 'contact'].includes(id)) return;
                   e.preventDefault();
                   scrollToSection(id === 'home' ? 'hero' : id);
                 }}
@@ -1061,8 +1262,111 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         </section>
         )}
 
-        {/* ─── CTA ─── */}
+        {/* ─── REVIEWS ─── */}
         {isHome && (
+        <section id="reviews" className="dbp-reviews">
+          <div className="dbp-reviews-inner">
+            <div className="dbp-services-eyebrow">Testimonials</div>
+            <h2>What Our Customers Say</h2>
+            {!hasReviewContent && (
+              <p className="dbp-rv-empty">No reviews yet — be the first to share your experience.</p>
+            )}
+            {avgRating > 0 && (
+              <div className="dbp-rv-score-row">
+                <span className="dbp-rv-score">{avgRating.toFixed(1)}</span>
+                <span className="dbp-rv-score-stars">{renderStars(avgRating)}</span>
+                {reviewCount > 0 && (
+                  <span className="dbp-rv-score-count">{reviewCount.toLocaleString()} review{reviewCount === 1 ? '' : 's'}</span>
+                )}
+              </div>
+            )}
+            {reviewsSummary && (
+              <>
+                <p className="dbp-rv-summary">{reviewsSummary}</p>
+                <p className="dbp-rv-summary-note">Summarised from customer reviews</p>
+              </>
+            )}
+            {topReviews.length > 0 && (
+              <div className="dbp-rv-grid">
+                {topReviews.map((review, idx) => renderReviewCard(review, idx, false))}
+              </div>
+            )}
+            {reviewsList.length > 0 && (
+              <a className="dbp-rv-more" href={hrefFor('reviews')}>
+                See All Reviews
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            )}
+          </div>
+        </section>
+        )}
+
+        {/* ─── REVIEWS PAGE ─── */}
+        {page === 'reviews' && (
+        <section id="reviews" className="dbp-rp">
+          <div className="dbp-ap-intro">
+            <div className="dbp-ap-wrap">
+              <div className="dbp-ap-eyebrow">What Clients Say</div>
+              <h1>{shortName} Reviews</h1>
+              {business.address && <div className="dbp-ap-address">{business.address}</div>}
+            </div>
+          </div>
+
+          <div className={`dbp-ap-wrap dbp-rp-overview ${reviewsSummary ? '' : 'no-summary'}`}>
+            <div className="dbp-rp-rating">
+              <div className="dbp-rp-rating-score">{avgRating > 0 ? avgRating.toFixed(1) : '–'}</div>
+              <div className="dbp-rp-rating-stars">{renderStars(avgRating)}</div>
+              <div className="dbp-rp-rating-total">
+                {reviewCount > 0 ? `Based on ${reviewCount.toLocaleString()} review${reviewCount === 1 ? '' : 's'}` : 'No reviews yet'}
+              </div>
+              {ratedReviews.length > 0 && (
+                <>
+                  <div className="dbp-rp-bars">
+                    {starCounts.map(({ star, count }) => (
+                      <div key={star} className="dbp-rp-bar-row">
+                        <span className="dbp-rp-bar-label">{star} ★</span>
+                        <div className="dbp-rp-bar-track">
+                          <div className="dbp-rp-bar-fill" style={{ width: `${(count / ratedReviews.length) * 100}%` }} />
+                        </div>
+                        <span className="dbp-rp-bar-count">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* The breakdown only covers the reviews on file, which can be
+                      far fewer than the total count Google reports. */}
+                  {ratedReviews.length < reviewCount && (
+                    <div className="dbp-rp-bars-note">Breakdown of the {ratedReviews.length} reviews shown below</div>
+                  )}
+                </>
+              )}
+            </div>
+            {reviewsSummary && (
+              <div className="dbp-rp-summary">
+                <div className="dbp-ap-eyebrow">In Short</div>
+                <h2>What People Are Saying</h2>
+                <p>{reviewsSummary}</p>
+                <p className="dbp-rv-summary-note" style={{ textAlign: 'left' }}>Summarised from customer reviews</p>
+              </div>
+            )}
+          </div>
+
+          <div className="dbp-ap-wrap dbp-rp-list">
+            <h2>All Reviews</h2>
+            {reviewsList.length > 0 ? (
+              <div className="dbp-rv-grid">
+                {reviewsList.map((review, idx) => renderReviewCard(review, idx, true))}
+              </div>
+            ) : (
+              <p className="dbp-rv-empty">No reviews yet.</p>
+            )}
+          </div>
+        </section>
+        )}
+
+        {/* ─── CTA ─── */}
+        {(isHome || page === 'reviews') && (
         <section className="dbp-cta">
           <div className="dbp-cta-inner">
             <h2>Ready to Experience the Difference?</h2>

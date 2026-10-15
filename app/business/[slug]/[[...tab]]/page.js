@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug, getBusinesses, getRestaurantCategories } from '../../../lib/api';
+import { getBusinessBySlug, getBusinessReviews, getBusinesses, getRestaurantCategories } from '../../../lib/api';
 import BusinessPageClient from '../BusinessPageClient';
 import BusinessHero from '../../../components/BusinessHero';
 import BusinessOverview from '../../../components/BusinessOverview';
@@ -75,7 +75,7 @@ export async function generateMetadata(props) {
   // reviews_meta_title/etc., see BusinessDetailSerializer.get_seo()).
   if (activeTabPath === 'reviews') {
     seoTitle = seo.reviews_title || `${biz.name} Reviews | DoersMarketing`;
-    description = seo.reviews_description || description;
+    description = seo.reviews_description || (biz.reviewsSummary ? biz.reviewsSummary.slice(0, 300) : description);
   } else if (activeTabPath === 'menu') {
     seoTitle = seo.menu_title || `${biz.name} Menu | DoersMarketing`;
     description = seo.menu_description || description;
@@ -210,6 +210,21 @@ export default async function BusinessTabbedPage(props) {
     );
   }
 
+  // The detail endpoint only carries the 10 latest Google reviews; the
+  // /reviews page lists everything the reviews endpoint returns.
+  let pageBusiness = business;
+  if (activeTab === 'Reviews') {
+    try {
+      const full = await getBusinessReviews(slug);
+      const fullList = full?.reviews?.list || [];
+      if (fullList.length > (business.reviews?.list?.length || 0)) {
+        pageBusiness = { ...business, reviews: { ...business.reviews, list: fullList } };
+      }
+    } catch (e) {
+      console.error('Failed to fetch full reviews:', e.message);
+    }
+  }
+
   // Each page/tab can carry its own JSON-LD graph — homepage/overview is
   // always auto-generated; menu/reviews use an admin-editable override when
   // one is set (Business.menu_schema_override / reviews_schema_override, see
@@ -228,8 +243,8 @@ export default async function BusinessTabbedPage(props) {
       )}
       <BusinessPageClient
         slug={slug}
-        initialBusiness={business}
-        page={['about', 'contact'].includes(activeTabPath) ? activeTabPath : 'home'}
+        initialBusiness={pageBusiness}
+        page={['about', 'contact', 'reviews'].includes(activeTabPath) ? activeTabPath : 'home'}
       />
     </>
   );
