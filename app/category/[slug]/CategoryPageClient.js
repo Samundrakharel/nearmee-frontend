@@ -53,6 +53,9 @@ export default function CategoryPageClient({
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [selectedNeighborhoods, setSelectedNeighborhoods] = useState([]);
+  // Filters start collapsed on phones so results are visible first; on wider
+  // screens the CSS keeps them open regardless.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(initialTotalPages || 1);
   const [activeFilters, setActiveFilters] = useState({
@@ -134,8 +137,18 @@ export default function CategoryPageClient({
       <Header />
       <div className="category-page">
         {/* Sidebar Filters */}
-        <aside className="filter-sidebar">
-          <h2>Filter Results</h2>
+        <aside className={`filter-sidebar${filtersOpen ? ' is-open' : ''}`}>
+          <h2>
+            <button
+              type="button"
+              className="filter-toggle"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((o) => !o)}
+            >
+              Filter Results
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+          </h2>
           
           {/* Note: In a real app with subcategories API, these would be dynamic */}
           <div className="filter-group">

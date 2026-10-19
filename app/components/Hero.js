@@ -129,8 +129,8 @@ export default function Hero() {
         <p className="text-body-lg" style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.15rem', lineHeight: '1.6', maxWidth: '720px', margin: '0 auto 36px', fontWeight: 300 }}>
           We sort out the clutter so you don't have to, helping you find everyday spots, trusted services, and verified picks near you.
         </p>
-        <form className="hero-search" onSubmit={handleSearch} style={{ padding: '6px 6px 6px 24px', maxWidth: '720px', background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(255, 126, 103, 0.2)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)', borderRadius: '100px', display: 'flex', alignItems: 'center', margin: '0 auto' }}>
-          <div className="hero-search-input" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <form className="hero-search" onSubmit={handleSearch} style={{ maxWidth: '720px', background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(255, 126, 103, 0.2)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)', margin: '0 auto' }}>
+          <div className="hero-search-input">
             <span className="search-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
@@ -147,8 +147,8 @@ export default function Hero() {
               style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', color: '#18181b' }}
             />
           </div>
-          <div className="hero-search-divider" style={{ width: '1px', height: '28px', background: 'rgba(255, 126, 103, 0.2)', margin: '0 16px' }} />
-          <div className="hero-location-input" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '200px' }}>
+          <div className="hero-search-divider" style={{ background: 'rgba(255, 126, 103, 0.2)' }} />
+          <div className="hero-location-input">
             <span className="location-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
@@ -170,7 +170,7 @@ export default function Hero() {
             className="btn-search hero-btn-search text-body fw-bold" 
             id="hero-btn-search"
             disabled={searching}
-            style={{ background: 'linear-gradient(135deg, #ff7e67, #e0533c)', color: '#fff', border: 'none', borderRadius: '100px', padding: '0 32px', height: '48px', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.3s' }}
+            style={{ background: 'linear-gradient(135deg, #ff7e67, #e0533c)', color: '#fff', border: 'none', fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.3s' }}
           >
             {searching ? '...' : 'Search'}
           </button>

@@ -304,6 +304,7 @@ export default function Header() {
           {pathname !== '/' && (
             <button 
               className="mobile-search-toggle" 
+              aria-label="Search"
               onClick={() => setIsMobileSearchOpen(true)}
               style={{
                 display: 'none',
@@ -355,7 +356,7 @@ export default function Header() {
                   }}>
                     {userName ? userName.charAt(0).toUpperCase() : 'U'}
                   </span>
-                  {userName && <span style={{ whiteSpace: 'nowrap' }}>{greeting}, {userName}</span>}
+                  {userName && <span className="header-greeting" style={{ whiteSpace: 'nowrap' }}>{greeting}, {userName}</span>}
                 </span>
               </Link>
               <button

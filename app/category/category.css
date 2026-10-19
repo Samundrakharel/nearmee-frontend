@@ -22,6 +22,27 @@
   margin-bottom: 24px;
 }
 
+/* The heading doubles as the collapse toggle on phones; on wider screens it
+   is plain text and the chevron is hidden. */
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.filter-toggle svg {
+  display: none;
+  transition: transform 0.2s;
+}
+
 .filter-group {
   margin-bottom: 24px;
 }
@@ -237,5 +258,29 @@
     position: static;
     border-bottom: 1px solid var(--color-border);
     padding-bottom: 24px;
+  }
+
+  .filter-sidebar:not(.is-open) {
+    padding-bottom: 16px;
+  }
+
+  .filter-sidebar:not(.is-open) h2 {
+    margin-bottom: 0;
+  }
+
+  .filter-sidebar:not(.is-open) > :not(h2) {
+    display: none;
+  }
+
+  .filter-toggle {
+    cursor: pointer;
+  }
+
+  .filter-toggle svg {
+    display: block;
+  }
+
+  .filter-sidebar.is-open .filter-toggle svg {
+    transform: rotate(180deg);
   }
 }

@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation';
 export default function DoersBusinessPage({ business, page = 'home' }) {
   const [activeNav, setActiveNav] = useState(page === 'home' ? 'home' : page);
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname() || '/';
 
   // Links have to work both on a business subdomain (/about) and on the main
@@ -223,6 +224,19 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         }
         .dbp-nav-btn:hover { background: #fff5f2; color: #ff7e67; }
         .dbp-nav-btn.active { background: #ff7e67; color: #ffffff; font-weight: 600; }
+        .dbp-menu-toggle {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          flex-shrink: 0;
+          background: none;
+          border: 1px solid #ffd8cc;
+          border-radius: 10px;
+          color: #18181b;
+          cursor: pointer;
+        }
 
         /* ─── HERO ─── */
         .dbp-hero {
@@ -1013,9 +1027,15 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
         @media (max-width: 768px) {
           .dbp-header { padding: 14px 20px; }
           .dbp-header.scrolled { padding: 10px 20px; }
-          .dbp-nav { gap: 4px; }
-          .dbp-nav { gap: 2px; flex-wrap: wrap; justify-content: flex-end; }
-          .dbp-nav-btn { padding: 6px 8px; font-size: 0.8rem; }
+          /* Five nav links don't fit beside the name on a phone, so they
+             collapse behind a menu button and open as a full-width list. */
+          .dbp-header { flex-wrap: wrap; gap: 12px; }
+          .dbp-header-brand { min-width: 0; flex: 1; }
+          .dbp-header-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .dbp-menu-toggle { display: flex; }
+          .dbp-nav { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 4px; padding-top: 4px; }
+          .dbp-nav.open { display: flex; }
+          .dbp-nav-btn { padding: 12px 14px; font-size: 1rem; }
           .dbp-hero { padding: 72px 20px 64px; }
           .dbp-features { grid-template-columns: 1fr; }
           .dbp-feature-card + .dbp-feature-card { border-left: none; border-top: 1px solid rgba(255, 126, 103, 0.12); }
@@ -1045,7 +1065,20 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
             </div>
             <div className="dbp-header-name">{shortName}</div>
           </div>
-          <nav className="dbp-nav">
+          <button
+            type="button"
+            className="dbp-menu-toggle"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            )}
+          </button>
+          <nav className={`dbp-nav${menuOpen ? ' open' : ''}`}>
             {['home', 'about', 'services', 'reviews', 'contact'].map((id) => (
               <a
                 key={id}
@@ -1056,6 +1089,7 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
                 // one-page home view their targets are already on screen, so
                 // scroll there.
                 onClick={(e) => {
+                  setMenuOpen(false);
                   if (page !== 'home' || ['about', 'reviews', 'contact'].includes(id)) return;
                   e.preventDefault();
                   scrollToSection(id === 'home' ? 'hero' : id);

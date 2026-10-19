@@ -195,6 +195,8 @@ export default function Categories({ initialCategories }) {
           onMouseLeave={() => setIsHovered(false)}
         >
           <button 
+            className="category-slider-arrow"
+            aria-label="Scroll categories left"
             onClick={() => scrollLeft(scrollContainerRef)}
             style={{
               position: 'absolute', left: '-20px', top: '50%', transform: 'translateY(-50%)',
@@ -284,6 +286,8 @@ export default function Categories({ initialCategories }) {
           })}
           </div>
           <button 
+            className="category-slider-arrow"
+            aria-label="Scroll categories right"
             onClick={() => scrollRight(scrollContainerRef)}
             style={{
               position: 'absolute', right: '-20px', top: '50%', transform: 'translateY(-50%)',
