@@ -154,7 +154,7 @@ export default function ContactForm({
                 type="text"
                 value={form.name}
                 onChange={e => setField('name', e.target.value)}
-                placeholder="Jane Sharma"
+                placeholder="Jane Smith"
                 maxLength={120}
                 autoComplete="name"
                 className={`contact-input${errors.name ? ' invalid' : ''}`}

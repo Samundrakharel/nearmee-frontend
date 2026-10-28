@@ -60,7 +60,7 @@ function getCardIcon(heading = '', id = '') {
   return CARD_ICONS.sparkle;
 }
 
-export default function PageSections({ sections }) {
+export default function PageSections({ sections, plain = false }) {
   if (!sections?.length) return null;
 
   return sections.map((section) => {
@@ -159,7 +159,7 @@ export default function PageSections({ sections }) {
           <div className="static-prose-card">
             {section.heading && (
               <div style={{ marginBottom: '24px' }}>
-                <span className="static-section-badge">Our Story</span>
+                {!plain && <span className="static-section-badge">Our Story</span>}
                 <h2>{section.heading}</h2>
               </div>
             )}

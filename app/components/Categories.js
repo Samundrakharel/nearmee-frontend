@@ -110,9 +110,23 @@ function getCategoryIcon(name) {
   return defaultIcons.default;
 }
 
+// Homepage shows only these wellness categories, in this order. Slugs match the backend Category rows.
+const FEATURED_CATEGORIES = [
+  { slug: 'hair-salon', name: 'Hair salon' },
+  { slug: 'spa', name: 'Spa' },
+  { slug: 'nail-salon', name: 'Nail salon' },
+  { slug: 'eyelash-salon', name: 'Eyelash salon' },
+  { slug: 'barber-shop', name: 'Barber shop' },
+  { slug: 'yoga-studio', name: 'Yoga studio' },
+];
+
+function pickFeatured(list) {
+  return FEATURED_CATEGORIES.map(f => (list || []).find(c => c.slug === f.slug) || f);
+}
+
 export default function Categories({ initialCategories }) {
   const { country, state, city, stateCode, countryCode } = useLocation();
-  const [categories, setCategories] = useState(initialCategories || []);
+  const [categories, setCategories] = useState(pickFeatured(initialCategories));
   const [loading, setLoading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -147,7 +161,7 @@ export default function Categories({ initialCategories }) {
         const { getRestaurantCategories } = await import('../lib/api');
         const data = await getRestaurantCategories();
         const results = data.results || [];
-        setCategories(results.filter(cat => cat.is_active !== false));
+        setCategories(pickFeatured(results.filter(cat => cat.is_active !== false)));
       } catch (err) {
         console.error('Error fetching restaurant categories:', err);
       } finally {

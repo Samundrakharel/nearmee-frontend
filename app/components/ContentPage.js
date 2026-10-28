@@ -16,6 +16,20 @@ import PageSections from './PageSections';
  * hardcoded CTA here — a privacy policy should not be advertising anything.
  */
 export default function ContentPage({ page }) {
+  const isLegal = page.slug === 'terms-of-service' || page.slug === 'privacy-policy';
+
+  // The legal pages' "Last Updated" line always shows today's date, so it is
+  // built here at render time (the page revalidates every 30s) instead of read
+  // from the stored hero_lead.
+  const heroLead = isLegal
+      ? `Last Updated: ${new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'UTC',
+        })}`
+      : page.hero_lead;
+
   return (
     <main>
       <section className="page-hero" id={`${page.slug}-hero`}>
@@ -24,11 +38,12 @@ export default function ContentPage({ page }) {
           {/* Falls back to the admin title so a page with no hero heading
               still renders one h1 rather than an empty heading. */}
           <h1>{page.hero_heading || page.title}</h1>
-          {page.hero_lead && <p className="page-hero-lead">{page.hero_lead}</p>}
+          {heroLead && <p className="page-hero-lead">{heroLead}</p>}
         </div>
       </section>
 
-      <PageSections sections={page.sections} />
+      {/* Legal pages are plain text: no decorative "Our Story" badge per section. */}
+      <PageSections sections={page.sections} plain={isLegal} />
     </main>
   );
 }
