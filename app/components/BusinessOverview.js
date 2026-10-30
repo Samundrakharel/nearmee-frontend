@@ -172,6 +172,18 @@ export default function BusinessOverview({ business }) {
             {hasReviews ? 'Review summary coming soon.' : 'No reviews yet.'}
           </p>
         )}
+        {business.googleReviewsUrl && totalReviews > topReviews.length && (
+          <p style={{ textAlign: 'center', margin: '8px 0' }}>
+            <a
+              href={business.googleReviewsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--color-primary)', fontWeight: '600', textDecoration: 'none' }}
+            >
+              See more reviews on Google
+            </a>
+          </p>
+        )}
         {topReviews.length > 0 && (
           <div className="reviews-list">
             {topReviews.map((review, index) => (

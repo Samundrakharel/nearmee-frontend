@@ -61,11 +61,16 @@ export default function BusinessFullReviews({ business }) {
   const totalReviews = summary.total || 0;
   const avgRating = summary.average || 0;
 
+  // Percentages are of the reviews we actually hold, since the headline total
+  // can be Google's much larger count.
+  const countedReviews = summary.counts
+    ? Object.values(summary.counts).reduce((a, b) => a + b, 0)
+    : 0;
   const starPercentages = [5, 4, 3, 2, 1].map(star => {
     const count = summary.counts ? summary.counts[star] : 0;
     return {
       star,
-      percentage: totalReviews ? Math.round((count / totalReviews) * 100) : 0,
+      percentage: countedReviews ? Math.round((count / countedReviews) * 100) : 0,
       count
     };
   });
@@ -254,6 +259,18 @@ export default function BusinessFullReviews({ business }) {
                 <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px', border: '1px solid #e2e8f0', borderRadius: '12px' }}>No reviews yet.</p>
               )}
             </div>
+            {business.googleReviewsUrl && totalReviews > mergedList.length && (
+              <p style={{ textAlign: 'center', marginTop: '8px' }}>
+                <a
+                  href={business.googleReviewsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-primary)', fontWeight: '600', textDecoration: 'none' }}
+                >
+                  See more reviews on Google
+                </a>
+              </p>
+            )}
           </div>
         </div>
       </div>
