@@ -553,11 +553,15 @@ export function transformBusiness(biz) {
       },
       list: reviewsList,
     },
-    // Where the visitor can read every review. Manual/user-submitted listings
-    // carry a placeholder id that isn't a real Google place, so they get none.
-    googleReviewsUrl: /^(manual|user)-submission-/.test(biz.google_place_id || '') || !biz.google_place_id
-      ? ''
-      : `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(biz.google_place_id)}`,
+    // Where the visitor can read every review. Prefer the Maps data id
+    // (opens the listing directly, e.g. /maps/place/<name>/data=!4m2!3m1!1s0x..:0x..),
+    // falling back to the place id. Manual/user-submitted listings carry a
+    // placeholder id that isn't a real Google place, so they get none.
+    googleReviewsUrl: /^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(biz.google_data_id || '')
+      ? `https://www.google.com/maps/place/${encodeURIComponent(biz.name || '')}/data=!4m2!3m1!1s${biz.google_data_id}`
+      : /^(manual|user)-submission-/.test(biz.google_place_id || '') || !biz.google_place_id
+        ? ''
+        : `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(biz.google_place_id)}`,
     reviewsSummary: biz.reviews_summary || '',
     reviewsSummaryGeneratedAt: biz.reviews_summary_generated_at || null,
     topReviews: reviewsList.slice(0, 4),

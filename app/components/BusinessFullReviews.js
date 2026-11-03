@@ -259,17 +259,25 @@ export default function BusinessFullReviews({ business }) {
                 <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px', border: '1px solid #e2e8f0', borderRadius: '12px' }}>No reviews yet.</p>
               )}
             </div>
-            {business.googleReviewsUrl && totalReviews > mergedList.length && (
-              <p style={{ textAlign: 'center', marginTop: '8px' }}>
+            {business.googleReviewsUrl && Math.max(totalReviews, mergedList.length) > 5 && (
+              <div style={{ textAlign: 'center', marginTop: '8px' }}>
                 <a
                   href={business.googleReviewsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'var(--color-primary)', fontWeight: '600', textDecoration: 'none' }}
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 24px',
+                    borderRadius: 'var(--radius-md, 12px)',
+                    border: '1px solid var(--color-primary, #0d7377)',
+                    color: 'var(--color-primary, #0d7377)',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                  }}
                 >
-                  See more reviews on Google
+                  See all reviews on Google
                 </a>
-              </p>
+              </div>
             )}
           </div>
         </div>

@@ -154,6 +154,7 @@ export default async function BusinessTabbedPage(props) {
     type: business.type,
     categories: business.categories,
     reviews: business.reviews,
+    googleReviewsUrl: business.googleReviewsUrl,
   };
 
   let content = null;
