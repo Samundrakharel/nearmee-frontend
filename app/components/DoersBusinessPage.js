@@ -873,6 +873,22 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
           margin: 0;
         }
         .dbp-rp-list .dbp-rv-grid { margin-top: 32px; }
+        .dbp-rp-google { text-align: center; margin-top: 48px; }
+        .dbp-rp-google a {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 14px 28px;
+          border: 1.5px solid #e0533c;
+          border-radius: 999px;
+          color: #e0533c;
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          text-decoration: none;
+          transition: background 0.2s, color 0.2s;
+        }
+        .dbp-rp-google a:hover { background: #e0533c; color: #fff; }
 
         /* ─── CTA BANNER ─── */
         .dbp-cta {
@@ -1394,6 +1410,16 @@ export default function DoersBusinessPage({ business, page = 'home' }) {
               </div>
             ) : (
               <p className="dbp-rv-empty">No reviews yet.</p>
+            )}
+            {business.googleReviewsUrl && Math.max(reviewCount, reviewsList.length) > 5 && (
+              <div className="dbp-rp-google">
+                <a href={business.googleReviewsUrl} target="_blank" rel="noopener noreferrer">
+                  See All Reviews on Google
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
             )}
           </div>
         </section>
